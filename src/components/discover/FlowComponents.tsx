@@ -54,7 +54,7 @@ export const ParticipantNode: React.FC<ParticipantNodeProps> = ({ participant, x
 
   return (
     <motion.div
-      initial={{ scale: 0, opacity: 0, x: 0, y: 0 }} // Start from center (0,0 relative to parent center)
+      initial={{ scale: 0, opacity: 0, x: 0, y: 0 }}
       animate={{ scale: 1, opacity: 1, x, y }}
       transition={{ 
         type: "spring", 
@@ -62,7 +62,8 @@ export const ParticipantNode: React.FC<ParticipantNodeProps> = ({ participant, x
         damping: 15, 
         delay: delay * 0.1 
       }}
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer group"
+      className="absolute top-1/2 left-1/2 z-20 cursor-pointer group"
+      style={{ marginLeft: '-6rem', marginTop: '-3rem' }} // Center anchor point (w-48 = 12rem -> 6rem offset)
       onClick={onClick}
     >
       {/* Node Card */}
@@ -121,7 +122,10 @@ export const ConnectionLine: React.FC<{ x1: number; y1: number; x2: number; y2: 
   color = '#3b82f6',
 }) => {
   return (
-    <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none overflow-visible" style={{ zIndex: 0 }}>
+    <svg 
+      className="absolute top-1/2 left-1/2 pointer-events-none overflow-visible" 
+      style={{ zIndex: 0 }}
+    >
       <defs>
         <linearGradient id={`grad-${x1}-${y1}-${x2}-${y2}`} x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor={color} stopOpacity="0" />
@@ -153,4 +157,3 @@ export const ConnectionLine: React.FC<{ x1: number; y1: number; x2: number; y2: 
     </svg>
   );
 };
-

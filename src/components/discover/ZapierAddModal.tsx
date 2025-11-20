@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Building2, Database, ShieldCheck, Coins, Server, X, LayoutGrid, Star, ChevronRight, Plus } from 'lucide-react';
+import { Search, Building2, Database, ShieldCheck, Coins, Server, X, LayoutGrid, Star, ChevronRight, Plus, Wallet, ArrowRight } from 'lucide-react';
 import { Participant } from '@/lib/canton-data';
 
 interface ZapierModalProps {
@@ -11,14 +11,28 @@ interface ZapierModalProps {
   existingParticipantIds: string[];
 }
 
+// Map UI categories to underlying capabilities
+const CATEGORY_MAPPING: Record<string, string[]> = {
+  infrastructure: ['Registry', 'Settlement', 'Data_Oracle', 'Identity_Provider', 'Infrastructure'],
+  custody: ['Custody', 'Wallet', 'Collateral_Agent', 'Staking'],
+  liquidity: ['Exchange', 'Liquidity_Provider', 'Market_Maker', 'Collateral_Taker'],
+  financing: ['Cash_Lender', 'Cash_Borrower', 'Repo_Platform', 'Collateral_Provider'],
+  issuance: ['Issuer', 'Payment_Stablecoin', 'Valuation_Pricing']
+};
+
 const CATEGORIES = [
   { id: 'all', name: 'All Apps', icon: LayoutGrid },
   { id: 'infrastructure', name: 'Infrastructure', icon: Database },
   { id: 'custody', name: 'Custody', icon: ShieldCheck },
   { id: 'liquidity', name: 'Liquidity', icon: Coins },
   { id: 'financing', name: 'Financing', icon: Building2 },
-  { id: 'validators', name: 'Validators', icon: Server },
+  { id: 'issuance', name: 'Issuance', icon: Wallet },
 ];
+
+// Helper to get capabilities for a participant
+const getParticipantCaps = (p: Participant): string[] => {
+  return Object.keys(p.capabilities).filter(k => p.capabilities[k] === 1);
+};
 
 export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, onSelect, participants, existingParticipantIds }) => {
   const [search, setSearch] = useState('');
@@ -26,16 +40,21 @@ export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, on
 
   // Filter logic
   const filteredParticipants = participants.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
-                          p.cantonRole.toLowerCase().includes(search.toLowerCase());
+    const caps = getParticipantCaps(p);
+    
+    // Search matches name, role label, or specific capability keys
+    const matchesSearch = 
+      p.name.toLowerCase().includes(search.toLowerCase()) || 
+      p.cantonRole.toLowerCase().includes(search.toLowerCase()) ||
+      caps.some(c => c.toLowerCase().includes(search.toLowerCase().replace(' ', '_'))); // Handle "Cash Lender" -> "Cash_Lender"
+
     const notAdded = !existingParticipantIds.includes(p.id);
     
     let matchesCategory = true;
-    if (activeCategory === 'infrastructure') matchesCategory = p.cantonRole.toLowerCase().includes('registry') || p.cantonRole.toLowerCase().includes('oracle');
-    if (activeCategory === 'custody') matchesCategory = p.cantonRole.toLowerCase().includes('custody');
-    if (activeCategory === 'liquidity') matchesCategory = p.cantonRole.toLowerCase().includes('liquidity') || p.cantonRole.toLowerCase().includes('exchange');
-    if (activeCategory === 'financing') matchesCategory = p.cantonRole.toLowerCase().includes('financing') || p.cantonRole.toLowerCase().includes('bank');
-    if (activeCategory === 'validators') matchesCategory = (p.validatorNodes || 0) > 0;
+    if (activeCategory !== 'all') {
+      const targetCaps = CATEGORY_MAPPING[activeCategory];
+      matchesCategory = caps.some(c => targetCaps.includes(c));
+    }
 
     return matchesSearch && notAdded && matchesCategory;
   });
@@ -87,7 +106,7 @@ export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, on
                 <span className="text-xs font-bold uppercase">Pro Tip</span>
               </div>
               <p className="text-xs text-blue-200/70 leading-relaxed">
-                Connect high-centrality nodes first to maximize your network score.
+                Search by specific role like "Lender" or "Custodian" to find matches quickly.
               </p>
             </div>
           </div>
@@ -102,7 +121,7 @@ export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, on
               <input 
                 autoFocus
                 type="text"
-                placeholder="Search 180+ participants..."
+                placeholder="Search participants (e.g., 'Lender', 'Coinbase')..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-base"
@@ -189,6 +208,7 @@ const ParticipantRow = ({ participant, onSelect }: { participant: Participant, o
 // Larger Card for Main Grid
 const ParticipantCard = ({ participant, onSelect }: { participant: Participant, onSelect: () => void }) => {
   const roleColor = getRoleColor(participant.cantonRole);
+  const capabilities = getParticipantCaps(participant).slice(0, 3); // Top 3 caps
 
   return (
     <button 
@@ -208,6 +228,15 @@ const ParticipantCard = ({ participant, onSelect }: { participant: Participant, 
       
       <h4 className="text-sm font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">{participant.name}</h4>
       <p className="text-xs text-white/50 mb-3 line-clamp-2">{participant.description || participant.cantonRole}</p>
+
+      {/* Capability Tags */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {capabilities.map(cap => (
+          <span key={cap} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] text-white/60 border border-white/5">
+            {cap.replace(/_/g, ' ')}
+          </span>
+        ))}
+      </div>
       
       <div className="mt-auto pt-3 border-t border-white/5 flex items-center gap-3 text-[10px] text-white/40">
         <span className="flex items-center gap-1">
@@ -231,4 +260,3 @@ const getRoleColor = (role: string) => {
   if (r.includes('custody')) return 'border-orange-500/30 text-orange-400';
   return 'border-gray-500/30 text-gray-400';
 };
-

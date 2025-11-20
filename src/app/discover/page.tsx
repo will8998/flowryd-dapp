@@ -236,7 +236,7 @@ function AppView() {
     score += Math.min(network.length / 10, 1) * 25;
     return Math.round(score);
   };
-
+  
   const centralityScore = calculateCentrality();
 
   // Readiness
@@ -304,7 +304,7 @@ function AppView() {
                   key={wf.id}
                   onClick={() => setSelectedWorkflow(wf)}
                   className="text-left px-3 py-2 hover:bg-white/10 rounded-lg text-sm text-white/70 hover:text-white transition-colors"
-                >
+              >
                   {wf.name}
               </button>
             ))}
@@ -529,7 +529,7 @@ function AppView() {
             onSelect={(p) => {
               addToNetwork(p);
               setSmartAddOpen(false);
-            }}
+      }}
             participants={participants}
             existingParticipantIds={network.map(n => n.id)}
           />
