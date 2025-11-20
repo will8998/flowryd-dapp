@@ -329,7 +329,7 @@ function AppView() {
       className="h-screen flex flex-col bg-[#050505] overflow-hidden relative font-sans"
     >
       {/* Back to main site */}
-      <div className="absolute top-4 left-4 z-40">
+      <div className="absolute top-4 left-4 z-50">
         <Link
           href="/"
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] text-white/70 hover:bg-white/10 hover:text-white transition-colors"
@@ -337,8 +337,33 @@ function AppView() {
           <ArrowLeft className="w-3 h-3" />
           <span>Back to Flowryd</span>
         </Link>
-      </div>
-      
+          </div>
+
+      {/* Navigation Tabs - Global */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-xl border border-white/10 p-1 rounded-full">
+        <button 
+          onClick={() => setShowTeaser(false)}
+          className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all ${!showTeaser ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+        >
+          DISCOVER
+        </button>
+        <div className="w-px h-3 bg-white/10 mx-1" />
+        <button 
+          onClick={() => readinessScore >= 40 && setShowTeaser(true)}
+          disabled={readinessScore < 40}
+          className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all ${showTeaser ? 'bg-blue-500 text-white shadow-lg shadow-blue-900/20' : (readinessScore >= 40 ? 'text-white/40 hover:text-white hover:bg-white/5' : 'text-white/20 cursor-not-allowed')}`}
+        >
+          NAVIGATE
+        </button>
+        <div className="w-px h-3 bg-white/10 mx-1" />
+              <button
+          disabled
+          className="px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider text-white/20 cursor-not-allowed"
+        >
+          ACTIVATE
+              </button>
+        </div>
+
       {/* Background Grid */}
       <div className="absolute inset-0 opacity-20 pointer-events-none" 
            style={{ 
@@ -415,7 +440,6 @@ function AppView() {
         >
           {/* 1. Render Connections FIRST (Behind) */}
           {network.flatMap((source) => {
-            // Skip if source position not calculated yet (rare race condition safe guard)
             const sourcePos = nodePositions[source.id];
             if (!sourcePos) return [];
 
@@ -423,15 +447,10 @@ function AppView() {
               if (source.id === target.id) return null;
               const targetPos = nodePositions[target.id];
               if (!targetPos) return null;
-
-              // Avoid duplicates (only draw A->B, not B->A twice if undirected, but our logic is directed/specific)
-              // Actually, we want to draw lines if relation exists. 
-              // Unique key is source-target.
               
               let shouldConnect = false;
               let connectionColor = '#3b82f6';
 
-              // --- Logic based on TSV Roles/Capabilities ---
               if (selectedWorkflow?.id === 'WF-001') {
                   if (
                     (hasCap(source, 'Issuer') && hasCap(target, 'Registry')) ||
@@ -441,7 +460,7 @@ function AppView() {
                     (hasCap(source, 'Liquidity_Provider') && hasCap(target, 'Exchange'))
                   ) {
                     shouldConnect = true;
-                    connectionColor = '#3b82f6'; // Blue
+                    connectionColor = '#3b82f6'; 
                   }
               }
               else if (selectedWorkflow?.id === 'WF-021') {
@@ -465,13 +484,13 @@ function AppView() {
                     (hasCap(source, 'Custody') && hasCap(target, 'Settlement'))
                   ) {
                     shouldConnect = true;
-                    connectionColor = '#f97316'; // Orange
+                    connectionColor = '#f97316'; 
                   }
               }
               if (!shouldConnect) {
                   if (hasCap(source, 'Registry') || hasCap(target, 'Registry')) {
                       shouldConnect = true;
-                      connectionColor = '#ffffff'; // White
+                      connectionColor = '#ffffff';
                   }
               }
 
@@ -503,11 +522,11 @@ function AppView() {
                   onRemove={() => removeFromNetwork(participant.id)}
                   delay={i}
                 />
-              </div>
+          </div>
             );
           })}
         </motion.div>
-
+          
         {/* Smart Add Button */}
         <div className={`absolute z-40 transition-all duration-500 ${network.length === 0 ? 'top-1/2 left-1/2 -translate-x-1/2 translate-y-16' : 'bottom-32 left-1/2 -translate-x-1/2'}`}>
           <div className="relative">

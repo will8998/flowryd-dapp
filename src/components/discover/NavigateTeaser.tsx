@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ArrowRight, ArrowLeft, Building2, ShieldCheck, Database, Scale, Clock, Mail } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ArrowLeft, Building2, ShieldCheck, Database, Scale, Clock } from 'lucide-react';
 import { Participant } from '@/lib/canton-data';
 import Image from 'next/image';
 
@@ -273,31 +273,49 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
             {/* Section 4: Call to Action */}
             <section className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-2xl border border-white/10 p-6 text-center relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20"></div>
-              
+
               <div className="relative z-10">
                 <div className="w-12 h-12 mx-auto bg-white rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                   <Image src="/flow.svg" alt="Flowryd" width={32} height={32} className="w-8 h-8" />
+                  <Image src="/flow.svg" alt="Flowryd" width={32} height={32} className="w-8 h-8" />
                 </div>
-                
-                <h2 className="text-xl font-bold mb-2">This is Flowryd Navigate</h2>
-                <p className="text-sm text-white/70 mb-6 leading-relaxed">
-                  What you&apos;re seeing is our orchestration platform launching <b>Q1 2026</b>. 
-                  Full Navigate includes AI-powered offers, direct messaging, and automated contract deployment.
+
+                <h2 className="text-xl font-bold mb-4">This is Flowryd Navigate</h2>
+
+                <p className="text-sm text-white/70 mb-4">
+                  Full platform launches <b>Q1 2026</b> with:
                 </p>
 
-                <div className="space-y-3">
-                  <button className="w-full py-3 bg-white text-black hover:bg-gray-100 font-bold rounded-lg transition-all shadow-lg shadow-white/10 flex items-center justify-center gap-2">
-                    Subscribe to Navigate
+                <ul className="text-sm text-white/80 mb-6 space-y-1 text-left max-w-sm mx-auto">
+                  <li>• Send/receive coordination offers</li>
+                  <li>• Direct participant messaging</li>
+                  <li>• Contract orchestration</li>
+                  <li>• Success tracking</li>
+                </ul>
+
+                <div className="space-y-3 mb-3">
+                  <a
+                    href="https://flowryd.typeform.com/to/UkJLqGuB"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 w-full py-3 bg-white text-black hover:bg-gray-100 font-bold rounded-lg transition-all shadow-lg shadow-white/10"
+                  >
+                    [Subscribe Now - $3,500/year]
                     <ArrowRight className="w-4 h-4" />
-                  </button>
-                  <button className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-medium rounded-lg transition-all border border-white/10 flex items-center justify-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    Join Q1 Launch Waitlist
-                  </button>
+                  </a>
+
+                  <a
+                    href="https://flowryd.typeform.com/to/UkJLqGuB"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg transition-all border border-white/20"
+                  >
+                    [Join Waitlist - Stay Updated]
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
                 </div>
-                
-                <div className="mt-4 text-xs text-white/30">
-                  Lock in 2025 Founder Benefits by subscribing early.
+
+                <div className="text-xs text-white/60">
+                  2025 Founders: 25% FA reward share
                 </div>
               </div>
             </section>
