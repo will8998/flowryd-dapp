@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Building2, Database, ShieldCheck, Coins, Server, X, LayoutGrid, Star, ChevronRight, Plus, Wallet, ArrowRight } from 'lucide-react';
+import { Search, Building2, Database, ShieldCheck, Coins, Server, X, LayoutGrid, Star, ChevronRight, Plus, Wallet } from 'lucide-react';
 import { Participant } from '@/lib/canton-data';
 
 interface ZapierModalProps {
@@ -108,7 +108,7 @@ export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, on
                 <span className="text-xs font-bold uppercase">Pro Tip</span>
               </div>
               <p className="text-xs text-blue-200/70 leading-relaxed">
-                Search by specific role like "Lender" or "Custodian" to find matches quickly.
+                Search by specific role like &quot;Lender&quot; or &quot;Custodian&quot; to find matches quickly.
               </p>
             </div>
           </div>
