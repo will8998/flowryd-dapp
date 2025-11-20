@@ -189,6 +189,7 @@ export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, on
 // Smaller List Row for "Popular"
 const ParticipantRow = ({ participant, onSelect }: { participant: Participant, onSelect: () => void }) => {
   const roleColor = getRoleColor(participant.cantonRole);
+  const capabilities = getParticipantCaps(participant).slice(0, 2); // Show max 2
   
   return (
     <button 
@@ -198,11 +199,20 @@ const ParticipantRow = ({ participant, onSelect }: { participant: Participant, o
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center border bg-[#111] group-hover:scale-110 transition-transform ${roleColor}`}>
         <Building2 className="w-5 h-5" />
       </div>
-      <div>
-        <h4 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">{participant.name}</h4>
-        <p className="text-xs text-white/40">{participant.cantonRole}</p>
+      <div className="flex-1 min-w-0">
+        <h4 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors truncate">{participant.name}</h4>
+        <p className="text-xs text-white/40 truncate">{participant.cantonRole}</p>
+        
+        {/* Capability Tags for Row */}
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          {capabilities.map(cap => (
+            <span key={cap} className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-white/60 whitespace-nowrap">
+              {cap.replace(/_/g, ' ')}
+            </span>
+          ))}
+        </div>
       </div>
-      <ChevronRight className="w-4 h-4 text-white/20 ml-auto group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+      <ChevronRight className="w-4 h-4 text-white/20 ml-auto group-hover:text-blue-400 group-hover:translate-x-1 transition-all shrink-0" />
     </button>
   );
 };
@@ -229,12 +239,12 @@ const ParticipantCard = ({ participant, onSelect }: { participant: Participant, 
       </div>
       
       <h4 className="text-sm font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">{participant.name}</h4>
-      <p className="text-xs text-white/50 mb-3 line-clamp-2">{participant.description || participant.cantonRole}</p>
+      <p className="text-xs text-white/50 mb-3 line-clamp-2 min-h-[2.5em]">{participant.description || participant.cantonRole}</p>
 
-      {/* Capability Tags */}
+      {/* Capability Tags - Increased visibility */}
       <div className="flex flex-wrap gap-1.5 mb-3">
         {capabilities.map(cap => (
-          <span key={cap} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] text-white/60 border border-white/5">
+          <span key={cap} className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-medium text-white/70 border border-white/5 hover:bg-white/20 transition-colors">
             {cap.replace(/_/g, ' ')}
           </span>
         ))}

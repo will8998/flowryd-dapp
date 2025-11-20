@@ -124,7 +124,7 @@ export const ConnectionLine: React.FC<{ x1: number; y1: number; x2: number; y2: 
   return (
     <svg 
       className="absolute top-1/2 left-1/2 pointer-events-none overflow-visible" 
-      style={{ zIndex: 0 }}
+      style={{ zIndex: -1 }}
     >
       <defs>
         <linearGradient id={`grad-${x1}-${y1}-${x2}-${y2}`} x1="0%" y1="0%" x2="100%" y2="0%">
