@@ -1,5 +1,4 @@
 "use client";
-import MatchingAnimation from "@/components/MatchingAnimation";
 import TypeWord from "@/components/TypeWord";
 import Framework from "@/components/Framework";
 // Link not currently used; keep imports minimal

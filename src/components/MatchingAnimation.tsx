@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { motion, useAnimation } from "framer-motion";
 
 type Anchor = { x: number; y: number }; // normalized (0..1)
@@ -151,12 +151,25 @@ export default function MatchingAnimation({ logos = false }: { logos?: boolean }
   const containerRef = useRef<HTMLDivElement>(null);
   // cast to satisfy strict RefObject<HTMLDivElement>
   const { w, h } = useContainerSize(containerRef as unknown as React.RefObject<HTMLDivElement>);
-  const grid = anchors3x3();
+  const grid = useMemo(() => anchors3x3(), []);
 
   // support up to 4 elements; use first N based on mode
-  const controls = [useAnimation(), useAnimation(), useAnimation(), useAnimation()] as const;
-  const opacityControls = [useAnimation(), useAnimation(), useAnimation(), useAnimation()] as const;
-  const scaleControls = [useAnimation(), useAnimation(), useAnimation(), useAnimation()] as const;
+  const c0 = useAnimation();
+  const c1 = useAnimation();
+  const c2 = useAnimation();
+  const c3 = useAnimation();
+  const o0 = useAnimation();
+  const o1 = useAnimation();
+  const o2 = useAnimation();
+  const o3 = useAnimation();
+  const s0 = useAnimation();
+  const s1 = useAnimation();
+  const s2 = useAnimation();
+  const s3 = useAnimation();
+
+  const controls = useMemo(() => [c0, c1, c2, c3] as const, [c0, c1, c2, c3]);
+  const opacityControls = useMemo(() => [o0, o1, o2, o3] as const, [o0, o1, o2, o3]);
+  const scaleControls = useMemo(() => [s0, s1, s2, s3] as const, [s0, s1, s2, s3]);
   const count = logos ? 4 : 3;
 
   const [points, setPoints] = useState<Anchor[]>([
@@ -172,7 +185,6 @@ export default function MatchingAnimation({ logos = false }: { logos?: boolean }
   const toPx = (a: Anchor) => ({ x: a.x * w, y: a.y * h });
 
   // Timeline orchestrator
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let mounted = true;
 
@@ -246,7 +258,7 @@ export default function MatchingAnimation({ logos = false }: { logos?: boolean }
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [controls, opacityControls, scaleControls, grid, count, logos]);
 
   const pathCoords = points.map(toPx);
 

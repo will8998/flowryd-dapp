@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, Check } from 'lucide-react';
 
@@ -70,7 +70,6 @@ export const WizardOverlay: React.FC<WizardOverlayProps> = ({ onComplete, onSkip
             top: step.position.top,
             left: step.position.left,
             bottom: step.position.bottom,
-            right: step.position.right,
             transform: `translate(${step.position.x || 0}, ${step.position.y || 0})`
           }}
         >

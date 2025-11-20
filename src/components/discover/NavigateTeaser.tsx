@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ArrowRight, ArrowLeft, Building2, ShieldCheck, Database, Scale, Clock, Mail, ExternalLink } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ArrowLeft, Building2, ShieldCheck, Database, Scale, Clock, Mail } from 'lucide-react';
 import { Participant } from '@/lib/canton-data';
+import Image from 'next/image';
 
 interface NavigateTeaserProps {
   onBack: () => void;
@@ -9,6 +10,7 @@ interface NavigateTeaserProps {
 }
 
 export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network }) => {
+  const participantCount = network.length;
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -43,8 +45,11 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
             Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Flowryd Navigate</span>
           </h1>
+          <p className="text-sm text-white/40 uppercase tracking-wider mt-1">
+            Preview based on {participantCount} participants in your repo network
+          </p>
           <p className="text-xl text-white/60 max-w-2xl mx-auto">
-            Here's how we'd orchestrate your Repo workflow based on your network configuration.
+            Here&apos;s how we&apos;d orchestrate your Repo workflow based on your network configuration.
           </p>
         </header>
 
@@ -271,12 +276,12 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
               
               <div className="relative z-10">
                 <div className="w-12 h-12 mx-auto bg-white rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                   <img src="/flow.svg" alt="Flowryd" className="w-8 h-8" />
+                   <Image src="/flow.svg" alt="Flowryd" width={32} height={32} className="w-8 h-8" />
                 </div>
                 
                 <h2 className="text-xl font-bold mb-2">This is Flowryd Navigate</h2>
                 <p className="text-sm text-white/70 mb-6 leading-relaxed">
-                  What you're seeing is our orchestration platform launching <b>Q1 2026</b>. 
+                  What you&apos;re seeing is our orchestration platform launching <b>Q1 2026</b>. 
                   Full Navigate includes AI-powered offers, direct messaging, and automated contract deployment.
                 </p>
 

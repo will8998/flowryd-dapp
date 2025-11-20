@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Terminal, ArrowRight, CheckCircle2, Loader2, Server } from 'lucide-react';
 
@@ -113,7 +113,7 @@ export const CantonLogin: React.FC<CantonLoginProps> = ({ onComplete }) => {
               
               <div className="pt-8 border-t border-white/5 mt-8">
                 <p className="text-xs text-white/30">
-                  Don't have a node? <span className="text-white/50 underline cursor-pointer hover:text-white">Use simulated environment</span>
+                  Don&apos;t have a node? <span className="text-white/50 underline cursor-pointer hover:text-white">Use simulated environment</span>
                 </p>
               </div>
             </motion.form>
