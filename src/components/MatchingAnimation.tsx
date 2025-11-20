@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 
 type Anchor = { x: number; y: number }; // normalized (0..1)
@@ -151,7 +151,7 @@ export default function MatchingAnimation({ logos = false }: { logos?: boolean }
   const containerRef = useRef<HTMLDivElement>(null);
   // cast to satisfy strict RefObject<HTMLDivElement>
   const { w, h } = useContainerSize(containerRef as unknown as React.RefObject<HTMLDivElement>);
-  const grid = useMemo(() => anchors3x3(), []);
+  const grid = anchors3x3();
 
   // support up to 4 elements; use first N based on mode
   const controls = [useAnimation(), useAnimation(), useAnimation(), useAnimation()] as const;
@@ -172,6 +172,7 @@ export default function MatchingAnimation({ logos = false }: { logos?: boolean }
   const toPx = (a: Anchor) => ({ x: a.x * w, y: a.y * h });
 
   // Timeline orchestrator
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let mounted = true;
 
@@ -245,10 +246,9 @@ export default function MatchingAnimation({ logos = false }: { logos?: boolean }
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const pathCoords = useMemo(() => points.map(toPx), [points, w, h, toPx]);
+  const pathCoords = points.map(toPx);
 
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-black">

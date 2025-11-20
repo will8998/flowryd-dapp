@@ -4,6 +4,8 @@ import TypeWord from "@/components/TypeWord";
 import Framework from "@/components/Framework";
 // Link not currently used; keep imports minimal
 import { useEffect, useRef } from "react";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   const heroRef = useRef<HTMLElement | null>(null);
@@ -62,16 +64,23 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-              <div>
+              <div className="flex flex-col sm:flex-row gap-4 max-w-[720px]">
                 <a
                   href="https://flowryd.typeform.com/to/z4N2MGrQ"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center justify-between w-full md:w-[720px] min-h-12 border border-white/30 hover:border-white/60 rounded px-4 py-3"
+                  className="flex-1 group inline-flex items-center justify-between min-h-12 border border-white/30 hover:border-white/60 rounded px-4 py-3"
                 >
                   <span className="text-white/90 text-base md:text-lg leading-snug">Sign Up Now</span>
                   <span className="transition-transform group-hover:translate-x-0.5">↗</span>
                 </a>
+                <Link
+                  href="/discover"
+                  className="flex-1 group inline-flex items-center justify-between min-h-12 bg-white/5 border border-white/10 hover:bg-white/10 rounded px-4 py-3 transition-colors"
+                >
+                  <span className="text-white/90 text-base md:text-lg leading-snug">Discover Network</span>
+                  <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                </Link>
               </div>
             </div>
             <div className="relative h-[320px] md:h-[420px] lg:h-[520px]"></div>
@@ -263,7 +272,7 @@ export default function Home() {
             </div>
 
             <div className="mb-6 flex items-center gap-3">
-              <img src="/flow.svg" alt="Flowryd Flow Logo" className="h-8 w-8" />
+              <Image src="/flow.svg" alt="Flowryd Flow Logo" width={32} height={32} className="h-8 w-8" />
               <div className="text-2xl font-semibold text-white">The Flowryd Code</div>
             </div>
 
@@ -418,207 +427,6 @@ export default function Home() {
       </main>
 
       {/* Footer moved to layout */}
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="p-6 rounded border border-white/10 bg-muted/30">
-      <div className="text-3xl font-semibold">{value}</div>
-      <div className="mt-1 text-white/60 nav-compact">{label}</div>
-    </div>
-  );
-}
-
-function PrincipleCard({ index, title, body }: { index: string; title: string; body: string }) {
-  return (
-    <div className="p-6 rounded border border-white/10 bg-muted/30">
-      <div className="nav-compact text-white/70 mb-2">{index}</div>
-      <h3 className="mb-2 font-medium">{title}</h3>
-      <p className="text-white/70">{body}</p>
-    </div>
-  );
-}
-
-function Card({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="p-6 rounded border border-white/10 bg-muted/30">
-      <h3 className="mb-2 font-medium">{title}</h3>
-      <p className="text-white/70">{body}</p>
-    </div>
-  );
-}
-
-function QA({ q, a }: { q: string; a: string }) {
-  return (
-    <div>
-      <div className="font-medium">{q}</div>
-      <div className="text-white/70">{a}</div>
-    </div>
-  );
-}
-
-function VisualGridPanel() {
-  return (
-    <div className="relative h-[420px] md:h-[480px] rounded border border-white/10 overflow-hidden bg-black/40">
-      {/* Logos mode for the hero-positioning grid */}
-      <MatchingAnimation logos />
-    </div>
-  );
-}
-
-function FeatureCard({ index, title, body }: { index: string; title: string; body: string; icon?: string }) {
-  return (
-    <div className="relative p-6 rounded border border-white/10 bg-black/40 flex flex-col justify-between min-h-[420px]">
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <div className="w-6 h-6 rounded-full border border-white/30" />
-          <div className="nav-compact text-white/60">{index}</div>
-        </div>
-        <h3 className="text-xl font-medium">{title}</h3>
-      </div>
-      <p className="text-white/60 text-sm mt-6">{body}</p>
-    </div>
-  );
-}
-
-function FlowDiagram() {
-  return (
-    <div className="relative h-96 w-full bg-black/50 border border-white/10 rounded-lg overflow-hidden">
-      {/* Background grid */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="w-full h-full" style={{
-          backgroundImage: `
-            repeating-linear-gradient(0deg, transparent 0px, transparent 23px, rgba(255,255,255,0.05) 23px, rgba(255,255,255,0.05) 24px),
-            repeating-linear-gradient(90deg, transparent 0px, transparent 23px, rgba(255,255,255,0.05) 23px, rgba(255,255,255,0.05) 24px)
-          `
-        }} />
-      </div>
-
-      {/* Flow animation */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative">
-          {/* Left side - Source */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2">
-            <div className="w-16 h-16 border-2 border-white/30 rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 bg-white/50 rounded-full"></div>
-            </div>
-            <div className="mt-2 text-center text-white/60 text-sm">Source Chain</div>
-          </div>
-
-          {/* Animated arrow */}
-          <div className="absolute left-20 top-1/2 -translate-y-1/2 w-32 h-0.5 bg-gradient-to-r from-white/20 to-white/60">
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0 border-l-4 border-l-white/60 border-t-2 border-t-transparent border-b-2 border-b-transparent animate-pulse"></div>
-          </div>
-
-          {/* Center - Executor */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="w-20 h-20 border-2 border-white/40 rounded-full flex items-center justify-center bg-white/5">
-              <div className="w-8 h-8 border border-white/60 rounded-full flex items-center justify-center">
-                <div className="w-1 h-4 bg-white/60 rounded-full animate-pulse"></div>
-              </div>
-            </div>
-            <div className="mt-2 text-center text-white/60 text-sm">Off Chain<br/>Infrastructure</div>
-          </div>
-
-          {/* Right side - Destination */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2">
-            <div className="w-16 h-16 border-2 border-white/30 rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 bg-white/50 rounded-full"></div>
-            </div>
-            <div className="mt-2 text-center text-white/60 text-sm">Destination Chain</div>
-          </div>
-
-          {/* Bottom security stack */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-            <div className="flex space-x-2">
-              <div className="w-8 h-6 border border-white/30 rounded bg-white/5"></div>
-              <div className="w-8 h-6 border border-white/30 rounded bg-white/5"></div>
-              <div className="w-8 h-6 border border-white/30 rounded bg-white/5"></div>
-            </div>
-            <div className="text-center text-white/60 text-xs mt-1">Security Stack (DVNs)</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Animated particles */}
-      <div className="absolute inset-0">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-white/40 rounded-full animate-ping"
-            style={{
-              left: `${20 + Math.random() * 60}%`,
-              top: `${30 + Math.random() * 40}%`,
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${2 + Math.random() * 2}s`
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function FlowDiagramDetailed() {
-  const rays = Array.from({ length: 12 });
-  return (
-    <div className="relative w-full overflow-hidden rounded-lg border border-white/10 diagram-grid">
-      {/* Columns */}
-      <div className="grid grid-cols-12 gap-0">
-        <div className="col-span-12 text-center nav-compact py-2 border-b border-white/10">OFF CHAIN INFRASTRUCTURE</div>
-      </div>
-
-      <div className="grid grid-cols-12 gap-0 text-white/70">
-        {/* Left labels */}
-        <div className="col-span-2 nav-compact p-3 border-r border-white/10">SOURCE CHAIN</div>
-        <div className="col-span-8 p-3 anim-scan"></div>
-        <div className="col-span-2 nav-compact p-3 border-l border-white/10 text-right">DESTINATION CHAIN</div>
-      </div>
-
-      {/* Middle rows */}
-      <div className="grid grid-cols-12 gap-0 text-white/80">
-        <div className="col-span-2 nav-compact p-3 border-t border-white/10">OAPP</div>
-        <div className="col-span-8 border-t border-white/10"></div>
-        <div className="col-span-2 nav-compact p-3 border-t border-white/10 text-right">OAPP</div>
-
-        <div className="col-span-2 nav-compact p-3 border-t border-white/10">ENDPOINT</div>
-        <div className="col-span-8 relative border-t border-white/10">
-          {/* executor */}
-          <div className="absolute right-[28%] top-6 border border-white/20 rounded p-2">
-            <div className="nav-compact text-center mb-2">EXECUTOR</div>
-            <div className="executor-burst mx-auto relative">
-              {rays.map((_, i) => (
-                <span key={i} style={{ transform: `translate(-50%, -50%) rotate(${(i * 360) / rays.length}deg)` }} />
-              ))}
-            </div>
-          </div>
-          {/* Animated path connecting left to right through executor */}
-          <svg className="absolute left-0 right-0 top-0 h-40" viewBox="0 0 1000 160" preserveAspectRatio="none">
-            <path className="draw-path" d="M 40 80 C 200 80, 400 20, 560 80 S 880 140, 960 80" />
-          </svg>
-        </div>
-        <div className="col-span-2 nav-compact p-3 border-t border-white/10 text-right">ENDPOINT</div>
-
-        <div className="col-span-2 nav-compact p-3 border-t border-white/10">MESSAGE LIB</div>
-        <div className="col-span-8 border-t border-white/10"></div>
-        <div className="col-span-2 nav-compact p-3 border-t border-white/10 text-right">MESSAGE LIB</div>
-      </div>
-
-      {/* Security stack */}
-      <div className="relative border-t border-white/10">
-        <div className="mx-auto my-6 w-[80%] border border-white/20 p-3 rounded">
-          <div className="nav-compact text-center mb-3">SECURITY STACK (DVNs)</div>
-          <div className="grid grid-cols-4 gap-4">
-            {[0, 1, 2, 3].map((idx) => (
-              <div key={idx} className="relative aspect-square rounded-full border-2 border-white/50 flex items-center justify-center">
-                <div className={`absolute inset-2 rounded-full border-2 ${idx === 1 ? 'border-green-400/70' : 'border-white/30'}`}></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

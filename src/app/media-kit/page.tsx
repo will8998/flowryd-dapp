@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function MediaKitPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 text-white/80">
@@ -9,7 +11,7 @@ export default function MediaKitPage() {
           <h2 className="text-2xl font-medium text-white mb-4">Logo</h2>
           <p className="mb-4">Download the Flowryd primary logo in SVG format.</p>
           <div className="flex items-center justify-center h-40 rounded bg-black/30 border border-white/10 mb-4">
-            <img src="/flowrydlogo.svg" alt="Flowryd Logo" className="h-16 w-auto" />
+            <Image src="/flowrydlogo.svg" alt="Flowryd Logo" width={160} height={40} className="h-16 w-auto" />
           </div>
           <div className="flex flex-wrap gap-3">
             <a
