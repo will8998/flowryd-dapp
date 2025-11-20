@@ -20,21 +20,21 @@ const STEPS = [
   {
     id: 'workflow',
     title: "Select a Workflow",
-    description: "Filter the network by compatible financial workflows like Repo or Collateral Management.",
+    description: "Filter by financial workflows to uncover compatible parties",
     position: { top: '140px', left: '50%', x: '-50%', y: '0' }, // Below top bar
     arrow: 'up'
   },
   {
     id: 'add-participant',
-    title: "Find Counterparties",
-    description: "Search the directory to find and connect with compatible partners.",
+    title: "Configure parties",
+    description: "Search the directory to add parties to your target workflow",
     position: { bottom: '160px', left: '50%', x: '-50%', y: '0' }, // Above bottom button
     arrow: 'down'
   },
   {
     id: 'impact-bar',
-    title: "Track Network Value",
-    description: "Watch your network centrality and collateral efficiency score grow in real-time.",
+    title: "Fast Track Network Activation",
+    description: "Streamline your pathway executing onchain financial flows",
     position: { bottom: '100px', left: '50%', x: '-50%', y: '0' }, // Above dock
     arrow: 'down'
   }

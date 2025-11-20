@@ -101,7 +101,7 @@ function LandingView({ onStart }: { onStart: () => void }) {
               Discover Your
             </span>
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-              Network Impact
+              Network Potential
             </span>
           </h1>
         </motion.div>
