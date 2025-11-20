@@ -13,16 +13,18 @@ interface ZapierModalProps {
 
 // Map UI categories to underlying capabilities
 const CATEGORY_MAPPING: Record<string, string[]> = {
-  infrastructure: ['Registry', 'Settlement', 'Data_Oracle', 'Identity_Provider', 'Infrastructure'],
+  infrastructure: ['Registry', 'Settlement', 'Infrastructure'],
+  data_identity: ['Data_Oracle', 'Identity_Provider', 'Valuation_Pricing', 'Compliance_Provider', 'Legal_Compliance'],
   custody: ['Custody', 'Wallet', 'Collateral_Agent', 'Staking'],
   liquidity: ['Exchange', 'Liquidity_Provider', 'Market_Maker', 'Collateral_Taker'],
   financing: ['Cash_Lender', 'Cash_Borrower', 'Repo_Platform', 'Collateral_Provider'],
-  issuance: ['Issuer', 'Payment_Stablecoin', 'Valuation_Pricing']
+  issuance: ['Issuer', 'Payment_Stablecoin']
 };
 
 const CATEGORIES = [
   { id: 'all', name: 'All Apps', icon: LayoutGrid },
-  { id: 'infrastructure', name: 'Infrastructure', icon: Database },
+  { id: 'infrastructure', name: 'Infrastructure', icon: Server },
+  { id: 'data_identity', name: 'Data & Identity', icon: Database },
   { id: 'custody', name: 'Custody', icon: ShieldCheck },
   { id: 'liquidity', name: 'Liquidity', icon: Coins },
   { id: 'financing', name: 'Financing', icon: Building2 },
