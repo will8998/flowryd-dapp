@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { participants, workflows, Participant } from '@/lib/canton-data';
@@ -199,15 +199,89 @@ function AppView() {
     setScale(newScale);
   };
 
-  const getLayoutPosition = (index: number, total: number) => {
-    if (total === 0) return { x: 0, y: 0 };
-    const angle = (index / total) * 2 * Math.PI;
-    const radius = 280;
-    return {
-      x: Math.cos(angle) * radius,
-      y: Math.sin(angle) * radius
-    };
-  };
+  // Calculate Node Positions (Layout Engine)
+  const nodePositions = useMemo(() => {
+    const positions: Record<string, { x: number, y: number }> = {};
+    
+    // 1. User Node always fixed at left-center
+    positions['user-node'] = { x: -400, y: 0 };
+
+    const otherNodes = network.filter(n => n.id !== 'user-node');
+    if (otherNodes.length === 0) return positions;
+
+    if (selectedWorkflow) {
+      // 2. Workflow Sequence Layout
+      const stages = selectedWorkflow.stages;
+      // Create buckets for each stage + one for "Other/Unmatched"
+      const stageGroups: Participant[][] = Array.from({ length: stages.length }, () => []);
+      const leftovers: Participant[] = [];
+
+      otherNodes.forEach(p => {
+        let foundStage = -1;
+        // Find the *earliest* stage that this participant can fulfill
+        for (let i = 0; i < stages.length; i++) {
+          const stage = stages[i];
+          // Check if participant has ANY role required in this stage
+          if (stage.roles.some(role => hasCap(p, role))) {
+            foundStage = i;
+            break;
+          }
+        }
+        
+        if (foundStage !== -1) {
+          stageGroups[foundStage].push(p);
+        } else {
+          leftovers.push(p);
+        }
+      });
+
+      // Position Stages
+      // Start x from -100 (to right of User Node which is -400)
+      let currentX = -100;
+      const X_GAP = 300;
+      const Y_GAP = 160;
+
+      stageGroups.forEach((group) => {
+        if (group.length > 0) {
+          group.forEach((p, idx) => {
+            // Center the column vertically around 0
+            const y = (idx - (group.length - 1) / 2) * Y_GAP;
+            positions[p.id] = { x: currentX, y };
+          });
+          currentX += X_GAP;
+        }
+      });
+
+      // Position Leftovers (if any) at the end
+      if (leftovers.length > 0) {
+        leftovers.forEach((p, idx) => {
+           const y = (idx - (leftovers.length - 1) / 2) * Y_GAP;
+           positions[p.id] = { x: currentX, y };
+        });
+      }
+
+    } else {
+      // 3. Fallback Grid Layout (User Left, Others Grid Right)
+      const GRID_X_START = -100;
+      const COLS = 3;
+      const X_GAP = 250;
+      const Y_GAP = 150;
+
+      otherNodes.forEach((p, i) => {
+        const col = i % COLS;
+        const row = Math.floor(i / COLS);
+        
+        // Center rows vertically based on total rows? 
+        // Simple grid:
+        positions[p.id] = { 
+          x: GRID_X_START + (col * X_GAP), 
+          y: -150 + (row * Y_GAP) // Start slightly up
+        };
+      });
+    }
+    
+    return positions;
+  }, [network, selectedWorkflow]);
 
   const addToNetwork = (p: Participant) => {
     if (!network.find(n => n.id === p.id)) {
@@ -236,7 +310,7 @@ function AppView() {
     score += Math.min(network.length / 10, 1) * 25;
     return Math.round(score);
   };
-  
+
   const centralityScore = calculateCentrality();
 
   // Readiness
@@ -296,19 +370,19 @@ function AppView() {
               <p className="text-[10px] text-white/50 leading-relaxed px-1">
                 {selectedWorkflow.description}
               </p>
-          </div>
+            </div>
           ) : (
             <div className="flex flex-col gap-1">
               {workflows.map(wf => (
-              <button
+                <button
                   key={wf.id}
                   onClick={() => setSelectedWorkflow(wf)}
                   className="text-left px-3 py-2 hover:bg-white/10 rounded-lg text-sm text-white/70 hover:text-white transition-colors"
-              >
+                >
                   {wf.name}
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -339,30 +413,25 @@ function AppView() {
             scale: scale 
           }}
         >
-          {/* Connections */}
-          {network.map((source, i) => {
-            let sourcePos = { x: 0, y: 0 };
-            if (source.id !== 'user-node') {
-               const otherNodes = network.filter(n => n.id !== 'user-node');
-               const indexInOthers = otherNodes.indexOf(source);
-               sourcePos = getLayoutPosition(indexInOthers, otherNodes.length);
-            }
-            
-            const connections = network.map((target, j) => {
-              if (i === j) return null;
-              
-              let targetPos = { x: 0, y: 0 };
-              if (target.id !== 'user-node') {
-                 const otherNodes = network.filter(n => n.id !== 'user-node');
-                 const indexInOthers = otherNodes.indexOf(target);
-                 targetPos = getLayoutPosition(indexInOthers, otherNodes.length);
-              }
+          {/* 1. Render Connections FIRST (Behind) */}
+          {network.flatMap((source) => {
+            // Skip if source position not calculated yet (rare race condition safe guard)
+            const sourcePos = nodePositions[source.id];
+            if (!sourcePos) return [];
+
+            return network.map((target) => {
+              if (source.id === target.id) return null;
+              const targetPos = nodePositions[target.id];
+              if (!targetPos) return null;
+
+              // Avoid duplicates (only draw A->B, not B->A twice if undirected, but our logic is directed/specific)
+              // Actually, we want to draw lines if relation exists. 
+              // Unique key is source-target.
               
               let shouldConnect = false;
               let connectionColor = '#3b82f6';
 
               // --- Logic based on TSV Roles/Capabilities ---
-              // WF-001 Token Issuance
               if (selectedWorkflow?.id === 'WF-001') {
                   if (
                     (hasCap(source, 'Issuer') && hasCap(target, 'Registry')) ||
@@ -375,7 +444,6 @@ function AppView() {
                     connectionColor = '#3b82f6'; // Blue
                   }
               }
-              // WF-021 Collateral Management
               else if (selectedWorkflow?.id === 'WF-021') {
                   if (
                     (hasCap(source, 'Collateral_Provider') && hasCap(target, 'Collateral_Agent')) ||
@@ -388,27 +456,22 @@ function AppView() {
                      connectionColor = hasCap(source, 'Collateral_Provider') ? '#22c55e' : '#3b82f6';
                   }
               }
-              // WF-022 Repo Financing
               else if (selectedWorkflow?.id === 'WF-022') {
                   if (
-                    // Financing Leg
                     (hasCap(source, 'Cash_Lender') && hasCap(target, 'Repo_Platform')) ||
                     (hasCap(source, 'Cash_Borrower') && hasCap(target, 'Repo_Platform')) ||
-                    // Collateral Leg
                     (hasCap(source, 'Repo_Platform') && hasCap(target, 'Collateral_Agent')) ||
                     (hasCap(source, 'Collateral_Agent') && hasCap(target, 'Custody')) ||
                     (hasCap(source, 'Custody') && hasCap(target, 'Settlement'))
                   ) {
                     shouldConnect = true;
-                    connectionColor = '#f97316'; // Orange for Repo
+                    connectionColor = '#f97316'; // Orange
                   }
               }
-              // Fallback / Infrastructure connections
               if (!shouldConnect) {
-                  // Registry connects to everything as infra
                   if (hasCap(source, 'Registry') || hasCap(target, 'Registry')) {
                       shouldConnect = true;
-                      connectionColor = '#ffffff'; // White/Subtle
+                      connectionColor = '#ffffff'; // White
                   }
               }
 
@@ -426,24 +489,25 @@ function AppView() {
               }
               return null;
             });
+          })}
 
+          {/* 2. Render Nodes SECOND (On Top) */}
+          {network.map((participant, i) => {
+            const pos = nodePositions[participant.id] || { x: 0, y: 0 };
             return (
-              <React.Fragment key={source.id}>
-                {connections}
-                <div className="node-interactive">
-                  <ParticipantNode 
-                    participant={source} 
-                    x={sourcePos.x} 
-                    y={sourcePos.y} 
-                    onRemove={() => removeFromNetwork(source.id)}
-                    delay={i}
-                  />
-          </div>
-              </React.Fragment>
+              <div key={participant.id} className="node-interactive">
+                <ParticipantNode 
+                  participant={participant} 
+                  x={pos.x} 
+                  y={pos.y} 
+                  onRemove={() => removeFromNetwork(participant.id)}
+                  delay={i}
+                />
+              </div>
             );
           })}
         </motion.div>
-          
+
         {/* Smart Add Button */}
         <div className={`absolute z-40 transition-all duration-500 ${network.length === 0 ? 'top-1/2 left-1/2 -translate-x-1/2 translate-y-16' : 'bottom-32 left-1/2 -translate-x-1/2'}`}>
           <div className="relative">
@@ -529,7 +593,7 @@ function AppView() {
             onSelect={(p) => {
               addToNetwork(p);
               setSmartAddOpen(false);
-      }}
+            }}
             participants={participants}
             existingParticipantIds={network.map(n => n.id)}
           />
