@@ -108,7 +108,7 @@ export const CantonLogin: React.FC<CantonLoginProps> = ({ onComplete }) => {
                 disabled={!partyId}
                 className="w-full py-4 bg-white text-black font-bold rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
-                Connect to Ledger <ArrowRight className="w-4 h-4" />
+                Connect to Explorer <ArrowRight className="w-4 h-4" />
               </button>
               
               <div className="pt-8 border-t border-white/5 mt-8">
