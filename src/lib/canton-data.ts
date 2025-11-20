@@ -15,8 +15,20 @@ export interface Participant {
   isUser?: boolean;
 }
 
+export interface WorkflowStage {
+  name: string;
+  roles: string[];
+}
+
+export interface Workflow {
+  id: string;
+  name: string;
+  stages: WorkflowStage[];
+  description: string;
+  roles: string[]; // Flat list for backward compatibility / easy lookup
+}
+
 export const participants: Participant[] = [
-  // --- Market Infrastructure & Registries ---
   {
     id: "p_dtcc",
     name: "DTCC",
@@ -25,6 +37,7 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "$45.2T",
     validatorNodes: 4,
+    superValidator: false,
     description: "The premier post-trade market infrastructure for the global financial services industry."
   },
   {
@@ -34,23 +47,14 @@ export const participants: Participant[] = [
     capabilities: { Registry: 1, Collateral_Agent: 1, Settlement: 1 },
     criticality: "CRITICAL",
     holdings: "$37T",
-    validatorNodes: 0, // Participant
-    description: "A global provider of Financial Market Infrastructure (FMI) services."
-  },
-  {
-    id: "p_clearstream",
-    name: "Clearstream",
-    cantonRole: "Registry",
-    capabilities: { Registry: 1, Settlement: 1 },
-    criticality: "CRITICAL",
-    holdings: "$16T",
     validatorNodes: 0,
-    description: "International central securities depository (ICSD) based in Luxembourg."
+    superValidator: false,
+    description: "A global provider of Financial Market Infrastructure (FMI) services."
   },
   {
     id: "p_broadridge",
     name: "Broadridge",
-    cantonRole: "Collateral",
+    cantonRole: "Repo Financing",
     capabilities: { Repo_Platform: 1, Collateral_Agent: 1 },
     criticality: "CRITICAL",
     holdings: "$55B",
@@ -66,6 +70,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$4T",
     validatorNodes: 0,
+    superValidator: false,
     description: "Leading global operator of exchanges and clearing houses."
   },
   {
@@ -76,29 +81,8 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$20T",
     validatorNodes: 0,
+    superValidator: false,
     description: "Global technology company serving the capital markets and other industries."
-  },
-
-  // --- Global Banks (Financing & Collateral) ---
-  {
-    id: "p_gs",
-    name: "Goldman Sachs",
-    cantonRole: "Tokenized Assets",
-    capabilities: { Collateral_Provider: 1, Issuer: 1, Cash_Lender: 1 },
-    criticality: "CRITICAL",
-    holdings: "$2.5T",
-    validatorNodes: 0, // GS DAP runs on Canton
-    description: "Operator of GS DAP®, a tokenization platform for digital assets."
-  },
-  {
-    id: "p_jpm",
-    name: "J.P. Morgan",
-    cantonRole: "Financing",
-    capabilities: { Collateral_Provider: 1, Cash_Lender: 1, Cash_Borrower: 1 },
-    criticality: "CRITICAL",
-    holdings: "$3.7T",
-    validatorNodes: 0,
-    description: "Leading global financial services firm and founding member of Versana."
   },
   {
     id: "p_bny",
@@ -108,6 +92,7 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "$44.3T",
     validatorNodes: 0,
+    superValidator: false,
     description: "World's largest custodian bank."
   },
   {
@@ -118,7 +103,8 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "$3.2T",
     validatorNodes: 0,
-    description: " multinational investment bank and financial services holding company."
+    superValidator: false,
+    description: "multinational investment bank and financial services holding company."
   },
   {
     id: "p_sg",
@@ -128,6 +114,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$1.8T",
     validatorNodes: 2,
+    superValidator: false,
     description: "Issued the first digital green bond on a public blockchain."
   },
   {
@@ -138,6 +125,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$2.7T",
     validatorNodes: 0,
+    superValidator: false,
     description: "European Union's leading bank and key player in international banking."
   },
   {
@@ -148,17 +136,8 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$1.4T",
     validatorNodes: 0,
+    superValidator: false,
     description: "Leading German bank connected to Broadridge's DLR solution."
-  },
-  {
-    id: "p_citi",
-    name: "Citi",
-    cantonRole: "Financing",
-    capabilities: { Cash_Lender: 1, Settlement: 1 },
-    criticality: "REQUIRED",
-    holdings: "$2.4T",
-    validatorNodes: 0,
-    description: "Active participant in HKEX Synapse and Versana."
   },
   {
     id: "p_hsbc",
@@ -168,6 +147,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$3T",
     validatorNodes: 0,
+    superValidator: false,
     description: "Provides HSBC Orion asset tokenization platform."
   },
   {
@@ -178,10 +158,9 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$800B",
     validatorNodes: 0,
+    superValidator: false,
     description: "Leading international banking group."
   },
-
-  // --- Trading, Liquidity & Prime ---
   {
     id: "p_drw",
     name: "DRW",
@@ -190,6 +169,7 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "$12B",
     validatorNodes: 0,
+    superValidator: false,
     description: "Diversified trading firm innovating across markets."
   },
   {
@@ -211,6 +191,7 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "$400B",
     validatorNodes: 1,
+    superValidator: false,
     description: "Next-generation capital markets firm."
   },
   {
@@ -221,6 +202,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$500M",
     validatorNodes: 1,
+    superValidator: false,
     description: "Global digital liquidity provider."
   },
   {
@@ -231,6 +213,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$3B",
     validatorNodes: 1,
+    superValidator: false,
     description: "Digital asset and blockchain leader."
   },
   {
@@ -241,6 +224,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$1B",
     validatorNodes: 1,
+    superValidator: false,
     description: "Global crypto market maker and ecosystem partner."
   },
   {
@@ -251,6 +235,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$2B",
     validatorNodes: 1,
+    superValidator: false,
     description: "Algorithmic liquidity provider for digital assets."
   },
   {
@@ -261,6 +246,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$800M",
     validatorNodes: 1,
+    superValidator: false,
     description: "Institutional crypto liquidity provider."
   },
   {
@@ -271,6 +257,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$1.5B",
     validatorNodes: 1,
+    superValidator: false,
     description: "Digital asset prime brokerage."
   },
   {
@@ -281,10 +268,9 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "N/A",
     validatorNodes: 1,
+    superValidator: false,
     description: "Leading builder and operator of electronic marketplaces."
   },
-
-  // --- Custody & Wallets ---
   {
     id: "p_copper",
     name: "Copper",
@@ -292,7 +278,8 @@ export const participants: Participant[] = [
     capabilities: { Custody: 1, Collateral_Agent: 1 },
     criticality: "CRITICAL",
     holdings: "$50B",
-    validatorNodes: 1, // Has client refs
+    validatorNodes: 1,
+    superValidator: false,
     description: "Institutional digital asset custody and settlement."
   },
   {
@@ -302,7 +289,8 @@ export const participants: Participant[] = [
     capabilities: { Custody: 1 },
     criticality: "REQUIRED",
     holdings: "$2B",
-    validatorNodes: 5, // Multiple client validators
+    validatorNodes: 5,
+    superValidator: false,
     description: "Institutional crypto custodian by Standard Chartered."
   },
   {
@@ -313,6 +301,7 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "$64B",
     validatorNodes: 1,
+    superValidator: false,
     description: "Digital asset security and liquidity."
   },
   {
@@ -323,6 +312,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$30B",
     validatorNodes: 1,
+    superValidator: false,
     description: "First federally chartered digital asset bank."
   },
   {
@@ -333,6 +323,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$100B+",
     validatorNodes: 0,
+    superValidator: false,
     description: "Enterprise platform for building blockchain applications."
   },
   {
@@ -343,6 +334,7 @@ export const participants: Participant[] = [
     criticality: "OPTIONAL",
     holdings: "$1B",
     validatorNodes: 6,
+    superValidator: false,
     description: "Regulated custodian for crypto assets."
   },
   {
@@ -353,10 +345,9 @@ export const participants: Participant[] = [
     criticality: "OPTIONAL",
     holdings: "$5B",
     validatorNodes: 1,
+    superValidator: false,
     description: "Institutional digital asset custodian."
   },
-
-  // --- Asset Managers & Issuers ---
   {
     id: "p_blackrock",
     name: "BlackRock",
@@ -365,6 +356,7 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "$10T",
     validatorNodes: 0,
+    superValidator: false,
     description: "World's largest asset manager."
   },
   {
@@ -375,6 +367,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$1.5T",
     validatorNodes: 1,
+    superValidator: false,
     description: "Global investment management organization."
   },
   {
@@ -385,6 +378,7 @@ export const participants: Participant[] = [
     criticality: "OPTIONAL",
     holdings: "$2B",
     validatorNodes: 1,
+    superValidator: false,
     description: "Issuer of crypto ETPs."
   },
   {
@@ -395,6 +389,7 @@ export const participants: Participant[] = [
     criticality: "OPTIONAL",
     holdings: "$3B",
     validatorNodes: 1,
+    superValidator: false,
     description: "European digital asset investment firm."
   },
   {
@@ -405,6 +400,7 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "$20B",
     validatorNodes: 1,
+    superValidator: false,
     description: "Regulated blockchain infrastructure platform."
   },
   {
@@ -415,10 +411,9 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "$28B",
     validatorNodes: 3,
+    superValidator: false,
     description: "Issuer of USDC and EURC."
   },
-
-  // --- Data & Oracles ---
   {
     id: "p_chainlink",
     name: "Chainlink",
@@ -427,6 +422,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "N/A",
     validatorNodes: 1,
+    superValidator: false,
     description: "Decentralized oracle network."
   },
   {
@@ -437,6 +433,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "N/A",
     validatorNodes: 1,
+    superValidator: false,
     description: "First-party financial oracle network."
   },
   {
@@ -447,6 +444,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "N/A",
     validatorNodes: 1,
+    superValidator: false,
     description: "Crypto financial intelligence."
   },
   {
@@ -457,10 +455,9 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "N/A",
     validatorNodes: 1,
+    superValidator: false,
     description: "Institutional digital asset data."
   },
-
-  // --- Tech & Infrastructure ---
   {
     id: "p_da",
     name: "Digital Asset",
@@ -473,26 +470,6 @@ export const participants: Participant[] = [
     description: "Creators of the Canton Network and Daml."
   },
   {
-    id: "p_microsoft",
-    name: "Microsoft",
-    cantonRole: "Cloud",
-    capabilities: { Infrastructure: 1 },
-    criticality: "REQUIRED",
-    holdings: "N/A",
-    validatorNodes: 0,
-    description: "Strategic partner for Canton Network."
-  },
-  {
-    id: "p_deloitte",
-    name: "Deloitte",
-    cantonRole: "Audit/Compliance",
-    capabilities: { Legal_Compliance: 1 },
-    criticality: "REQUIRED",
-    holdings: "N/A",
-    validatorNodes: 0,
-    description: "Professional services network."
-  },
-  {
     id: "p_blockdaemon",
     name: "Blockdaemon",
     cantonRole: "Infrastructure",
@@ -500,6 +477,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "N/A",
     validatorNodes: 3,
+    superValidator: false,
     description: "Institutional blockchain infrastructure."
   },
   {
@@ -510,6 +488,7 @@ export const participants: Participant[] = [
     criticality: "OPTIONAL",
     holdings: "N/A",
     validatorNodes: 2,
+    superValidator: false,
     description: "Web3 infrastructure provider."
   },
   {
@@ -520,6 +499,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$2.4T",
     validatorNodes: 0,
+    superValidator: false,
     description: "Securities lending platform 1Source on Canton."
   },
   {
@@ -530,6 +510,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "$900B",
     validatorNodes: 0,
+    superValidator: false,
     description: "Industry-backed syndicated loan platform."
   },
   {
@@ -540,6 +521,7 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "N/A",
     validatorNodes: 1,
+    superValidator: false,
     description: "Blockchain intelligence and compliance."
   },
   {
@@ -550,9 +532,9 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "N/A",
     validatorNodes: 1,
+    superValidator: false,
     description: "Crypto compliance solutions."
   },
-  // --- New Proforma Participants ---
   {
     id: "p_cygnet",
     name: "Cygnet",
@@ -561,18 +543,450 @@ export const participants: Participant[] = [
     criticality: "REQUIRED",
     holdings: "N/A",
     validatorNodes: 1,
+    superValidator: false,
     description: "Institutional custody and settlement."
   },
   {
-    id: "p_statestreet",
-    name: "State Street",
-    cantonRole: "Custody",
-    capabilities: { Custody: 1, Collateral_Agent: 1 },
-    criticality: "CRITICAL",
-    holdings: "$40T",
-    validatorNodes: 1,
-    description: "Leading global financial services and custody."
+    id: "p_bronfoundation",
+    name: "Bron Foundation",
+    cantonRole: "Wallets",
+    capabilities: { Wallet: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Institutional-grade non-custodial wallet for businesses and individuals to store and manage Canton Coin"
   },
+  {
+    id: "p_blackmantacapitalpar",
+    name: "Black Manta Capital Partners",
+    cantonRole: "Tokenized Assets",
+    capabilities: { Issuer: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Multi-STO asset management platform for compliant asset tokenization with integrated investor onboarding"
+  },
+  {
+    id: "p_ubs",
+    name: "UBS",
+    cantonRole: "Banking",
+    capabilities: { Cash_Lender: 1, Collateral_Provider: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Global investment bank and wealth manager"
+  },
+  {
+    id: "p_asterizmprotocol",
+    name: "Asterizm Protocol",
+    cantonRole: "Infrastructure",
+    capabilities: { Settlement: 1, Registry: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Collateral Bridge enabling secure transfer of digital assets and tokenized RWAs between Canton Network"
+  },
+  {
+    id: "p_ondofinance",
+    name: "Ondo Finance",
+    cantonRole: "Tokenized Assets",
+    capabilities: { Issuer: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Institutional-grade tokenized securities"
+  },
+  {
+    id: "p_akascan",
+    name: "AKASCAN",
+    cantonRole: "Compliance",
+    capabilities: { Compliance_Provider: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Free vulnerability scanning for the Canton ecosystem for asset protection and compliance"
+  },
+  {
+    id: "p_hydrax",
+    name: "HydraX",
+    cantonRole: "Infrastructure",
+    capabilities: { Settlement: 1, Registry: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Regulated market infrastructure building digital capital markets for digitalized assets, including d"
+  },
+  {
+    id: "p_safe",
+    name: "Safe",
+    cantonRole: "Wallets",
+    capabilities: { Wallet: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Multi-sig wallet and asset management"
+  },
+  {
+    id: "p_archax",
+    name: "Archax",
+    cantonRole: "Tokenized Assets",
+    capabilities: { Issuer: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Digital securities exchange and tokenization"
+  },
+  {
+    id: "p_bnymellon",
+    name: "BNY Mellon",
+    cantonRole: "Custody",
+    capabilities: { Custody: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Custody and asset servicing"
+  },
+  {
+    id: "p_fairmint",
+    name: "Fairmint",
+    cantonRole: "Tokenized Assets",
+    capabilities: { Issuer: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "SEC-registered Transfer Agent bringing equity onchain - turning customer cap tables into smart contr"
+  },
+  {
+    id: "p_tether",
+    name: "Tether",
+    cantonRole: "Stablecoins",
+    capabilities: { Payment_Stablecoin: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Issuer of USDT stablecoin"
+  },
+  {
+    id: "p_bitalpha",
+    name: "Bitalpha",
+    cantonRole: "Compliance",
+    capabilities: { Compliance_Provider: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Transaction monitoring with ERP reconciliation, accounting automation, tax compliance, and data norm"
+  },
+  {
+    id: "p_noves",
+    name: "Noves",
+    cantonRole: "Onchain Data",
+    capabilities: { Data_Oracle: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Complete, accurate, and reconcilable on-chain data from Canton nodes via UI and API for validators a"
+  },
+  {
+    id: "p_realt",
+    name: "RealT",
+    cantonRole: "Tokenized Assets",
+    capabilities: { Issuer: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Real estate tokenization platform"
+  },
+  {
+    id: "p_coinbase",
+    name: "Coinbase",
+    cantonRole: "Exchanges",
+    capabilities: { Exchange: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Cryptocurrency exchange and platform"
+  },
+  {
+    id: "p_excellar",
+    name: "Excellar",
+    cantonRole: "Tokenized Assets",
+    capabilities: { Issuer: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Bermuda-regulated yield-bearing tokens denominated in dollars, bitcoin, and other cryptocurrencies"
+  },
+  {
+    id: "p_kraken",
+    name: "Kraken",
+    cantonRole: "Exchanges",
+    capabilities: { Exchange: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Cryptocurrency exchange"
+  },
+  {
+    id: "p_binance",
+    name: "Binance",
+    cantonRole: "Exchanges",
+    capabilities: { Exchange: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Cryptocurrency exchange"
+  },
+  {
+    id: "p_1pilot",
+    name: "1Pilot",
+    cantonRole: "Wallets",
+    capabilities: { Wallet: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Dashboard showing wallet activity across multiple party IDs with summarized views. Education center"
+  },
+  {
+    id: "p_cantonswap",
+    name: "CantonSwap",
+    cantonRole: "Liquidity",
+    capabilities: { Market_Maker: 1, Liquidity_Provider: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Decentralized exchange on Canton Network"
+  },
+  {
+    id: "p_sendwallet",
+    name: "Send Wallet",
+    cantonRole: "Wallets",
+    capabilities: { Wallet: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Digital asset wallet"
+  },
+  {
+    id: "p_denex",
+    name: "Denex",
+    cantonRole: "Infrastructure",
+    capabilities: { Settlement: 1, Registry: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Infrastructure-grade tools including Gas Station for bandwidth management and Subscription Module SD"
+  },
+  {
+    id: "p_c7identity",
+    name: "C7 Identity",
+    cantonRole: "Identity",
+    capabilities: { Identity_Provider: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Digital identity and verification"
+  },
+  {
+    id: "p_bitsafe",
+    name: "BitSafe",
+    cantonRole: "Collateral, Compliance, Tokenized Assets",
+    capabilities: { Compliance_Provider: 1, Issuer: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Providers of bridgeless wrapped Bitcoin solution on Canton (CBTC) with institutional-grade security"
+  },
+  {
+    id: "p_chainalysis",
+    name: "Chainalysis",
+    cantonRole: "Onchain Data",
+    capabilities: { Data_Oracle: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Blockchain data and analytics platform"
+  },
+  {
+    id: "p_quadrata",
+    name: "Quadrata",
+    cantonRole: "Identity",
+    capabilities: { Identity_Provider: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "On-chain identity and compliance"
+  },
+  {
+    id: "p_7trust",
+    name: "7Trust",
+    cantonRole: "Identity",
+    capabilities: { Identity_Provider: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Cryptographically secure credential system linking Daml PartyIDs to DNS/domain ownership for Canton"
+  },
+  {
+    id: "p_alumlabs",
+    name: "ALUM Labs",
+    cantonRole: "Onchain Data",
+    capabilities: { Data_Oracle: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Real-time visibility into validator uptime, performance, and balance growth with automated alerts an"
+  },
+  {
+    id: "p_cypherock",
+    name: "Cypherock",
+    cantonRole: "Wallets",
+    capabilities: { Wallet: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Secure storage of Canton coins and assets through hardware and software wallet solutions"
+  },
+  {
+    id: "p_securitize",
+    name: "Securitize",
+    cantonRole: "Tokenized Assets",
+    capabilities: { Issuer: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Digital securities issuance platform"
+  },
+  {
+    id: "p_bitwave",
+    name: "BitWave",
+    cantonRole: "Stablecoins, Compliance, Financing",
+    capabilities: { Compliance_Provider: 1, Payment_Stablecoin: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "A digital asset finance platform for enterprises with audit-ready platform to track and price Canton"
+  },
+  {
+    id: "p_gemini",
+    name: "Gemini",
+    cantonRole: "Liquidity",
+    capabilities: { Market_Maker: 1, Liquidity_Provider: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Gemini is a U.S.‑regulated cryptocurrency exchange and custodian connected on Canton"
+  },
+  {
+    id: "p_brale",
+    name: "Brale",
+    cantonRole: "Stablecoins, Wallets, Payments",
+    capabilities: { Wallet: 1, Payment_Stablecoin: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "A platform for creating and launching stablecoins enabling Brale supported stabelcoins for use as an"
+  },
+  {
+    id: "p_metamask",
+    name: "MetaMask",
+    cantonRole: "Wallets",
+    capabilities: { Wallet: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Crypto wallet and Web3 gateway"
+  },
+  {
+    id: "p_commerzbank",
+    name: "Commerzbank",
+    cantonRole: "Banking",
+    capabilities: { Cash_Lender: 1, Collateral_Provider: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "German banking and financial services"
+  },
+  {
+    id: "p_dfns",
+    name: "Dfns",
+    cantonRole: "Wallets",
+    capabilities: { Wallet: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Dfns is a digital asset wallet and custody infrastructure provider supporting Canton Coin and any as"
+  },
+  {
+    id: "p_chatatechnologies",
+    name: "Chata Technologies",
+    cantonRole: "Onchain Data",
+    capabilities: { Data_Oracle: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "AI-driven proactive analytics with real-time alerts and natural language querying for Canton Network"
+  },
+  {
+    id: "p_lukka",
+    name: "Lukka",
+    cantonRole: "Compliance",
+    capabilities: { Compliance_Provider: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "KYC and AML services for Canton Network and all utilized blockchains"
+  },
+  {
+    id: "p_veriff",
+    name: "Veriff",
+    cantonRole: "Identity",
+    capabilities: { Identity_Provider: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 0,
+    superValidator: false,
+    description: "Identity verification platform"
+  },
+  // Manually added HQLAx and others if missing from TSV but present in previous context to ensure completeness
   {
     id: "p_hqla",
     name: "HQLAx",
@@ -581,6 +995,7 @@ export const participants: Participant[] = [
     criticality: "CRITICAL",
     holdings: "N/A",
     validatorNodes: 2,
+    superValidator: false,
     description: "Innovative market solution for collateral mobility."
   },
   {
@@ -591,32 +1006,81 @@ export const participants: Participant[] = [
     criticality: "OPTIONAL",
     holdings: "N/A",
     validatorNodes: 0,
+    superValidator: false,
     description: "Global law firm specializing in financial services."
   }
 ];
 
-export const workflows = [
+export const workflows: Workflow[] = [
+  {
+    id: 'WF-001',
+    name: 'Token Issuance',
+    description: "Issue digital bonds or funds with automated lifecycle events.",
+    roles: [
+      'Issuer', 'Registry', 'Settlement', 'Custody', 'Wallet', 'Exchange',
+      'Liquidity_Provider', 'Market_Maker', 'Collateral_Agent', 'Data_Oracle',
+      'Payment_Stablecoin', 'Identity_Provider'
+    ],
+    stages: [
+      {
+        name: "Issuance",
+        roles: ['Issuer', 'Registry', 'Identity_Provider']
+      },
+      {
+        name: "Distribution/Trading",
+        roles: ['Exchange', 'Liquidity_Provider', 'Market_Maker', 'Wallet']
+      },
+      {
+        name: "Settlement/Custody",
+        roles: ['Settlement', 'Custody', 'Payment_Stablecoin', 'Data_Oracle', 'Collateral_Agent']
+      }
+    ]
+  },
   {
     id: 'WF-021',
     name: 'Collateral Management',
-    category: 'Post-Trade / Post-Settlement Services',
-    roles: ['Collateral_Provider', 'Collateral_Taker', 'Collateral_Agent', 'Custody', 
-            'Valuation_Pricing', 'Settlement', 'Registry', 'Legal_Compliance'],
-    description: "Automate collateral selection, allocation, and mobility across custodians."
+    description: "Automate collateral selection, allocation, and mobility across custodians.",
+    roles: [
+      'Collateral_Provider', 'Collateral_Taker', 'Collateral_Agent', 'Custody',
+      'Registry', 'Settlement', 'Liquidity_Provider', 'Cash_Lender', 'Data_Oracle'
+    ],
+    stages: [
+      {
+        name: "Collateral Setup",
+        roles: ['Collateral_Provider', 'Collateral_Agent', 'Custody']
+      },
+      {
+        name: "Trading/Exposure",
+        roles: ['Collateral_Taker', 'Liquidity_Provider', 'Cash_Lender']
+      },
+      {
+        name: "Settlement",
+        roles: ['Registry', 'Settlement', 'Data_Oracle']
+      }
+    ]
   },
   {
     id: 'WF-022',
-    name: 'Repo Processing',
-    category: 'Post-Trade / Post-Settlement Services',
-    roles: ['Cash_Lender', 'Cash_Borrower', 'Repo_Platform', 'Custody', 
-            'Valuation_Pricing', 'Settlement', 'Registry', 'Legal_Compliance'],
-    description: "Intraday repo swaps with atomic settlement and programmable margins."
-  },
-  {
-    id: 'WF-035',
-    name: 'Tokenized Asset Issuance',
-    category: 'Primary Markets',
-    roles: ['Issuer', 'Registry', 'Custody', 'Settlement', 'Legal_Compliance', 'Distribution'],
-    description: "Issue digital bonds or funds with automated lifecycle events."
+    name: 'Repo Financing',
+    description: "Intraday repo swaps with atomic settlement and programmable margins.",
+    roles: [
+      'Cash_Lender', 'Cash_Borrower', 'Repo_Platform', 'Custody', 'Registry',
+      'Settlement', 'Collateral_Agent', 'Collateral_Provider', 'Data_Oracle',
+      'Payment_Stablecoin'
+    ],
+    stages: [
+      {
+        name: "Collateral",
+        roles: ['Collateral_Provider', 'Custody', 'Collateral_Agent']
+      },
+      {
+        name: "Financing",
+        roles: ['Cash_Lender', 'Cash_Borrower', 'Repo_Platform']
+      },
+      {
+        name: "Settlement/Closeout",
+        roles: ['Registry', 'Settlement', 'Data_Oracle', 'Payment_Stablecoin']
+      }
+    ]
   }
 ];
