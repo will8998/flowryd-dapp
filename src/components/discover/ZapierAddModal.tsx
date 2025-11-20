@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Building2, Database, ShieldCheck, Coins, Server, X, LayoutGrid, Star, ChevronRight } from 'lucide-react';
+import { Search, Building2, Database, ShieldCheck, Coins, Server, X, LayoutGrid, Star, ChevronRight, Plus } from 'lucide-react';
 import { Participant } from '@/lib/canton-data';
 
 interface ZapierModalProps {
@@ -57,7 +57,7 @@ export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, on
         <div className="w-64 border-r border-white/10 bg-[#111] flex flex-col">
           <div className="p-6 border-b border-white/10">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <PlusIcon className="w-5 h-5 text-blue-500" />
+              <Plus className="w-5 h-5 text-blue-500" />
               Add Participant
             </h2>
           </div>
@@ -224,12 +224,6 @@ const ParticipantCard = ({ participant, onSelect }: { participant: Participant, 
 };
 
 // Helper for icons
-const PlusIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
 const getRoleColor = (role: string) => {
   const r = role.toLowerCase();
   if (r.includes('registry')) return 'border-blue-500/30 text-blue-400';

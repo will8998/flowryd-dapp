@@ -4,9 +4,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { participants, workflows, Participant } from '@/lib/canton-data';
-import { Workflow, CheckCircle2, ArrowRight, Database, Activity, ShieldCheck, Plus, X, Loader2, ArrowLeft } from 'lucide-react';
-import { ParticipantNode, HubNode, ConnectionLine } from '@/components/discover/FlowComponents';
+import { Workflow, ArrowRight, Plus, X, ArrowLeft } from 'lucide-react';
+import { ParticipantNode, ConnectionLine } from '@/components/discover/FlowComponents';
 import { ZapierAddModal } from '@/components/discover/ZapierAddModal';
+import { NavigateTeaser } from '@/components/discover/NavigateTeaser';
+import { CantonLogin } from '@/components/discover/CantonLogin';
+import { WizardOverlay } from '@/components/discover/WizardOverlay';
 
 // ... (Helper functions remain the same) ...
 
@@ -27,7 +30,7 @@ const formatLargeNumber = (num: number): string => {
 };
 
 export default function DiscoverPage() {
-  const [hasStarted, setStarted] = useState(false);
+  const [viewState, setViewState] = useState<'LANDING' | 'LOGIN' | 'APP'>('LANDING');
 
   // Hide global header/footer while on Discover experience for full-canvas focus
   useEffect(() => {
@@ -55,9 +58,21 @@ export default function DiscoverPage() {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <AnimatePresence mode="wait">
-        {!hasStarted ? (
-          <LandingView key="landing" onStart={() => setStarted(true)} />
-        ) : (
+        {viewState === 'LANDING' && (
+          <LandingView key="landing" onStart={() => setViewState('LOGIN')} />
+        )}
+        {viewState === 'LOGIN' && (
+          <motion.div
+            key="login"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="relative z-20"
+          >
+            <CantonLogin onComplete={() => setViewState('APP')} />
+          </motion.div>
+        )}
+        {viewState === 'APP' && (
           <AppView key="app" />
         )}
       </AnimatePresence>
@@ -74,6 +89,7 @@ function LandingView({ onStart }: { onStart: () => void }) {
       exit={{ opacity: 0, y: -50 }}
       className="relative min-h-screen flex flex-col items-center justify-center p-6 text-center lzr-background"
     >
+      {/* ... (Landing content) ... */}
       <div className="max-w-4xl space-y-8 z-10">
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
@@ -115,30 +131,6 @@ function LandingView({ onStart }: { onStart: () => void }) {
             </span>
           </button>
         </motion.div>
-
-        {/* Feature Grid */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-16 text-left"
-        >
-          <div className="p-6 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
-            <Database className="w-8 h-8 text-blue-400 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Real-time Data</h3>
-            <p className="text-sm text-white/60">Access holdings and capabilities from 50+ Canton participants.</p>
-          </div>
-          <div className="p-6 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
-            <Activity className="w-8 h-8 text-purple-400 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Impact Analysis</h3>
-            <p className="text-sm text-white/60">Calculate network centrality and collateral efficiency instantly.</p>
-          </div>
-          <div className="p-6 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
-            <ShieldCheck className="w-8 h-8 text-green-400 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Repo Readiness</h3>
-            <p className="text-sm text-white/60">Assess workflow readiness with automated role validation.</p>
-          </div>
-        </motion.div>
       </div>
     </motion.div>
   );
@@ -146,11 +138,27 @@ function LandingView({ onStart }: { onStart: () => void }) {
 
 function AppView() {
   const [selectedWorkflow, setSelectedWorkflow] = useState<typeof workflows[0] | null>(null);
-  const [network, setNetwork] = useState<Participant[]>([]);
+  const [network, setNetwork] = useState<Participant[]>([
+    {
+      id: 'user-node',
+      name: 'Your Node',
+      cantonRole: 'Participant',
+      capabilities: { Custody: 1, Settlement: 1 },
+      criticality: 'REQUIRED',
+      holdings: '$1.2B',
+      validatorNodes: 1,
+      description: 'Your local Canton participant node.',
+      hosted: true,
+      isUser: true
+    }
+  ]);
   const [showTeaser, setShowTeaser] = useState(false);
   
   // Smart Add Modal State
   const [smartAddOpen, setSmartAddOpen] = useState(false);
+  
+  // Wizard State
+  const [showWizard, setShowWizard] = useState(true);
 
   // Canvas Transform State
   const [scale, setScale] = useState(1);
@@ -192,6 +200,7 @@ function AppView() {
 
   // Layout logic remains similar but connects to other nodes
   const getLayoutPosition = (index: number, total: number) => {
+    if (total === 0) return { x: 0, y: 0 };
     const angle = (index / total) * 2 * Math.PI;
     const radius = 280;
     return {
@@ -275,7 +284,7 @@ function AppView() {
                 <span className="text-sm font-bold text-white">{selectedWorkflow.name}</span>
           </div>
               <button
-                onClick={() => { setSelectedWorkflow(null); setNetwork([]); }}
+                onClick={() => { setSelectedWorkflow(null); setNetwork(network.filter(n => n.isUser)); }}
                 className="p-2 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -318,11 +327,24 @@ function AppView() {
         >
           {/* Determine connections based on "Smart Money Flow" logic */}
           {network.map((source, i) => {
-            const sourcePos = getLayoutPosition(i, network.length);
+            let sourcePos = { x: 0, y: 0 };
+            if (source.id !== 'user-node') {
+               // Get index excluding user node for circular layout
+               const otherNodes = network.filter(n => n.id !== 'user-node');
+               const indexInOthers = otherNodes.indexOf(source);
+               sourcePos = getLayoutPosition(indexInOthers, otherNodes.length);
+            }
             
             // Find relevant connections based on roles
             const connections = network.map((target, j) => {
               if (i === j) return null;
+              
+              let targetPos = { x: 0, y: 0 };
+              if (target.id !== 'user-node') {
+                 const otherNodes = network.filter(n => n.id !== 'user-node');
+                 const indexInOthers = otherNodes.indexOf(target);
+                 targetPos = getLayoutPosition(indexInOthers, otherNodes.length);
+              }
               
               // Role-based connection logic
               const sRole = source.cantonRole.toLowerCase();
@@ -341,6 +363,11 @@ function AppView() {
                 else if (sRole.includes('collateral_provider') && tRole.includes('collateral_taker')) {
                   shouldConnect = true;
                   connectionColor = '#22c55e'; // green
+                }
+                // Connect User to Registry if User is Participant
+                else if ((source.id === 'user-node' && tRole.includes('registry')) || (target.id === 'user-node' && sRole.includes('registry'))) {
+                  shouldConnect = true;
+                  connectionColor = '#ffffff'; // white
                 }
                 // Everyone <-> Registry
                 else if (sRole.includes('registry') || tRole.includes('registry')) {
@@ -388,7 +415,6 @@ function AppView() {
               }
               
               if (shouldConnect) {
-                const targetPos = getLayoutPosition(j, network.length);
                 return (
                   <ConnectionLine 
                     key={`${source.id}-${target.id}`} 
@@ -419,8 +445,7 @@ function AppView() {
             );
           })}
           
-          {/* Center Hub if no direct connections logic applies or for visual anchoring */}
-          {network.length > 0 && <HubNode />}
+          {/* User Node replaces HubNode */}
         </motion.div>
 
         {/* Smart Add Button (Fixed relative to viewport) */}
@@ -519,113 +544,23 @@ function AppView() {
         )}
       </AnimatePresence>
 
-      {/* Teaser Modal */}
+      {/* Teaser Modal / Navigate Preview */}
       <AnimatePresence>
         {showTeaser && (
-          <TeaserModal onClose={() => setShowTeaser(false)} />
+          <NavigateTeaser 
+            onBack={() => setShowTeaser(false)} 
+            network={network}
+          />
         )}
       </AnimatePresence>
+
+      {/* Wizard Overlay - Conditional Render */}
+      {showWizard && (
+        <WizardOverlay 
+          onComplete={() => setShowWizard(false)}
+          onSkip={() => setShowWizard(false)}
+        />
+      )}
     </motion.div>
-  );
-}
-
-// ... (TeaserModal remains the same) ...
-function TeaserModal({ onClose }: { onClose: () => void }) {
-  const [step, setStep] = useState(1);
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // Simulate network request
-    setTimeout(() => {
-      setLoading(false);
-      setStep(2);
-    }, 1500);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-    <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative"
-      >
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
-        
-        {step === 1 ? (
-          <div className="p-8">
-            <div className="flex justify-between items-start mb-6">
-              <div className="bg-blue-500/10 p-3 rounded-lg">
-                <Workflow className="w-8 h-8 text-blue-400" />
-              </div>
-              <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-        </div>
-        
-            <h2 className="text-2xl font-bold text-white mb-2">Deploy this Workflow</h2>
-            <p className="text-white/60 mb-6 text-sm leading-relaxed">
-              You are about to initiate a multi-party orchestration flow. To proceed to the <b>FlowRyd Navigate</b> environment and invite participants, please verify your credentials.
-            </p>
-
-            <div className="bg-white/5 rounded-xl p-4 mb-6 border border-white/5 space-y-3">
-              <div className="flex items-center gap-3 text-sm text-white/80">
-                <CheckCircle2 className="w-4 h-4 text-green-400" /> Smart Contract Generation
-              </div>
-              <div className="flex items-center gap-3 text-sm text-white/80">
-                <CheckCircle2 className="w-4 h-4 text-green-400" /> Participant Invitation
-              </div>
-              <div className="flex items-center gap-3 text-sm text-white/40">
-                <div className="w-4 h-4 border border-white/20 rounded-full flex-shrink-0" /> Network Deployment
-              </div>
-        </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-white/60 mb-1.5 uppercase tracking-wider">Work Email</label>
-                <input 
-                  type="email" 
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full bg-black border border-white/20 rounded-lg p-3 text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all placeholder:text-white/20"
-                  placeholder="name@company.com"
-                />
-              </div>
-              <button 
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Continue to Navigate"}
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div className="p-12 text-center">
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="w-20 h-20 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6"
-            >
-              <CheckCircle2 className="w-10 h-10 text-green-400" />
-            </motion.div>
-            <h2 className="text-2xl font-bold text-white mb-2">Request Received</h2>
-            <p className="text-white/60 mb-8 text-sm leading-relaxed max-w-xs mx-auto">
-              We have queued your workflow request. A member of the FlowRyd onboarding team will contact you at <span className="text-white font-medium">{email}</span> shortly.
-            </p>
-        <button 
-              onClick={onClose}
-              className="px-8 py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors text-sm"
-        >
-              Return to Discovery
-        </button>
-      </div>
-        )}
-    </motion.div>
-    </div>
   );
 }

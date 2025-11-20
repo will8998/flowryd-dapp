@@ -12,6 +12,7 @@ export interface Participant {
   hosted?: boolean;
   description?: string;
   logo?: string; // Placeholder for now
+  isUser?: boolean;
 }
 
 export const participants: Participant[] = [
@@ -550,6 +551,47 @@ export const participants: Participant[] = [
     holdings: "N/A",
     validatorNodes: 1,
     description: "Crypto compliance solutions."
+  },
+  // --- New Proforma Participants ---
+  {
+    id: "p_cygnet",
+    name: "Cygnet",
+    cantonRole: "Custody",
+    capabilities: { Custody: 1 },
+    criticality: "REQUIRED",
+    holdings: "N/A",
+    validatorNodes: 1,
+    description: "Institutional custody and settlement."
+  },
+  {
+    id: "p_statestreet",
+    name: "State Street",
+    cantonRole: "Custody",
+    capabilities: { Custody: 1, Collateral_Agent: 1 },
+    criticality: "CRITICAL",
+    holdings: "$40T",
+    validatorNodes: 1,
+    description: "Leading global financial services and custody."
+  },
+  {
+    id: "p_hqla",
+    name: "HQLAx",
+    cantonRole: "Collateral",
+    capabilities: { Collateral_Management: 1, Registry: 1 },
+    criticality: "CRITICAL",
+    holdings: "N/A",
+    validatorNodes: 2,
+    description: "Innovative market solution for collateral mobility."
+  },
+  {
+    id: "p_allenovery",
+    name: "Allen & Overy",
+    cantonRole: "Legal",
+    capabilities: { Legal_Compliance: 1 },
+    criticality: "OPTIONAL",
+    holdings: "N/A",
+    validatorNodes: 0,
+    description: "Global law firm specializing in financial services."
   }
 ];
 

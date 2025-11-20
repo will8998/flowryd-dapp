@@ -3,12 +3,13 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Building2, ShieldCheck, Coins, Database, Server, Wallet, X } from 'lucide-react';
+import { Building2, ShieldCheck, Coins, Database, Server, Wallet, X, User } from 'lucide-react';
 import { Participant } from '@/lib/canton-data';
 
 // Helper to get role icon
 const getRoleIcon = (role: string) => {
   const r = role.toLowerCase();
+  if (r.includes('participant') || r.includes('your')) return User;
   if (r.includes('registry')) return Database;
   if (r.includes('custody')) return ShieldCheck;
   if (r.includes('liquidity') || r.includes('financing')) return Coins;
@@ -46,9 +47,10 @@ export const ParticipantNode: React.FC<ParticipantNodeProps> = ({ participant, x
     green: 'border-green-500/50 bg-green-950/80 text-green-400 shadow-green-900/20',
     purple: 'border-purple-500/50 bg-purple-950/80 text-purple-400 shadow-purple-900/20',
     gray: 'border-gray-500/50 bg-gray-950/80 text-gray-400 shadow-gray-900/20',
+    user: 'border-white/80 bg-white/10 text-white shadow-[0_0_30px_rgba(255,255,255,0.2)]',
   };
 
-  const baseClass = colorClasses[color as keyof typeof colorClasses] || colorClasses.gray;
+  const baseClass = participant.id === 'user-node' ? colorClasses.user : (colorClasses[color as keyof typeof colorClasses] || colorClasses.gray);
 
   return (
     <motion.div
@@ -108,30 +110,8 @@ export const ParticipantNode: React.FC<ParticipantNodeProps> = ({ participant, x
   );
 };
 
-export const HubNode = () => {
-  return (
-    <motion.div 
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="relative w-24 h-24 flex items-center justify-center">
-        {/* Pulsing Rings */}
-        <div className="absolute inset-0 rounded-full bg-blue-500/5 animate-ping" style={{ animationDuration: '3s' }} />
-        <div className="absolute inset-4 rounded-full bg-blue-500/10 animate-pulse" />
-        
-        {/* Core */}
-        <div className="relative z-10 w-16 h-16 rounded-full bg-black border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.2)] flex items-center justify-center backdrop-blur-xl">
-          <div className="text-center">
-            <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">FLOW</div>
-            <div className="w-8 h-0.5 bg-blue-500/50 mx-auto rounded-full" />
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+// Removed HubNode as it is replaced by the User Node
+
 
 export const ConnectionLine: React.FC<{ x1: number; y1: number; x2: number; y2: number; color?: string }> = ({
   x1,
