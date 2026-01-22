@@ -193,14 +193,12 @@ function LandingView({ onStart }: { onStart: () => void }) {
               </ul>
 
               <div className="mt-auto">
-                <a 
-                  href="https://flowryd.typeform.com/to/gESTfumm"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button 
+                  onClick={() => window.open('https://flowryd.typeform.com/to/gESTfumm', '_blank')}
                   className="w-full py-4 bg-white text-black rounded-xl font-bold text-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-2 group-hover:scale-[1.02]"
                 >
                   Join as Provider <ArrowRight className="w-5 h-5" />
-                </a>
+                </button>
                 <div className="text-center mt-3 text-xs text-white/40">
                   Public Launch Pricing until April 30, 2026
                 </div>
