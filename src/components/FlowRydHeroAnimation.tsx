@@ -94,7 +94,6 @@ export default function FlowRydHeroAnimation() {
           <text className="text-[12px] font-bold tracking-[0.4em] uppercase fill-emerald-400/80">
             <textPath href="#textCircle" startOffset="0%">
               Advantage &nbsp; • &nbsp; Network &nbsp; • &nbsp; Code &nbsp; • &nbsp; Your &nbsp; • &nbsp;
-              Advantage &nbsp; • &nbsp; Network &nbsp; • &nbsp; Code &nbsp; • &nbsp; Your &nbsp; • &nbsp;
             </textPath>
           </text>
         </svg>
