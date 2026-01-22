@@ -12,6 +12,8 @@ import { NavigateTeaser } from '@/components/discover/NavigateTeaser';
 import { CantonLogin } from '@/components/discover/CantonLogin';
 import { WizardOverlay } from '@/components/discover/WizardOverlay';
 import { WorkflowRequirements } from '@/components/discover/WorkflowRequirements';
+import FlowRydHeroAnimation from '@/components/FlowRydHeroAnimation';
+import DemoSequence from '@/components/DemoSequence';
 
 // Helper: Check if participant has a specific capability
 const hasCap = (p: Participant, cap: string) => p.capabilities[cap] === 1;
@@ -84,25 +86,8 @@ export default function DiscoverPage() {
 }
 
 function LandingView({ onStart }: { onStart: () => void }) {
-  const [showPinGate, setShowPinGate] = useState(false);
-  const [pin, setPin] = useState('');
-  const [pinError, setPinError] = useState('');
-
   const handleLaunchClick = () => {
-    setShowPinGate(true);
-    setPin('');
-    setPinError('');
-  };
-
-  const handleConfirmPin = () => {
-    if (pin === '089801') {
-      setShowPinGate(false);
-      setPin('');
-      setPinError('');
-      onStart();
-    } else {
-      setPinError('Incorrect PIN. Please try again.');
-    }
+    onStart();
   };
 
   return (
@@ -112,18 +97,26 @@ function LandingView({ onStart }: { onStart: () => void }) {
       exit={{ opacity: 0, y: -50 }}
       className="relative min-h-screen flex flex-col items-center justify-center p-6 text-center lzr-background"
     >
-      <div className="max-w-4xl space-y-8 z-10">
+      <div className="max-w-5xl space-y-12 z-10 w-full">
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
+          className="flex flex-col items-center justify-center pt-8"
         >
-          <h1 className="text-6xl md:text-8xl font-bold tracking-tight mb-6">
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">
-              Welcome for
+          <div className="w-full max-w-2xl aspect-square sm:h-[500px] sm:w-[500px] flex items-center justify-center mb-8">
+            <FlowRydHeroAnimation />
+          </div>
+
+          <span className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white/10 border border-white/20 text-sm font-mono text-blue-300 tracking-wider backdrop-blur-sm">
+            THE MISSING LINK NO-ONE IS TALKING ABOUT
+          </span>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 leading-tight">
+            <span className="block text-white">
+              The Orchestration Layer
             </span>
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-              Flowryd D-N-A
+              for Canton Network
             </span>
           </h1>
         </motion.div>
@@ -132,141 +125,134 @@ function LandingView({ onStart }: { onStart: () => void }) {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="text-xl md:text-2xl text-white/60 max-w-2xl mx-auto leading-relaxed"
+          className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed"
         >
-          Visualize connection opportunities, calculate collateral efficiency, and simulate network effects with real-time Canton Network data.
+          Stop coordinating complex transactions through email.<br/>
+          <span className="text-white font-semibold">Start orchestrating through Canton.</span>
         </motion.p>
+        
+        <motion.div
+           initial={{ y: 20, opacity: 0 }}
+           animate={{ y: 0, opacity: 1 }}
+           transition={{ delay: 0.45 }}
+           className="flex justify-center gap-8 py-4 text-sm font-mono text-white/50"
+        >
+          <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500"></span>DISCOVER</span>
+          <span className="flex items-center gap-2">→</span>
+          <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-white/20"></span>NAVIGATE</span>
+          <span className="flex items-center gap-2">→</span>
+          <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-white/20"></span>ACTIVATE</span>
+        </motion.div>
 
-        {/* Promo CTA (gating the Discover flow) */}
+        <motion.div
+           initial={{ y: 30, opacity: 0 }}
+           animate={{ y: 0, opacity: 1 }}
+           transition={{ delay: 0.5 }}
+           className="w-full max-w-4xl mx-auto py-12"
+        >
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2 text-white">How Flowryd Works</h2>
+            <p className="text-white/60">From discovery to activation in three simple steps</p>
+          </div>
+          
+          <div className="rounded-2xl border border-white/10 overflow-hidden bg-black shadow-2xl shadow-blue-900/20">
+             <DemoSequence />
+          </div>
+        </motion.div>
+
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="max-w-md mx-auto w-full"
+          className="max-w-4xl mx-auto w-full grid md:grid-cols-2 gap-6"
         >
-          <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-2xl border border-white/10 p-6 text-center relative overflow-hidden">
+          <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-2xl border border-blue-500/30 p-8 text-left relative overflow-hidden group hover:border-blue-500/50 transition-colors">
             <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20" />
-
-            <div className="relative z-10 space-y-4">
-              <div className="w-12 h-12 mx-auto bg-white rounded-xl flex items-center justify-center shadow-lg">
-                <Image src="/flow.svg" alt="Flowryd" width={32} height={32} className="w-8 h-8" />
+            
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/50">
+                   <Image src="/flow.svg" alt="Flowryd" width={24} height={24} className="w-6 h-6 text-white" />
+                </div>
+                <div className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-full border border-blue-500/20">
+                  AVAILABLE NOW
+                </div>
               </div>
 
-              <h2 className="text-xl font-bold">This is Flowryd Navigate</h2>
+              <h2 className="text-2xl font-bold mb-1">DISCOVER</h2>
+              <div className="text-3xl font-bold text-white mb-4">$100<span className="text-lg text-white/50 font-normal">/month</span></div>
 
-              <p className="text-sm text-white/70">
-                Full platform launches <b>Q1 2026</b> with:
+              <p className="text-white/70 mb-6 text-sm leading-relaxed">
+                Visualize connection opportunities, calculate collateral efficiency, and simulate network effects.
               </p>
 
-              <ul className="text-sm text-white/80 space-y-1 text-left max-w-sm mx-auto">
-                <li>• Send/receive coordination offers</li>
-                <li>• Direct participant messaging</li>
-                <li>• Contract orchestration</li>
-                <li>• Success tracking</li>
+              <ul className="text-sm text-white/80 space-y-3 mb-8">
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-blue-400 rounded-full"/> Network grid builder</li>
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-blue-400 rounded-full"/> VP badges (C7 Identity)</li>
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-blue-400 rounded-full"/> Connection intelligence</li>
               </ul>
 
-              <div className="space-y-3">
-                <a
-                  href="https://flowryd.typeform.com/to/UkJLqGuB"
+              <div className="mt-auto">
+                <a 
+                  href="https://flowryd.typeform.com/to/gESTfumm"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 w-full py-3 bg-white text-black hover:bg-gray-100 font-bold rounded-lg transition-all shadow-lg shadow-white/10"
+                  className="w-full py-4 bg-white text-black rounded-xl font-bold text-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-2 group-hover:scale-[1.02]"
                 >
-                  [Subscribe Now - $3,500/year]
-                  <ArrowRight className="w-4 h-4" />
+                  Join as Provider <ArrowRight className="w-5 h-5" />
                 </a>
+                <div className="text-center mt-3 text-xs text-white/40">
+                  Public Launch Pricing until April 30, 2026
+                </div>
+              </div>
+            </div>
+          </div>
 
-                <a
-                  href="https://flowryd.typeform.com/to/UkJLqGuB"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg transition-all border border-white/20"
-                >
-                  [Join Waitlist - Stay Updated]
-                  <ArrowRight className="w-4 h-4" />
-                </a>
+          <div className="bg-white/5 rounded-2xl border border-white/10 p-8 text-left relative overflow-hidden flex flex-col">
+            <div className="absolute top-0 right-0 p-4 opacity-50">
+               <Workflow className="w-24 h-24 text-white/5" />
+            </div>
+
+            <div className="relative z-10">
+              <h3 className="text-xl font-bold text-white/50 mb-6">Coming Soon</h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center gap-2 text-white/80 font-bold mb-1">
+                    NAVIGATE <span className="text-[10px] px-2 py-0.5 bg-white/10 rounded">WAITLIST</span>
+                  </div>
+                  <p className="text-sm text-white/50">Choose your path: Join existing flows, build from templates, or create custom workflows.</p>
+                </div>
+                
+                <div className="w-full h-px bg-white/10" />
+
+                <div>
+                  <div className="flex items-center gap-2 text-white/80 font-bold mb-1">
+                    ACTIVATE <span className="text-[10px] px-2 py-0.5 bg-white/10 rounded">Q2 2026</span>
+                  </div>
+                  <p className="text-sm text-white/50">Deploy smart contracts, execute coordinated transactions, and earn FA markers.</p>
+                </div>
               </div>
 
-              <div className="text-xs text-white/60">
-                2025 Founders: 25% FA reward share
+              <div className="mt-8">
+                 <a
+                    href="https://flowryd.typeform.com/to/UkJLqGuB"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl transition-all border border-white/10"
+                  >
+                    Join Waitlist
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
               </div>
             </div>
           </div>
         </motion.div>
 
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center pt-8"
-        >
-          <button 
-            onClick={handleLaunchClick}
-            className="group relative px-8 py-4 bg-white text-black rounded-lg font-semibold text-lg overflow-hidden transition-transform hover:scale-105"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-10 transition-opacity" />
-            <span className="flex items-center gap-2">
-              Launch Discover <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </button>
-        </motion.div>
-      </div>
-
-      {/* PIN gate modal */}
-      {showPinGate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="w-full max-w-sm mx-4 rounded-2xl bg-[#050505] border border-white/10 p-6 shadow-2xl"
-          >
-            <h2 className="text-xl font-semibold mb-2 text-white">
-              Enter Access PIN
-            </h2>
-            <p className="text-sm text-white/60 mb-4">
-              Please enter the 6-digit PIN to launch the Discovery Engine.
-            </p>
-
-            <input
-              type="password"
-              inputMode="numeric"
-              maxLength={6}
-              value={pin}
-              onChange={(e) => {
-                const next = e.target.value.replace(/\D/g, '').slice(0, 6);
-                setPin(next);
-                if (pinError) setPinError('');
-              }}
-              className="w-full px-3 py-2 rounded-lg bg-black border border-white/20 text-center tracking-[0.4em] text-lg font-mono text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 mb-2"
-              placeholder="••••••"
-            />
-            {pinError && (
-              <p className="text-xs text-red-400 mb-3">{pinError}</p>
-            )}
-
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={() => {
-                  setShowPinGate(false);
-                  setPin('');
-                  setPinError('');
-                }}
-                className="flex-1 py-2 rounded-lg bg-white/5 text-white/80 hover:bg-white/10 text-sm font-medium transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmPin}
-                disabled={pin.length !== 6}
-                className="flex-1 py-2 rounded-lg bg-white text-black hover:bg-gray-100 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Continue
-              </button>
-            </div>
-          </motion.div>
+        <div className="text-sm text-white/40 pt-8">
+          Powered by <span className="text-white/60 font-semibold">Canton Network</span> • Launching Jan 23, 2026
         </div>
-      )}
+      </div>
     </motion.div>
   );
 }
