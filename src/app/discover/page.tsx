@@ -128,7 +128,7 @@ function LandingView({ onStart }: { onStart: () => void }) {
           className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed"
         >
           Stop coordinating complex transactions through email.<br/>
-          <span className="text-white font-semibold">Start orchestrating through Canton.</span>
+          <span className="text-white font-semibold">Start building on-chain activity with Flowryd.</span>
         </motion.p>
         
         <motion.div
@@ -247,8 +247,13 @@ function LandingView({ onStart }: { onStart: () => void }) {
           </div>
         </motion.div>
 
-        <div className="text-sm text-white/40 pt-8">
-          Powered by <span className="text-white/60 font-semibold">Canton Network</span> • Launching Jan 23, 2026
+        <div className="text-center pt-12 pb-4 space-y-2 opacity-60 hover:opacity-100 transition-opacity">
+          <div className="text-sm font-semibold text-white tracking-wide">
+            Canton Network - Let's Flow 🌊
+          </div>
+          <div className="text-[10px] text-zinc-500">
+            © 2026 Flowryd Limited. All Rights Reserved.
+          </div>
         </div>
       </div>
     </motion.div>
