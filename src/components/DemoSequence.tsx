@@ -18,10 +18,10 @@ import { cn } from '../lib/utils';
 type Phase = 'marketplace' | 'review' | 'launching' | 'success';
 
 const APPS = [
-  { id: 'c7', name: 'C7 Identity', icon: UserCheck, color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/50', glow: 'shadow-[0_0_15px_-3px_rgba(99,102,241,0.4)]' },
-  { id: 'kaiko', name: 'Kaiko Data', icon: LineChart, color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/50', glow: 'shadow-[0_0_15px_-3px_rgba(236,72,153,0.4)]' },
-  { id: '7ridge', name: '7RIDGE', icon: Building2, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/50', glow: 'shadow-[0_0_15px_-3px_rgba(245,158,11,0.4)]' },
-  { id: 'canton', name: 'Canton Wallet', icon: Wallet, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/50', glow: 'shadow-[0_0_15px_-3px_rgba(16,185,129,0.4)]' },
+  { id: 'c7', name: 'Identity', icon: UserCheck, color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/50', glow: 'shadow-[0_0_15px_-3px_rgba(99,102,241,0.4)]' },
+  { id: 'kaiko', name: 'Data Oracle', icon: LineChart, color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/50', glow: 'shadow-[0_0_15px_-3px_rgba(236,72,153,0.4)]' },
+  { id: '7ridge', name: 'DEX', icon: Building2, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/50', glow: 'shadow-[0_0_15px_-3px_rgba(245,158,11,0.4)]' },
+  { id: 'canton', name: 'Wallet', icon: Wallet, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/50', glow: 'shadow-[0_0_15px_-3px_rgba(16,185,129,0.4)]' },
 ];
 
 export default function DemoSequence() {
