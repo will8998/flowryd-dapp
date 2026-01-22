@@ -11,11 +11,16 @@ import {
   CheckCircle2, 
   ArrowRight,
   Zap,
-  Layers
+  Layers,
+  MessageSquare,
+  Lock,
+  Shield,
+  ShieldCheck,
+  Send
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-type Phase = 'marketplace' | 'review' | 'launching' | 'success';
+type Phase = 'marketplace' | 'review' | 'negotiation' | 'launching' | 'success';
 
 const APPS = [
   { id: 'c7', name: 'Identity', icon: UserCheck, color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/50', glow: 'shadow-[0_0_15px_-3px_rgba(99,102,241,0.4)]' },
@@ -79,6 +84,10 @@ export default function DemoSequence() {
       await moveCursor('50%', '85%', true);
       if (!mounted) return;
 
+      setPhase('negotiation');
+      await wait(5500);
+      
+      if (!mounted) return;
       setPhase('launching');
       await wait(1500); 
       
@@ -112,6 +121,7 @@ export default function DemoSequence() {
           <div className="text-[10px] text-zinc-600 font-mono">
             {phase === 'marketplace' && 'SELECT_MODULES'}
             {phase === 'review' && 'VERIFY_STACK'}
+            {phase === 'negotiation' && 'SECURE_CHANNEL'}
             {phase === 'launching' && 'EXECUTING...'}
             {phase === 'success' && 'SETTLEMENT_CONFIRMED'}
           </div>
@@ -122,8 +132,11 @@ export default function DemoSequence() {
             {phase === 'marketplace' && (
               <MarketplaceView key="marketplace" selected={selectedApps} />
             )}
-            {(phase === 'review' || phase === 'launching') && (
-              <ReviewStackView key="review" selectedIds={selectedApps} isLaunching={phase === 'launching'} />
+            {phase === 'review' && (
+              <ReviewStackView key="review" selectedIds={selectedApps} />
+            )}
+            {(phase === 'negotiation' || phase === 'launching') && (
+              <NegotiationView key="negotiation" isLaunching={phase === 'launching'} />
             )}
             {phase === 'success' && (
               <SuccessView key="success" />
@@ -197,7 +210,7 @@ function MarketplaceView({ selected }: { selected: string[] }) {
   );
 }
 
-function ReviewStackView({ selectedIds, isLaunching }: { selectedIds: string[], isLaunching: boolean }) {
+function ReviewStackView({ selectedIds }: { selectedIds: string[] }) {
   const selectedApps = APPS.filter(a => selectedIds.includes(a.id));
 
   return (
@@ -218,8 +231,7 @@ function ReviewStackView({ selectedIds, isLaunching }: { selectedIds: string[], 
               transition={{ delay: i * 0.1 }}
               className={cn(
                 "relative w-20 h-24 rounded-lg bg-zinc-900 border flex flex-col items-center justify-center gap-2 shadow-xl z-10",
-                app.border,
-                isLaunching && "animate-pulse"
+                app.border
               )}
             >
               <app.icon className={cn("w-6 h-6", app.color)} />
@@ -251,23 +263,113 @@ function ReviewStackView({ selectedIds, isLaunching }: { selectedIds: string[], 
       >
         <button className={cn(
           "w-full py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-wider transition-all duration-300",
-          isLaunching 
-            ? "bg-zinc-800 text-zinc-400 cursor-wait"
-            : "bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg shadow-cyan-500/20"
+          "bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg shadow-cyan-500/20"
         )}>
-          {isLaunching ? (
-            <>
-              <Zap className="w-3 h-3 animate-bounce" />
-              EXECUTING...
-            </>
-          ) : (
-            <>
-              <Zap className="w-3 h-3 fill-white" />
-              LAUNCH FLOW
-            </>
-          )}
+            <MessageSquare className="w-3 h-3 fill-white" />
+            START NEGOTIATION
         </button>
       </motion.div>
+    </motion.div>
+  );
+}
+
+function NegotiationView({ isLaunching }: { isLaunching: boolean }) {
+  const [messages, setMessages] = useState<Array<{id: number, type: 'system' | 'user' | 'counterparty', text: string}>>([]);
+
+  useEffect(() => {
+    const sequence: Array<{id: number, type: 'system' | 'user' | 'counterparty', text: string}> = [
+      { id: 1, type: 'system', text: "Secure Channel Established [E2EE]" },
+      { id: 2, type: 'user', text: "Proposing settlement: T+0, 145 $CC" },
+      { id: 3, type: 'counterparty', text: "Terms Accepted. Committing..." },
+      { id: 4, type: 'system', text: "Consensus Reached" }
+    ];
+
+    let timeouts: NodeJS.Timeout[] = [];
+    setMessages([]);
+
+    sequence.forEach((msg, index) => {
+      const delay = index === 0 ? 100 : index * 1200 + 500;
+      const timeout = setTimeout(() => {
+        setMessages(prev => {
+             if (prev.find(m => m.id === msg.id)) return prev;
+             return [...prev, msg];
+        });
+      }, delay);
+      timeouts.push(timeout);
+    });
+
+    return () => timeouts.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="h-full flex flex-col max-w-lg mx-auto w-full relative"
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/10 to-zinc-950/20 pointer-events-none" />
+      
+      <div className="flex-1 space-y-4 overflow-y-auto p-4 custom-scrollbar">
+        {messages.map((msg) => (
+           <motion.div
+             key={msg.id}
+             initial={{ opacity: 0, x: msg.type === 'user' ? 20 : -20, scale: 0.95 }}
+             animate={{ opacity: 1, x: 0, scale: 1 }}
+             transition={{ type: "spring", stiffness: 200, damping: 20 }}
+             className={cn(
+               "flex w-full",
+               msg.type === 'user' ? "justify-end" : "justify-start"
+             )}
+           >
+             <div className={cn(
+               "max-w-[80%] rounded-lg p-3 text-xs border backdrop-blur-sm relative overflow-hidden",
+               msg.type === 'system' ? "w-full text-center bg-transparent border-none text-zinc-500 font-mono my-2" : "shadow-lg",
+               msg.type === 'user' ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-200 rounded-br-none" : "",
+               msg.type === 'counterparty' ? "bg-zinc-800/80 border-zinc-700 text-zinc-300 rounded-bl-none" : ""
+             )}>
+                {msg.type !== 'system' && (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+                    <div className="flex items-center gap-2 mb-1 opacity-50 text-[10px] uppercase tracking-wider font-mono">
+                      {msg.type === 'user' ? <ShieldCheck className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                      {msg.type === 'user' ? 'You' : 'Counterparty'}
+                    </div>
+                  </>
+                )}
+                {msg.type === 'system' && (
+                   <div className="flex items-center justify-center gap-2">
+                     <div className="h-px bg-zinc-800 w-12" />
+                     <span>{msg.text}</span>
+                     <div className="h-px bg-zinc-800 w-12" />
+                   </div>
+                )}
+                {msg.type !== 'system' && msg.text}
+             </div>
+           </motion.div>
+        ))}
+        {isLaunching && (
+           <motion.div
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             className="flex items-center justify-center gap-2 text-xs text-emerald-400 font-mono mt-6 bg-emerald-500/5 py-2 rounded-lg border border-emerald-500/20"
+           >
+             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+             EXECUTING ON LEDGER...
+           </motion.div>
+        )}
+      </div>
+      
+      <div className="mt-2 p-3 border-t border-zinc-800/50 bg-zinc-950/30 backdrop-blur-md rounded-b-xl">
+        <div className="flex gap-3 items-center opacity-50 pointer-events-none">
+            <div className="flex-1 bg-zinc-900/50 h-9 rounded-md border border-zinc-800/50 px-3 flex items-center text-xs text-zinc-600">
+               Type a message...
+            </div>
+            <div className="w-9 h-9 bg-zinc-800 rounded-md flex items-center justify-center text-zinc-600 border border-zinc-700/50">
+               <Send className="w-4 h-4" />
+            </div>
+        </div>
+      </div>
     </motion.div>
   );
 }
