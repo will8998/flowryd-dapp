@@ -95,7 +95,7 @@ function LandingView({ onStart }: { onStart: () => void }) {
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
       exit={{ opacity: 0, y: -50 }}
-      className="relative min-h-screen flex flex-col items-center justify-center p-6 text-center lzr-background"
+      className="relative min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#020202]"
     >
       <div className="max-w-5xl space-y-12 z-10 w-full">
         <motion.div 
