@@ -284,7 +284,7 @@ function NegotiationView({ isLaunching }: { isLaunching: boolean }) {
       { id: 4, type: 'system', text: "Consensus Reached" }
     ];
 
-    let timeouts: NodeJS.Timeout[] = [];
+    const timeouts: NodeJS.Timeout[] = [];
     setMessages([]);
 
     sequence.forEach((msg, index) => {

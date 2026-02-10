@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Save, Play, Search, Info, Check, Send, X } from 'lucide-react';
+import { ArrowLeft, Save, Play, Info, Check, Send, X } from 'lucide-react';
 import { mockPrivateFlows, FlowRole } from '@/lib/demo-data';
 import { CanvasNode, CanvasEdge } from './CanvasComponents';
 
@@ -21,7 +21,7 @@ export const PrivateCanvas: React.FC<PrivateCanvasProps> = ({ flowId, onBack, on
 
   // Canvas Transform State
   const [scale, setScale] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [pan] = useState({ x: 0, y: 0 });
   
   const containerRef = useRef<HTMLDivElement>(null);
 

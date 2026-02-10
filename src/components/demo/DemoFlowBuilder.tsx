@@ -10,12 +10,13 @@ import {
   Edge,
   Connection,
   ReactFlowProvider,
-  useReactFlow
+  useReactFlow,
+  NodeChange,
+  EdgeChange
 } from '@xyflow/react';
 import { 
   Play, 
-  ArrowLeft,
-  X
+  ArrowLeft
 } from 'lucide-react';
 import { ParticipantTray } from '@/components/control-centre/ParticipantTray';
 import { WorkbenchCanvas } from '@/components/control-centre/WorkbenchCanvas';
@@ -30,7 +31,7 @@ interface DemoFlowBuilderProps {
 const DemoFlowBuilderContent: React.FC<DemoFlowBuilderProps> = ({ flowId, onBack, onReady }) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
-  const [isFlowReady, setIsFlowReady] = useState(false);
+  const [, setIsFlowReady] = useState(false);
   
   const { screenToFlowPosition } = useReactFlow();
 
@@ -92,11 +93,11 @@ const DemoFlowBuilderContent: React.FC<DemoFlowBuilderProps> = ({ flowId, onBack
 
 
   const onNodesChange = useCallback(
-    (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
     []
   );
   const onEdgesChange = useCallback(
-    (changes: any) => setEdges((eds) => applyEdgeChanges(changes, eds)),
+    (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     []
   );
   const onConnect = useCallback(

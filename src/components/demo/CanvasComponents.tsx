@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Building2, ShieldCheck, Database, Search, User, X } from 'lucide-react';
+import { Building2, ShieldCheck, Database, Search, User } from 'lucide-react';
 import { FlowRole } from '@/lib/demo-data';
 
 export const CanvasNode: React.FC<{

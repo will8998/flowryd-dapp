@@ -27,7 +27,7 @@ import Image from 'next/image';
 
 interface StudioSidebarProps {
   activeTier: string;
-  onTierChange: (tier: any) => void;
+  onTierChange: (tier: string) => void;
 }
 
 export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTierChange }) => {

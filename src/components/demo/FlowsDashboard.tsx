@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Plus, ArrowRight, Clock, Users } from 'lucide-react';
+import { Lock, Plus, ArrowRight, Users } from 'lucide-react';
 import { mockPrivateFlows } from '@/lib/demo-data';
 
 interface FlowsDashboardProps {

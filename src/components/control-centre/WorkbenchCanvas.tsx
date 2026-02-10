@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import { 
   ReactFlow, 
   Controls, 
@@ -11,7 +11,9 @@ import {
   EdgeProps,
   getBezierPath,
   Position,
-  Handle
+  Handle,
+  NodeChange,
+  EdgeChange
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { motion } from 'framer-motion';
@@ -63,7 +65,11 @@ const LiquidEdge = ({
   );
 };
 
-const InstitutionalNode = ({ data }: { data: any }) => {
+interface NodeData {
+  participantId: string;
+}
+
+const InstitutionalNode = ({ data }: { data: NodeData }) => {
   const p = participants.find(part => part.id === data.participantId);
   
   return (
@@ -99,8 +105,8 @@ const edgeTypes = { liquid: LiquidEdge };
 export const WorkbenchCanvas: React.FC<{ 
   nodes: Node[]; 
   edges: Edge[]; 
-  onNodesChange: (changes: any) => void; 
-  onEdgesChange: (changes: any) => void;
+  onNodesChange: (changes: NodeChange[]) => void; 
+  onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection) => void;
   onDrop: (event: React.DragEvent) => void;
   onDragOver: (event: React.DragEvent) => void;

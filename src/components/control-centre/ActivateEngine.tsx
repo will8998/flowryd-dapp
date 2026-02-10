@@ -4,8 +4,17 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, MessageSquare, ArrowRight, Activity, LineChart, ShieldCheck } from 'lucide-react';
 
+interface Deal {
+  id: string;
+  name: string;
+  participants: string[];
+  volume: string;
+  status: string;
+  activity: string;
+}
+
 export const ActivateEngine: React.FC = () => {
-  const DEALS = [
+  const DEALS: Deal[] = [
     { id: 'pf1', name: 'Repo_Settlement_v2', participants: ['Texture', 'DTCC', 'Kaiko'], volume: '$2.4B', status: 'LIVE', activity: '2m ago' },
     { id: 'pf2', name: 'Bond_Issuance_098', participants: ['Goldman', 'BNY Mellon'], volume: '$500M', status: 'SYNCING', activity: '14m ago' },
     { id: 'pf3', name: 'Collateral_Swap_Intraday', participants: ['Euroclear', 'Texture'], volume: '$1.2B', status: 'DEALING', activity: 'Just now' }
@@ -40,7 +49,7 @@ export const ActivateEngine: React.FC = () => {
                   <h3 className="text-sm font-bold uppercase text-white group-hover:text-emerald-400 transition-colors">{deal.name}</h3>
                   <div className="flex items-center gap-2">
                      <div className="flex -space-x-1">
-                        {deal.participants.map(p => (
+                        {deal.participants.map((p) => (
                           <div key={p} className="w-4 h-4 rounded-full bg-blue-600 border border-black text-[5px] flex items-center justify-center font-bold">{p.charAt(0)}</div>
                         ))}
                      </div>

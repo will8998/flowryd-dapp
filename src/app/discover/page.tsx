@@ -257,7 +257,7 @@ function LandingView({ onStart }: { onStart: () => void }) {
 
         <div className="text-center pt-12 pb-4 space-y-2 opacity-60 hover:opacity-100 transition-opacity">
           <div className="text-sm font-semibold text-white tracking-wide">
-            Canton Network - Let's Flow 🌊
+            Canton Network - Let&apos;s Flow 🌊
           </div>
           <div className="text-[10px] text-zinc-500">
             © 2026 Flowryd Limited. All Rights Reserved.

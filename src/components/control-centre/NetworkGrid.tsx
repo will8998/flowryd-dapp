@@ -6,8 +6,21 @@ import { Search, Filter, ShieldCheck, Zap, ArrowRight, Building2, Database, Netw
 import { participants } from '@/lib/canton-data';
 import { LiquidGlass } from './LiquidPrimitives';
 
+interface Stack {
+  id: string;
+  name: string;
+  desc: string;
+  partners: string[];
+  fee: string;
+  nodes: Array<{
+    role: string;
+    participantId: string;
+    position: { x: number; y: number };
+  }>;
+}
+
 interface NetworkGridProps {
-  onSelectStack: (stack: any) => void;
+  onSelectStack: (stack: Stack) => void;
 }
 
 export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
