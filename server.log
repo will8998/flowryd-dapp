@@ -1,0 +1,16 @@
+
+> flowryd@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.5.12 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://172.20.10.13:3000
+
+ ✓ Starting...
+[Error: EACCES: permission denied, open '/Users/williamlee/Documents/flowryd/.next/server/server-reference-manifest.json.tmp.x92n6ctvs0d'] {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'open',
+  path: '/Users/williamlee/Documents/flowryd/.next/server/server-reference-manifest.json.tmp.x92n6ctvs0d'
+}
+[?25h

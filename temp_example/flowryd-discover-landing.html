@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowryd - Discover | Decode Your Network Advantage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 'sans': ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        'fr': {
+                            'bg': '#09090b',
+                            'card': '#18181b',
+                            'border': '#27272a',
+                            'accent': '#3b82f6',
+                            'success': '#22c55e',
+                            'warning': '#eab308',
+                            'purple': '#8b5cf6',
+                            'cyan': '#06b6d4',
+                            'muted': '#a1a1aa',
+                            'dim': '#71717a',
+                            'c7': '#6366f1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #09090b; color: #fafafa; font-family: 'Inter', sans-serif; }
+        .glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.2); }
+        .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+        .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        /* Participant logo styles */
+        .participant-logo {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .participant-logo:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
+        }
+        .participant-logo.discovered {
+            border-color: #06b6d4 !important;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+        .participant-logo.discovered::after {
+            content: '✓';
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #06b6d4;
+            color: white;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Flow arrow */
+        .flow-arrow {
+            color: #3b82f6;
+        }
+        
+        /* Hero gradient */
+        .hero-gradient {
+            background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.15) 0%, transparent 60%);
+        }
+        
+        /* Toast animation */
+        .toast-enter {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    
+    <!-- Header -->
+    <header class="border-b border-fr-border px-6 py-4 sticky top-0 bg-fr-bg/95 backdrop-blur-sm z-50">
+        <div class="flex items-center justify-between max-w-[1400px] mx-auto">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-fr-accent to-fr-purple flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <span class="text-2xl font-bold">Flowryd</span>
+            </div>
+            
+            <nav class="flex items-center gap-8">
+                <a href="#" class="text-white font-medium border-b-2 border-fr-accent pb-1">Discover</a>
+                <a href="#" class="text-fr-muted hover:text-white transition">Navigate</a>
+                <a href="#" class="text-fr-muted hover:text-white transition">Activate</a>
+            </nav>
+            
+            <div class="flex items-center gap-4">
+                <a href="#" class="text-fr-muted hover:text-white text-sm transition">Sign In</a>
+                <button class="px-4 py-2 bg-fr-accent text-white rounded-lg text-sm font-medium hover:bg-fr-accent/80 transition">
+                    Subscribe
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient py-20 px-6">
+        <div class="max-w-[1400px] mx-auto text-center">
+            <h1 class="text-5xl font-bold mb-6">
+                Decode Your Network <span class="text-fr-accent">Advantage</span>
+            </h1>
+            <p class="text-xl text-fr-muted mb-10 max-w-2xl mx-auto">
+                See who you're connected to, what workflows you can join, and where the opportunities are hiding.
+            </p>
+            
+            <div class="flex items-center justify-center gap-6">
+                <div class="bg-fr-card border border-fr-border rounded-xl p-6 w-72">
+                    <label class="text-sm text-fr-muted block mb-2">Enter your Party-ID</label>
+                    <input type="text" placeholder="yourcompany::party" class="w-full bg-fr-bg border border-fr-border rounded-lg px-4 py-3 text-sm font-mono mb-4">
+                    <button class="w-full py-3 bg-fr-card border border-fr-accent text-fr-accent rounded-lg font-medium hover:bg-fr-accent hover:text-white transition">
+                        Explore Network →
+                    </button>
+                </div>
+                
+                <div class="text-fr-dim">or</div>
+                
+                <div class="bg-fr-card border border-fr-accent rounded-xl p-6 w-72 glow">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-fr-accent font-medium">DISCOVER</span>
+                        <span class="text-xs bg-fr-success/20 text-fr-success px-2 py-1 rounded-full">AVAILABLE NOW</span>
+                    </div>
+                    <div class="text-3xl font-bold mb-1">$100<span class="text-lg text-fr-muted">/month</span></div>
+                    <p class="text-xs text-fr-muted mb-4">Paid in Canton Coin</p>
+                    <button class="w-full py-3 bg-fr-accent text-white rounded-lg font-medium hover:bg-fr-accent/80 transition">
+                        Subscribe Now →
+                    </button>
+                    <p class="text-xs text-fr-dim mt-3">Public Launch Pricing until April 30, 2026</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Behind the Flows Section -->
+    <section class="py-16 px-6 border-t border-fr-border">
+        <div class="max-w-[1400px] mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center gap-3">
+                        <span class="text-2xl">📰</span>
+                        Behind the Flows
+                    </h2>
+                    <p class="text-fr-muted mt-1">See the workflows powering today's headlines</p>
+                </div>
+                <button class="text-fr-accent text-sm hover:underline">View All Stories →</button>
+            </div>
+            
+            <!-- Flow Stories Grid -->
+            <div class="grid grid-cols-3 gap-6">
+                
+                <!-- Story 1: Franklin Templeton -->
+                <div class="bg-fr-card border border-fr-border rounded-2xl overflow-hidden hover:border-fr-accent transition">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs bg-fr-purple/20 text-fr-purple px-2 py-1 rounded-full">TOKENIZATION</span>
+                            <span class="text-xs text-fr-dim">Bloomberg • Jan 15</span>
+                        </div>
+                        
+                        <h3 class="font-semibold text-lg mb-2">Franklin Templeton's $400M Tokenized Money Market Fund</h3>
+                        <p class="text-sm text-fr-muted mb-6">How they built the infrastructure stack for institutional-grade tokenization</p>
+                        
+                        <div class="mb-4">
+                            <div class="text-xs text-fr-dim mb-3">THE FLOW — Click to discover parties:</div>
+                            <div class="flex items-center gap-2 overflow-x-auto pb-2">
+                                <!-- Participant: Franklin Templeton -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'franklin', 'story-1')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-blue-700 to-blue-900 flex items-center justify-center font-bold text-sm border-2 border-transparent">FT</div>
+                                    <div class="text-xs mt-1 truncate">Franklin</div>
+                                    <div class="text-xs text-fr-dim">Issuer</div>
+                                </div>
+                                
+                                <span class="flow-arrow text-xl">→</span>
+                                
+                                <!-- Participant: BNY -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'bny', 'story-1')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-teal-600 to-teal-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">BN</div>
+                                    <div class="text-xs mt-1 truncate">BNY</div>
+                                    <div class="text-xs text-fr-dim">Custody</div>
+                                </div>
+                                
+                                <span class="flow-arrow text-xl">→</span>
+                                
+                                <!-- Participant: Kaiko (VP) -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'kaiko', 'story-1')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">KA</div>
+                                    <span class="absolute top-0 right-2 flex items-center gap-0.5 text-xs bg-fr-c7/30 text-fr-c7 px-1 rounded">
+                                        <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    </span>
+                                    <div class="text-xs mt-1 truncate">Kaiko</div>
+                                    <div class="text-xs text-fr-dim">Oracle</div>
+                                </div>
+                                
+                                <span class="flow-arrow text-xl">→</span>
+                                
+                                <!-- Participant: C7 Trust (VP) -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'c7trust', 'story-1')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">C7</div>
+                                    <span class="absolute top-0 right-2 flex items-center gap-0.5 text-xs bg-fr-c7/30 text-fr-c7 px-1 rounded">
+                                        <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    </span>
+                                    <div class="text-xs mt-1 truncate">C7 Trust</div>
+                                    <div class="text-xs text-fr-dim">Compliance</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-4 border-t border-fr-border">
+                            <span class="text-xs text-fr-muted">Template: <span class="text-fr-accent">Fund Distribution</span></span>
+                            <button class="text-xs text-fr-accent hover:underline">Build Similar →</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Story 2: DTCC Pilot -->
+                <div class="bg-fr-card border border-fr-border rounded-2xl overflow-hidden hover:border-fr-accent transition">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs bg-fr-success/20 text-fr-success px-2 py-1 rounded-full">COLLATERAL</span>
+                            <span class="text-xs text-fr-dim">CoinDesk • Jan 22</span>
+                        </div>
+                        
+                        <h3 class="font-semibold text-lg mb-2">DTCC Pilot Moves $1B in Tokenized Treasuries</h3>
+                        <p class="text-sm text-fr-muted mb-6">26 organizations, 11 apps, 100+ transactions in groundbreaking pilot</p>
+                        
+                        <div class="mb-4">
+                            <div class="text-xs text-fr-dim mb-3">THE FLOW — Click to discover parties:</div>
+                            <div class="flex items-center gap-2 overflow-x-auto pb-2">
+                                <!-- Participant: DTCC -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'dtcc', 'story-2')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">DT</div>
+                                    <div class="text-xs mt-1 truncate">DTCC</div>
+                                    <div class="text-xs text-fr-dim">Settlement</div>
+                                </div>
+                                
+                                <span class="flow-arrow text-xl">→</span>
+                                
+                                <!-- Participant: Goldman -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'goldman', 'story-2')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">GS</div>
+                                    <div class="text-xs mt-1 truncate">Goldman</div>
+                                    <div class="text-xs text-fr-dim">Trading</div>
+                                </div>
+                                
+                                <span class="flow-arrow text-xl">→</span>
+                                
+                                <!-- Participant: BNY -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'bny', 'story-2')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-teal-600 to-teal-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">BN</div>
+                                    <div class="text-xs mt-1 truncate">BNY</div>
+                                    <div class="text-xs text-fr-dim">Custody</div>
+                                </div>
+                                
+                                <span class="flow-arrow text-xl">→</span>
+                                
+                                <!-- Participant: +23 more -->
+                                <div class="flex-shrink-0 w-16 text-center">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-fr-bg border border-fr-border flex items-center justify-center text-sm text-fr-dim">+23</div>
+                                    <div class="text-xs mt-1 text-fr-dim">more</div>
+                                    <div class="text-xs text-fr-dim">parties</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-4 border-t border-fr-border">
+                            <span class="text-xs text-fr-muted">Template: <span class="text-fr-accent">Collateral Mobility</span></span>
+                            <button class="text-xs text-fr-accent hover:underline">Build Similar →</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Story 3: 24/7 ETF Trading -->
+                <div class="bg-fr-card border border-fr-border rounded-2xl overflow-hidden hover:border-fr-accent transition">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs bg-fr-warning/20 text-fr-warning px-2 py-1 rounded-full">TRADING</span>
+                            <span class="text-xs text-fr-dim">Financial Times • Jan 18</span>
+                        </div>
+                        
+                        <h3 class="font-semibold text-lg mb-2">State Street Eyes Round-the-Clock ETF Settlement</h3>
+                        <p class="text-sm text-fr-muted mb-6">24/7 trading infrastructure could unlock $100M+ in arbitrage opportunities</p>
+                        
+                        <div class="mb-4">
+                            <div class="text-xs text-fr-dim mb-3">THE FLOW — Click to discover parties:</div>
+                            <div class="flex items-center gap-2 overflow-x-auto pb-2">
+                                <!-- Participant: State Street -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'statestreet', 'story-3')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">SS</div>
+                                    <div class="text-xs mt-1 truncate">State St</div>
+                                    <div class="text-xs text-fr-dim">AP</div>
+                                </div>
+                                
+                                <span class="flow-arrow text-xl">→</span>
+                                
+                                <!-- Participant: NYSE -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'nyse', 'story-3')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">NY</div>
+                                    <div class="text-xs mt-1 truncate">NYSE</div>
+                                    <div class="text-xs text-fr-dim">Exchange</div>
+                                </div>
+                                
+                                <span class="flow-arrow text-xl">→</span>
+                                
+                                <!-- Participant: BitGo (VP) -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'bitgo', 'story-3')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">BG</div>
+                                    <span class="absolute top-0 right-2 flex items-center gap-0.5 text-xs bg-fr-c7/30 text-fr-c7 px-1 rounded">
+                                        <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    </span>
+                                    <div class="text-xs mt-1 truncate">BitGo</div>
+                                    <div class="text-xs text-fr-dim">Custody</div>
+                                </div>
+                                
+                                <span class="flow-arrow text-xl">→</span>
+                                
+                                <!-- Participant: Chainlink -->
+                                <div class="participant-logo relative flex-shrink-0 w-16 text-center" onclick="captureClick(this, 'chainlink', 'story-3')">
+                                    <div class="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-cyan-600 to-cyan-800 flex items-center justify-center font-bold text-sm border-2 border-transparent">CL</div>
+                                    <div class="text-xs mt-1 truncate">Chainlink</div>
+                                    <div class="text-xs text-fr-dim">Oracle</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-4 border-t border-fr-border">
+                            <span class="text-xs text-fr-muted">Template: <span class="text-fr-accent">ETF 24/7 Arbitrage</span></span>
+                            <button class="text-xs text-fr-accent hover:underline">Build Similar →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Network Position Preview -->
+    <section class="py-16 px-6 border-t border-fr-border bg-fr-card/30">
+        <div class="max-w-[1400px] mx-auto">
+            <div class="text-center mb-10">
+                <h2 class="text-2xl font-bold mb-2">Your Network Position</h2>
+                <p class="text-fr-muted">See where you stand in the Canton ecosystem</p>
+            </div>
+            
+            <div class="bg-fr-card border border-fr-border rounded-2xl p-8 max-w-4xl mx-auto">
+                <!-- Network Visualization Preview -->
+                <div class="relative h-64 mb-8">
+                    <svg class="w-full h-full" viewBox="0 0 600 250">
+                        <!-- Connection lines -->
+                        <line x1="300" y1="125" x2="150" y2="60" stroke="#27272a" stroke-width="2" stroke-dasharray="5"/>
+                        <line x1="300" y1="125" x2="450" y2="60" stroke="#27272a" stroke-width="2" stroke-dasharray="5"/>
+                        <line x1="300" y1="125" x2="100" y2="180" stroke="#27272a" stroke-width="2" stroke-dasharray="5"/>
+                        <line x1="300" y1="125" x2="500" y2="180" stroke="#27272a" stroke-width="2" stroke-dasharray="5"/>
+                        <line x1="300" y1="125" x2="200" y2="200" stroke="#27272a" stroke-width="2" stroke-dasharray="5"/>
+                        <line x1="300" y1="125" x2="400" y2="200" stroke="#27272a" stroke-width="2" stroke-dasharray="5"/>
+                        
+                        <!-- Center node (YOU) -->
+                        <circle cx="300" cy="125" r="35" fill="url(#gradient1)" stroke="#3b82f6" stroke-width="3"/>
+                        <text x="300" y="130" text-anchor="middle" fill="white" font-weight="bold" font-size="14">YOU</text>
+                        
+                        <!-- Surrounding nodes -->
+                        <circle cx="150" cy="60" r="25" fill="#18181b" stroke="#6366f1" stroke-width="2"/>
+                        <text x="150" y="65" text-anchor="middle" fill="white" font-size="12">7R</text>
+                        
+                        <circle cx="450" cy="60" r="25" fill="#18181b" stroke="#6366f1" stroke-width="2"/>
+                        <text x="450" y="65" text-anchor="middle" fill="white" font-size="12">IEU</text>
+                        
+                        <circle cx="100" cy="180" r="25" fill="#18181b" stroke="#27272a" stroke-width="2"/>
+                        <text x="100" y="185" text-anchor="middle" fill="#a1a1aa" font-size="12">C7</text>
+                        
+                        <circle cx="500" cy="180" r="25" fill="#18181b" stroke="#27272a" stroke-width="2"/>
+                        <text x="500" y="185" text-anchor="middle" fill="#a1a1aa" font-size="12">KAI</text>
+                        
+                        <circle cx="200" cy="200" r="20" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+                        <text x="200" y="205" text-anchor="middle" fill="#71717a" font-size="10">MM</text>
+                        
+                        <circle cx="400" cy="200" r="20" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+                        <text x="400" y="205" text-anchor="middle" fill="#71717a" font-size="10">TX</text>
+                        
+                        <!-- Gradient definition -->
+                        <defs>
+                            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3b82f6"/>
+                                <stop offset="100%" style="stop-color:#8b5cf6"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    
+                    <!-- Blur overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-fr-card"></div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-8 text-center mb-8">
+                    <div>
+                        <div class="text-3xl font-bold text-fr-accent">12</div>
+                        <div class="text-sm text-fr-muted">Direct Connections</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-fr-purple">47</div>
+                        <div class="text-sm text-fr-muted">Extended Network (2°)</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-fr-c7">8</div>
+                        <div class="text-sm text-fr-muted">VP Verified</div>
+                    </div>
+                </div>
+                
+                <!-- CTA -->
+                <div class="text-center">
+                    <button class="px-8 py-3 bg-fr-accent text-white rounded-lg font-medium hover:bg-fr-accent/80 transition">
+                        🔒 Subscribe to Explore Your Full Network
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Flow Templates Section -->
+    <section class="py-16 px-6 border-t border-fr-border">
+        <div class="max-w-[1400px] mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold">Flow Templates</h2>
+                    <p class="text-fr-muted mt-1">Proven workflow patterns you can use</p>
+                </div>
+                <button class="text-fr-accent text-sm hover:underline">View All Templates →</button>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Template 1: ETF Arbitrage -->
+                <div class="bg-fr-card border border-fr-border rounded-2xl p-6 hover:border-fr-accent transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-fr-warning/20 flex items-center justify-center">
+                            <span class="text-2xl">📈</span>
+                        </div>
+                        <span class="text-xs bg-fr-accent/20 text-fr-accent px-2 py-1 rounded-full">POPULAR</span>
+                    </div>
+                    
+                    <h3 class="font-semibold text-lg mb-2">ETF 24/7 Arbitrage</h3>
+                    <p class="text-sm text-fr-muted mb-4">Continuous trading across time zones with real-time NAV calculations</p>
+                    
+                    <div class="grid grid-cols-3 gap-4 mb-4 text-center">
+                        <div>
+                            <div class="text-lg font-bold">6</div>
+                            <div class="text-xs text-fr-muted">Roles</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold">18d</div>
+                            <div class="text-xs text-fr-muted">Avg Time</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold">23</div>
+                            <div class="text-xs text-fr-muted">Active</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-1 mb-4">
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'ss', 'template-etf')">SS</div>
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'nyse', 'template-etf')">NY</div>
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'bitgo', 'template-etf')">BG</div>
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-cyan-600 to-cyan-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'chainlink', 'template-etf')">CL</div>
+                    </div>
+                    
+                    <button class="w-full py-2 bg-fr-bg border border-fr-border rounded-lg text-sm hover:border-fr-accent transition">
+                        Start This Flow →
+                    </button>
+                </div>
+                
+                <!-- Template 2: Repo Financing -->
+                <div class="bg-fr-card border border-fr-border rounded-2xl p-6 hover:border-fr-accent transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-fr-success/20 flex items-center justify-center">
+                            <span class="text-2xl">🔄</span>
+                        </div>
+                    </div>
+                    
+                    <h3 class="font-semibold text-lg mb-2">Repo Financing</h3>
+                    <p class="text-sm text-fr-muted mb-4">Short-term collateralized lending with atomic settlement</p>
+                    
+                    <div class="grid grid-cols-3 gap-4 mb-4 text-center">
+                        <div>
+                            <div class="text-lg font-bold">5</div>
+                            <div class="text-xs text-fr-muted">Roles</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold">14d</div>
+                            <div class="text-xs text-fr-muted">Avg Time</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold">17</div>
+                            <div class="text-xs text-fr-muted">Active</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-1 mb-4">
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'gs', 'template-repo')">GS</div>
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-teal-600 to-teal-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'bny', 'template-repo')">BN</div>
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'dtcc', 'template-repo')">DT</div>
+                    </div>
+                    
+                    <button class="w-full py-2 bg-fr-bg border border-fr-border rounded-lg text-sm hover:border-fr-accent transition">
+                        Start This Flow →
+                    </button>
+                </div>
+                
+                <!-- Template 3: MMF Distribution -->
+                <div class="bg-fr-card border border-fr-border rounded-2xl p-6 hover:border-fr-accent transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-fr-purple/20 flex items-center justify-center">
+                            <span class="text-2xl">💰</span>
+                        </div>
+                    </div>
+                    
+                    <h3 class="font-semibold text-lg mb-2">MMF Distribution</h3>
+                    <p class="text-sm text-fr-muted mb-4">Tokenized money market fund creation and distribution</p>
+                    
+                    <div class="grid grid-cols-3 gap-4 mb-4 text-center">
+                        <div>
+                            <div class="text-lg font-bold">7</div>
+                            <div class="text-xs text-fr-muted">Roles</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold">21d</div>
+                            <div class="text-xs text-fr-muted">Avg Time</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold">31</div>
+                            <div class="text-xs text-fr-muted">Active</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-1 mb-4">
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-700 to-blue-900 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'franklin', 'template-mmf')">FT</div>
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'kaiko', 'template-mmf')">KA</div>
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'c7', 'template-mmf')">C7</div>
+                        <div class="w-8 h-8 rounded bg-gradient-to-br from-teal-600 to-teal-800 flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition" onclick="captureClick(this, 'bny', 'template-mmf')">BN</div>
+                    </div>
+                    
+                    <button class="w-full py-2 bg-fr-bg border border-fr-border rounded-lg text-sm hover:border-fr-accent transition">
+                        Start This Flow →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="py-20 px-6 border-t border-fr-border bg-gradient-to-b from-fr-bg to-fr-card/50">
+        <div class="max-w-[800px] mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-4">Ready to Decode Your Advantage?</h2>
+            <p class="text-fr-muted mb-8">Join the Canton Network participants already discovering opportunities with Flowryd</p>
+            
+            <div class="bg-fr-card border border-fr-accent rounded-2xl p-8 glow inline-block">
+                <div class="flex items-center gap-6">
+                    <div class="text-left">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-fr-accent font-medium">DISCOVER</span>
+                            <span class="text-xs bg-fr-success/20 text-fr-success px-2 py-0.5 rounded-full">AVAILABLE NOW</span>
+                        </div>
+                        <div class="text-4xl font-bold">$100<span class="text-xl text-fr-muted">/month</span></div>
+                        <div class="text-sm text-fr-muted">Paid in Canton Coin</div>
+                    </div>
+                    <div class="border-l border-fr-border pl-6">
+                        <ul class="text-sm text-left space-y-2">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-fr-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Network grid builder
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-fr-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                VP badges (C7 Identity)
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-fr-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Connection intelligence
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-fr-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Behind the Flows content
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="w-full mt-6 py-4 bg-fr-accent text-white rounded-xl font-semibold text-lg hover:bg-fr-accent/80 transition">
+                    Subscribe with Canton Coin →
+                </button>
+                <p class="text-xs text-fr-dim mt-3">Public Launch Pricing until April 30, 2026</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-fr-border py-8 px-6">
+        <div class="max-w-[1400px] mx-auto flex items-center justify-between text-sm text-fr-muted">
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded bg-gradient-to-br from-fr-accent to-fr-purple flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <span>© 2026 Flowryd Ltd. All rights reserved.</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="#" class="hover:text-white transition">Terms</a>
+                <a href="#" class="hover:text-white transition">Privacy</a>
+                <a href="#" class="hover:text-white transition">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification (Hidden by default) -->
+    <div id="discoveryToast" class="fixed bottom-6 right-6 hidden">
+        <div class="toast-enter bg-fr-card border border-fr-cyan rounded-xl p-4 glow-cyan max-w-sm">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-fr-cyan/20 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-fr-cyan" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="font-medium text-sm">Interest captured on-chain</h4>
+                    <p class="text-xs text-fr-muted mt-1">You discovered <span id="toastPartyName" class="text-fr-cyan">a party</span>. We'll help you connect when you're ready.</p>
+                    <button class="text-xs text-fr-accent mt-2 hover:underline">Upgrade to Navigate →</button>
+                </div>
+                <button onclick="hideToast()" class="text-fr-muted hover:text-white">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Track discovered parties in session
+        const discoveredParties = new Set();
+        let clickCount = 0;
+        
+        // Party name mapping
+        const partyNames = {
+            'franklin': 'Franklin Templeton',
+            'bny': 'BNY Mellon',
+            'kaiko': 'Kaiko',
+            'c7trust': 'C7 Trust',
+            'dtcc': 'DTCC',
+            'goldman': 'Goldman Sachs',
+            'statestreet': 'State Street',
+            'nyse': 'NYSE',
+            'bitgo': 'BitGo',
+            'chainlink': 'Chainlink',
+            'c7': 'C7 Trust',
+            'gs': 'Goldman Sachs',
+            'ss': 'State Street'
+        };
+        
+        function captureClick(element, partyId, context) {
+            // Skip if already discovered
+            if (discoveredParties.has(partyId)) {
+                showToast(partyNames[partyId] || partyId, true);
+                return;
+            }
+            
+            // Mark as discovered
+            discoveredParties.add(partyId);
+            clickCount++;
+            
+            // Visual feedback
+            element.classList.add('discovered');
+            
+            // Show toast
+            showToast(partyNames[partyId] || partyId, false);
+            
+            // Log for demo (would be API call in production)
+            console.log('ON-CHAIN CAPTURE:', {
+                event: 'DISCOVERY_CLICK',
+                partyId: partyId,
+                context: context,
+                timestamp: new Date().toISOString(),
+                sessionClickCount: clickCount
+            });
+        }
+        
+        function showToast(partyName, alreadyDiscovered) {
+            const toast = document.getElementById('discoveryToast');
+            const nameSpan = document.getElementById('toastPartyName');
+            
+            if (alreadyDiscovered) {
+                nameSpan.textContent = partyName + ' (already discovered)';
+            } else {
+                nameSpan.textContent = partyName;
+            }
+            
+            toast.classList.remove('hidden');
+            
+            // Auto-hide after 4 seconds
+            setTimeout(() => {
+                hideToast();
+            }, 4000);
+        }
+        
+        function hideToast() {
+            document.getElementById('discoveryToast').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

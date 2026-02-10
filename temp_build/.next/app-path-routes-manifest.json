@@ -1,0 +1,12 @@
+{
+  "/favicon.ico/route": "/favicon.ico",
+  "/_not-found/page": "/_not-found",
+  "/cookies/page": "/cookies",
+  "/media-kit/page": "/media-kit",
+  "/discover/page": "/discover",
+  "/onboarding/page": "/onboarding",
+  "/page": "/",
+  "/privacy/page": "/privacy",
+  "/terms/page": "/terms",
+  "/demo/page": "/demo"
+}
