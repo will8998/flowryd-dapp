@@ -10,7 +10,9 @@ import {
   Edge,
   Connection,
   ReactFlowProvider,
-  useReactFlow
+  useReactFlow,
+  NodeChange,
+  EdgeChange
 } from '@xyflow/react';
 import { 
   Plus, 
@@ -36,11 +38,11 @@ const NavigateHubContent: React.FC = () => {
   const { screenToFlowPosition } = useReactFlow();
 
   const onNodesChange = useCallback(
-    (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
     []
   );
   const onEdgesChange = useCallback(
-    (changes: any) => setEdges((eds) => applyEdgeChanges(changes, eds)),
+    (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     []
   );
   const onConnect = useCallback(

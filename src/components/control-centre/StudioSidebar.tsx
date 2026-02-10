@@ -25,21 +25,23 @@ import {
 import { useCantonAuth } from '@/lib/auth-context';
 import Image from 'next/image';
 
+type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN';
+
 interface StudioSidebarProps {
-  activeTier: string;
-  onTierChange: (tier: string) => void;
+  activeTier: Tier;
+  onTierChange: (tier: Tier) => void;
 }
 
 export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTierChange }) => {
   const { partyId, disconnect } = useCantonAuth();
   
-  const MENU_ITEMS = [
+  const MENU_ITEMS: Array<{ id: string; label: string; icon: typeof Globe; tier: Tier }> = [
     { id: 'DISCOVER', label: 'Discover', icon: Globe, tier: 'DISCOVER' },
     { id: 'NAVIGATE', label: 'Workbench', icon: Layers, tier: 'NAVIGATE' },
     { id: 'ACTIVATE', label: 'Deals', icon: MessageSquare, tier: 'ACTIVATE' },
   ];
 
-  const SECONDARY_ITEMS = [
+  const SECONDARY_ITEMS: Array<{ id?: string; label: string; icon: typeof Globe; tier?: Tier; href?: string }> = [
     { id: 'JOIN', label: 'Collective Hub', icon: Users, tier: 'JOIN' },
     { label: 'Intelligence', icon: Terminal, href: '#' },
     { label: 'App Stacks', icon: Workflow, href: '#' },
