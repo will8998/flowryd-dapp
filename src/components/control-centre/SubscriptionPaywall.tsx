@@ -6,6 +6,7 @@ import { Lock, X } from "lucide-react";
 interface SubscriptionPaywallProps {
   requiredTier: string;
   onClose: () => void;
+  onSkip?: () => void;
 }
 
 const PLANS = [
@@ -45,7 +46,8 @@ const PLANS = [
 
 export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({ 
   requiredTier, 
-  onClose 
+  onClose,
+  onSkip 
 }) => {
   const selectedPlan = PLANS.find(plan => plan.name === requiredTier);
 
@@ -124,13 +126,23 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
           </button>
         )}
 
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <button
             onClick={onClose}
             className="text-white/30 hover:text-white/50 text-sm cursor-pointer transition-colors"
           >
             Maybe Later
           </button>
+          {onSkip && (
+            <div>
+              <button
+                onClick={onSkip}
+                className="text-amber-500/60 hover:text-amber-500 text-xs cursor-pointer transition-colors font-mono"
+              >
+                [TEST] Skip Subscription →
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

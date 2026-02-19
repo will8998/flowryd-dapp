@@ -87,6 +87,15 @@ export const FlowsStudio: React.FC = () => {
         <SubscriptionPaywall
           requiredTier={paywallTier}
           onClose={() => setPaywallTier(null)}
+          onSkip={() => {
+            const tierKey = (Object.entries(TIER_REQUIREMENTS) as [Tier, string][])
+              .find(([, v]) => v === paywallTier)?.[0];
+            if (tierKey) {
+              setActiveTier(tierKey);
+              if (tierKey === 'NAVIGATE') setNavigateView('library');
+            }
+            setPaywallTier(null);
+          }}
         />
       )}
 
