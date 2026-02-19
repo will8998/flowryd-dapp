@@ -26,7 +26,7 @@ export async function setAuthCookies(
   refreshToken: string,
 ): Promise<void> {
   const cookieStore = await cookies();
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = process.env.NODE_ENV === 'production' && process.env.COOKIE_SECURE !== 'false';
 
   cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, {
     httpOnly: true,
