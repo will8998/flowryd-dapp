@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { participants } from '@/lib/canton-data';
+import { participants, workflows } from '@/lib/canton-data';
 import { 
   Search, 
   ChevronDown, 
@@ -16,12 +16,16 @@ import {
   Wallet, 
   BarChart3, 
   Globe, 
-  Landmark 
+  Landmark,
+  Sparkles,
+  X 
 } from 'lucide-react';
 
 interface ParticipantTrayProps {
   isCollapsed: boolean;
   onToggle: () => void;
+  selectedWorkflow?: string | null;
+  onSelectWorkflow?: (workflowId: string | null) => void;
 }
 
 // Icon mapping based on role keywords
@@ -47,12 +51,28 @@ const getCriticalityColor = (criticality: 'CRITICAL' | 'REQUIRED' | 'OPTIONAL') 
 
 export const ParticipantTray: React.FC<ParticipantTrayProps> = ({ 
   isCollapsed, 
-  onToggle 
+  onToggle,
+  selectedWorkflow = null,
+  onSelectWorkflow
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(Array.from(new Set(participants.map(p => p.cantonRole))))
   );
+
+  const activeWorkflow = useMemo(() => 
+    workflows.find(w => w.id === selectedWorkflow) || null
+  , [selectedWorkflow]);
+
+  const recommendedParticipantIds = useMemo(() => {
+    if (!activeWorkflow) return new Set<string>();
+    const roleSet = new Set(activeWorkflow.roles);
+    return new Set(
+      participants
+        .filter(p => Object.keys(p.capabilities).some(cap => roleSet.has(cap)))
+        .map(p => p.id)
+    );
+  }, [activeWorkflow]);
 
   const filteredParticipants = useMemo(() => {
     if (!searchTerm.trim()) return participants;
@@ -150,7 +170,55 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
             </div>
           </div>
 
-          {/* Participants List */}
+          {onSelectWorkflow && !activeWorkflow && (
+            <div className="px-4 py-3 border-b border-white/5">
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <Sparkles className="w-3 h-3 text-blue-400" />
+                <p className="text-[9px] uppercase tracking-widest text-blue-400/70 font-semibold">Templates</p>
+              </div>
+              <div className="space-y-1.5">
+                {workflows.map(wf => (
+                  <button
+                    key={wf.id}
+                    onClick={() => onSelectWorkflow(wf.id)}
+                    className="w-full text-left px-3 py-2.5 bg-white/[0.02] border border-white/5 rounded-lg hover:bg-blue-500/5 hover:border-blue-500/20 transition-all group/wf"
+                  >
+                    <p className="text-[11px] font-semibold text-white/60 group-hover/wf:text-white/80 transition-colors">{wf.name}</p>
+                    <p className="text-[8px] text-white/25 mt-0.5 line-clamp-1">{wf.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeWorkflow && onSelectWorkflow && (
+            <div className="px-4 py-3 border-b border-blue-500/10 bg-blue-500/[0.02]">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-blue-400" />
+                  <p className="text-[10px] font-bold text-blue-400">{activeWorkflow.name}</p>
+                </div>
+                <button 
+                  onClick={() => onSelectWorkflow(null)} 
+                  className="p-1 text-white/30 hover:text-white/60 hover:bg-white/5 rounded transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="space-y-1">
+                {activeWorkflow.stages.map((stage, i) => (
+                  <div key={i} className="flex items-start gap-2 py-0.5">
+                    <span className="text-[8px] text-blue-500/50 font-mono w-3 shrink-0 pt-px">{i + 1}.</span>
+                    <span className="text-[9px] text-white/40">{stage.name}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[8px] text-white/20 mt-2">
+                Recommended partners highlighted below
+              </p>
+            </div>
+          )}
+
           <div className="flex-1 overflow-y-auto">
             <div className="p-2 space-y-1">
               {groupedParticipants.map(([role, roleParticipants]) => {
@@ -187,36 +255,46 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
                           transition={{ duration: 0.15 }}
                           className="overflow-hidden ml-2 space-y-0.5"
                         >
-                          {roleParticipants.map((participant) => (
-                            <div
-                              key={participant.id}
-                              draggable
-                              onDragStart={(event) => onDragStart(event, participant.id)}
-                              className="flex items-center gap-2 p-2 rounded-md cursor-grab active:cursor-grabbing group/item hover:bg-white/5 hover:scale-[1.02] transition-all"
-                              style={{ height: '40px' }}
-                            >
-                              {/* Icon */}
-                              <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                                <IconComponent className="w-4 h-4 text-blue-500" />
+                          {roleParticipants.map((participant) => {
+                            const isRec = recommendedParticipantIds.has(participant.id);
+                            return (
+                              <div
+                                key={participant.id}
+                                draggable
+                                onDragStart={(event) => onDragStart(event, participant.id)}
+                                className={`flex items-center gap-2 p-2 rounded-md cursor-grab active:cursor-grabbing group/item hover:scale-[1.02] transition-all ${
+                                  isRec 
+                                    ? 'bg-blue-500/[0.06] hover:bg-blue-500/10 border border-blue-500/10' 
+                                    : 'hover:bg-white/5'
+                                }`}
+                                style={{ height: '40px' }}
+                              >
+                                <div className="w-4 h-4 flex items-center justify-center shrink-0">
+                                  <IconComponent className={`w-4 h-4 ${isRec ? 'text-blue-400' : 'text-blue-500'}`} />
+                                </div>
+                                
+                                <div className="min-w-0 flex-1">
+                                  <p className={`text-[11px] font-bold truncate leading-none ${isRec ? 'text-white/90' : 'text-white/80'}`}>
+                                    {participant.name}
+                                  </p>
+                                  <p className="text-[8px] text-white/30 truncate leading-none mt-0.5">
+                                    {participant.cantonRole}
+                                  </p>
+                                </div>
+                                
+                                {isRec && (
+                                  <span className="text-[6px] font-bold text-blue-400 bg-blue-500/10 px-1 py-0.5 rounded uppercase tracking-wider shrink-0">
+                                    Rec
+                                  </span>
+                                )}
+
+                                <div 
+                                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${getCriticalityColor(participant.criticality)}`}
+                                  title={participant.criticality}
+                                />
                               </div>
-                              
-                              {/* Content */}
-                              <div className="min-w-0 flex-1">
-                                <p className="text-[11px] font-bold text-white/80 truncate leading-none">
-                                  {participant.name}
-                                </p>
-                                <p className="text-[8px] text-white/30 truncate leading-none mt-0.5">
-                                  {participant.cantonRole}
-                                </p>
-                              </div>
-                              
-                              {/* Criticality Dot */}
-                              <div 
-                                className={`w-1.5 h-1.5 rounded-full shrink-0 ${getCriticalityColor(participant.criticality)}`}
-                                title={participant.criticality}
-                              />
-                            </div>
-                          ))}
+                            );
+                          })}
                         </motion.div>
                       )}
                     </AnimatePresence>

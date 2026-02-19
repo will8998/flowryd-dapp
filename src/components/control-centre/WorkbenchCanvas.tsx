@@ -18,7 +18,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { motion } from 'framer-motion';
 import { participants } from '@/lib/canton-data';
-import { Building2, Zap, ShieldCheck, Database, Network, Shield, Wallet, Globe, Landmark, BarChart3, Plus, Layers } from 'lucide-react';
+import { Building2, Zap, ShieldCheck, Database, Network, Shield, Wallet, Globe, Landmark, BarChart3, Plus, Layers, ArrowLeft } from 'lucide-react';
 
 const getRoleIcon = (cantonRole: string) => {
   const role = cantonRole.toLowerCase();
@@ -90,31 +90,73 @@ const LiquidEdge = ({
 
 interface NodeData {
   participantId: string;
+  isUserOrg?: boolean;
+  orgName?: string;
+  isRecommended?: boolean;
 }
 
 const InstitutionalNode = ({ data }: { data: NodeData }) => {
-  const p = participants.find(part => part.id === data.participantId);
+  const isUserOrg = data.isUserOrg;
+  const p = isUserOrg ? null : participants.find(part => part.id === data.participantId);
   
   return (
     <div className="group relative">
-      <div className="absolute -inset-1 bg-blue-500/5 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none" />
-      <div className="w-40 bg-[#0a0a0a] border border-white/10 rounded-[20px] p-3 shadow-xl backdrop-blur-3xl group-hover:border-blue-500/40 transition-all">
-        <Handle type="target" position={Position.Top} className="!bg-blue-500 !w-2 !h-2 !border-none shadow-[0_0_4px_#3b82f6]" />
+      <div className={`absolute -inset-1 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none ${isUserOrg ? 'bg-emerald-500/10' : 'bg-blue-500/5'}`} />
+      <div className={`w-40 bg-[#0a0a0a] rounded-[20px] p-3 shadow-xl backdrop-blur-3xl transition-all ${
+        isUserOrg
+          ? 'border-2 border-emerald-500/30 group-hover:border-emerald-400/50'
+          : 'border border-white/10 group-hover:border-blue-500/40'
+      }`}>
+        <Handle
+          type="target"
+          position={Position.Top}
+          className={isUserOrg
+            ? '!bg-emerald-500 !w-2 !h-2 !border-none'
+            : '!bg-blue-500 !w-2 !h-2 !border-none shadow-[0_0_4px_#3b82f6]'
+          }
+        />
         
-        {p && (
-          <div className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full ${getCriticalityStyle(p.criticality)}`} />
+        {isUserOrg ? (
+          <>
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                <Building2 className="w-4 h-4 text-emerald-500" />
+              </div>
+              <p className="text-[11px] font-bold font-sans uppercase text-white/90 truncate leading-tight">
+                {data.orgName || 'Your Org'}
+              </p>
+            </div>
+            <div className="pl-[42px]">
+              <span className="text-[7px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full uppercase tracking-widest">
+                YOU
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            {p && (
+              <div className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full ${getCriticalityStyle(p.criticality)}`} />
+            )}
+
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                {p ? getRoleIcon(p.cantonRole) : <Building2 className="w-4 h-4 text-white/20" />}
+              </div>
+              <p className="text-[11px] font-bold font-sans uppercase text-white/90 truncate leading-tight">{p?.name || 'Unassigned'}</p>
+            </div>
+
+            <p className="text-[8px] text-white/30 uppercase tracking-widest truncate pl-[42px]">{p?.cantonRole || 'Select Role'}</p>
+          </>
         )}
 
-        <div className="flex items-center gap-2.5 mb-1.5">
-          <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-            {p ? getRoleIcon(p.cantonRole) : <Building2 className="w-4 h-4 text-white/20" />}
-          </div>
-          <p className="text-[11px] font-bold font-sans uppercase text-white/90 truncate leading-tight">{p?.name || 'Unassigned'}</p>
-        </div>
-
-        <p className="text-[8px] text-white/30 uppercase tracking-widest truncate pl-[42px]">{p?.cantonRole || 'Select Role'}</p>
-
-        <Handle type="source" position={Position.Bottom} className="!bg-blue-500 !w-2 !h-2 !border-none shadow-[0_0_4px_#3b82f6]" />
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          className={isUserOrg
+            ? '!bg-emerald-500 !w-2 !h-2 !border-none'
+            : '!bg-blue-500 !w-2 !h-2 !border-none shadow-[0_0_4px_#3b82f6]'
+          }
+        />
       </div>
     </div>
   );
@@ -168,6 +210,22 @@ export const WorkbenchCanvas: React.FC<{
               <p className="text-sm font-bold text-white/40 font-sans">Drop participants here</p>
               <p className="text-[10px] text-white/20 font-mono">Drag from the sidebar to start building your flow</p>
             </div>
+          </div>
+        </motion.div>
+      )}
+
+      {nodes.length === 1 && nodes[0]?.id === 'user-org' && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+          className="absolute top-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
+        >
+          <div className="flex items-center gap-2.5 bg-[#0a0a0a]/90 border border-white/10 rounded-xl px-4 py-2.5 backdrop-blur-md shadow-2xl">
+            <ArrowLeft className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <p className="text-[11px] text-white/60 font-sans">
+              <span className="text-blue-400 font-bold">Drag partners</span> from the sidebar and connect them to your org
+            </p>
           </div>
         </motion.div>
       )}

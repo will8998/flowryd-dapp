@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   addEdge,
@@ -25,28 +25,57 @@ import {
 import { ParticipantTray } from './ParticipantTray';
 import { WorkbenchCanvas } from './WorkbenchCanvas';
 import { useFlows, useFlow } from '@/hooks/use-flows';
+import { useCantonAuth } from '@/lib/auth-context';
 
 const NavigateHubContent: React.FC = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showFlowSelector, setShowFlowSelector] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
   
   const { flows, refetch: refetchFlows } = useFlows();
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null);
   const { version, saveVersion, createFlow } = useFlow(activeFlowId);
   const [isSaving, setIsSaving] = useState(false);
+  const initialOrgPlaced = useRef(false);
   
   const { screenToFlowPosition } = useReactFlow();
+  const { user } = useCantonAuth();
 
   const activeFlow = flows.find(f => f.id === activeFlowId);
 
+  const orgName = useMemo(() => {
+    if (!user?.partyId) return null;
+    const prefix = user.partyId.split('::')[0];
+    return prefix.charAt(0).toUpperCase() + prefix.slice(1);
+  }, [user?.partyId]);
+
+  const makeUserOrgNode = useCallback((name: string): Node => ({
+    id: 'user-org',
+    type: 'institutional',
+    position: { x: 300, y: 250 },
+    data: { participantId: 'user_org', isUserOrg: true, orgName: name },
+  }), []);
+
   useEffect(() => {
     if (version) {
-      setNodes(version.nodes as Node[]);
-      setEdges(version.edges as Edge[]);
+      const versionNodes = version.nodes as Node[];
+      const versionEdges = version.edges as Edge[];
+      if (versionNodes.length === 0 && orgName) {
+        setNodes([makeUserOrgNode(orgName)]);
+      } else {
+        setNodes(versionNodes);
+      }
+      setEdges(versionEdges);
     }
-  }, [version]);
+  }, [version, orgName, makeUserOrgNode]);
+
+  useEffect(() => {
+    if (initialOrgPlaced.current || activeFlowId || !orgName) return;
+    initialOrgPlaced.current = true;
+    setNodes([makeUserOrgNode(orgName)]);
+  }, [activeFlowId, orgName, makeUserOrgNode]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -77,8 +106,12 @@ const NavigateHubContent: React.FC = () => {
       setActiveFlowId(flow.id);
       refetchFlows();
       setShowFlowSelector(false);
+      if (orgName) {
+        setNodes([makeUserOrgNode(orgName)]);
+        setEdges([]);
+      }
     }
-  }, [createFlow, refetchFlows]);
+  }, [createFlow, refetchFlows, orgName, makeUserOrgNode]);
 
   const selectFlow = useCallback((flowId: string) => {
     setActiveFlowId(flowId);
@@ -236,6 +269,8 @@ const NavigateHubContent: React.FC = () => {
         <ParticipantTray
           isCollapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          selectedWorkflow={selectedWorkflow}
+          onSelectWorkflow={setSelectedWorkflow}
         />
 
         <div className="flex-1 relative min-h-0">
