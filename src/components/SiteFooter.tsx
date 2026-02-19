@@ -1,7 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useCantonAuth } from "@/lib/auth-context";
+
+const AUTH_ROUTES = ["/login", "/register"];
 
 export default function SiteFooter() {
+  const pathname = usePathname();
+  const { isConnected, isLoading } = useCantonAuth();
+
+  if (isLoading || isConnected || AUTH_ROUTES.includes(pathname)) return null;
+
   return (
     <footer className="border-t border-white/10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
@@ -17,11 +28,9 @@ export default function SiteFooter() {
             <a href="/privacy">Privacy Policy</a>
             <a href="/cookies">Cookie Policy</a>
           </div>
-          <div>Built for networks. © 2025 Flowyd Limited. All rights reserved.</div>
+          <div>Built for networks. &copy; {new Date().getFullYear()} Flowryd Limited. All rights reserved.</div>
         </div>
       </div>
     </footer>
   );
 }
-
-

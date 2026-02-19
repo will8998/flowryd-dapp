@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Globe, 
@@ -25,16 +25,37 @@ import {
 import { useCantonAuth } from '@/lib/auth-context';
 import Image from 'next/image';
 
-type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN';
+type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN';
 
 interface StudioSidebarProps {
   activeTier: Tier;
   onTierChange: (tier: Tier) => void;
 }
 
+interface SidebarDeal {
+  id: string;
+  title: string;
+  status: string | null;
+}
+
 export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTierChange }) => {
-  const { partyId, disconnect } = useCantonAuth();
+  const { partyId, user, disconnect } = useCantonAuth();
+  const [sidebarDeals, setSidebarDeals] = useState<SidebarDeal[]>([]);
   
+  const fetchDeals = useCallback(async () => {
+    try {
+      const res = await fetch('/api/deals');
+      if (res.ok) {
+        const json = await res.json();
+        setSidebarDeals((json.data ?? []).slice(0, 5));
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchDeals();
+  }, [fetchDeals]);
+
   const MENU_ITEMS: Array<{ id: string; label: string; icon: typeof Globe; tier: Tier }> = [
     { id: 'DISCOVER', label: 'Discover', icon: Globe, tier: 'DISCOVER' },
     { id: 'NAVIGATE', label: 'Workbench', icon: Layers, tier: 'NAVIGATE' },
@@ -42,12 +63,10 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
   ];
 
   const SECONDARY_ITEMS: Array<{ id?: string; label: string; icon: typeof Globe; tier?: Tier; href?: string }> = [
-    { id: 'JOIN', label: 'Collective Hub', icon: Users, tier: 'JOIN' },
+    { id: 'JOIN', label: 'Marketplace', icon: Users, tier: 'JOIN' },
     { label: 'Intelligence', icon: Terminal, href: '#' },
     { label: 'App Stacks', icon: Workflow, href: '#' },
   ];
-
-  const ACTIVE_DEALS = ['Repo_Sync_Room', 'Bond_Issuance_v1'];
 
   return (
     <div className="w-64 h-screen bg-[#0a0a0a] border-r border-white/5 flex flex-col z-50">
@@ -89,13 +108,19 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-2 px-2"
               >
-                  <p className="px-2 text-[8px] font-bold text-emerald-500/60 uppercase tracking-widest mb-2">Conversations</p>
-                 {ACTIVE_DEALS.map(room => (
-                   <button key={room} className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 text-left hover:border-emerald-500/50 transition-all group">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[10px] font-bold text-white/80 group-hover:text-white transition-colors">{room}</span>
-                   </button>
-                 ))}
+                   <p className="px-2 text-[8px] font-bold text-emerald-500/60 uppercase tracking-widest mb-2">Conversations</p>
+                 {sidebarDeals.length > 0 ? sidebarDeals.map(deal => (
+                    <button 
+                      key={deal.id} 
+                      onClick={() => window.location.href = `/deals/${deal.id}`}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 text-left hover:border-emerald-500/50 transition-all group"
+                    >
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                       <span className="text-[10px] font-bold text-white/80 group-hover:text-white transition-colors truncate">{deal.title}</span>
+                    </button>
+                  )) : (
+                    <p className="px-2 text-[9px] text-white/20">No active deals</p>
+                  )}
               </motion.div>
             ) : (
               <motion.div 
@@ -105,17 +130,28 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
                 exit={{ opacity: 0 }}
               >
                 {SECONDARY_ITEMS.map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={() => item.tier && onTierChange(item.tier)}
-                    className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all group ${
-                      activeTier === item.tier ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-white/40 hover:bg-white/5 hover:text-white'
-                    }`}
-                  >
-                    <item.icon className={`w-4 h-4 ${activeTier === item.tier ? 'text-white' : 'group-hover:text-emerald-500 transition-colors'}`} />
-                    <span className="text-xs font-bold tracking-wide uppercase">{item.label}</span>
-                  </button>
-                ))}
+                   <button
+                     key={item.label}
+                     onClick={() => item.tier && onTierChange(item.tier)}
+                     className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all group ${
+                       activeTier === item.tier ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-white/40 hover:bg-white/5 hover:text-white'
+                     }`}
+                   >
+                     <item.icon className={`w-4 h-4 ${activeTier === item.tier ? 'text-white' : 'group-hover:text-emerald-500 transition-colors'}`} />
+                     <span className="text-xs font-bold tracking-wide uppercase">{item.label}</span>
+                   </button>
+                 ))}
+                 {user?.role === 'admin' && (
+                   <button
+                     onClick={() => onTierChange('ADMIN')}
+                     className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all group ${
+                       activeTier === 'ADMIN' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-white/40 hover:bg-white/5 hover:text-white'
+                     }`}
+                   >
+                     <Shield className={`w-4 h-4 ${activeTier === 'ADMIN' ? 'text-white' : 'group-hover:text-blue-500 transition-colors'}`} />
+                     <span className="text-xs font-bold tracking-wide uppercase">Admin</span>
+                   </button>
+                 )}
               </motion.div>
             )}
           </AnimatePresence>

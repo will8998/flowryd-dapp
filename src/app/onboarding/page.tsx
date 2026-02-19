@@ -36,6 +36,7 @@ export default function OnboardingPage() {
   const [readiness, setReadiness] = useState(7);
   const [connections, setConnections] = useState(0);
   const [volume, setVolume] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   const [infra, setInfra] = useState<string[]>(["node_operation", "high_availability", "24x7"]);
   const [services, setServices] = useState<string[]>(["custody", "settlement"]);
@@ -283,13 +284,13 @@ export default function OnboardingPage() {
 
               <div className="flex gap-3 mt-6">
                 <button onClick={backStep} className="rounded-lg border border-white/15 px-4 py-2 text-sm">← Back</button>
-                <a
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
-                  className="rounded-lg bg-gradient-to-r from-violet-500 to-cyan-400 px-4 py-2 text-sm font-medium"
+                <button
+                  onClick={() => setSubmitted(true)}
+                  disabled={submitted}
+                  className="rounded-lg bg-gradient-to-r from-violet-500 to-cyan-400 px-4 py-2 text-sm font-medium disabled:opacity-60"
                 >
-                  Generate My Dashboard 🚀
-                </a>
+                  {submitted ? 'Dashboard generation coming soon!' : 'Generate My Dashboard 🚀'}
+                </button>
               </div>
 
               {/* Preview cards */}

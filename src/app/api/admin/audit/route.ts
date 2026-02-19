@@ -1,0 +1,68 @@
+import { NextRequest } from 'next/server';
+import { desc, eq, and, gte, lte, lt } from 'drizzle-orm';
+import { db } from '@/db';
+import { auditLog, users } from '@/db/schema';
+import { withMiddleware, requireAuth, requireRole } from '@/lib/api/middleware-chain';
+import type { ApiContext } from '@/lib/api/middleware-chain';
+import { paginatedResponse } from '@/lib/api/response';
+
+export const GET = withMiddleware(
+  requireAuth(),
+  requireRole('admin'),
+  async (req: NextRequest, ctx: ApiContext) => {
+    const url = new URL(req.url);
+    const action = url.searchParams.get('action');
+    const userId = url.searchParams.get('userId');
+    const resourceType = url.searchParams.get('resourceType');
+    const from = url.searchParams.get('from');
+    const to = url.searchParams.get('to');
+    const cursor = url.searchParams.get('cursor');
+    const limit = Math.min(Number(url.searchParams.get('limit') ?? 50), 100);
+
+    const conditions = [eq(auditLog.orgId, ctx.user!.orgId)];
+
+    if (action) {
+      conditions.push(eq(auditLog.action, action as typeof auditLog.action.enumValues[number]));
+    }
+    if (userId) {
+      conditions.push(eq(auditLog.userId, userId));
+    }
+    if (resourceType) {
+      conditions.push(eq(auditLog.resourceType, resourceType));
+    }
+    if (from) {
+      conditions.push(gte(auditLog.createdAt, new Date(from)));
+    }
+    if (to) {
+      conditions.push(lte(auditLog.createdAt, new Date(to)));
+    }
+    if (cursor) {
+      conditions.push(lt(auditLog.id, cursor));
+    }
+
+    const rows = await db
+      .select({
+        id: auditLog.id,
+        userId: auditLog.userId,
+        action: auditLog.action,
+        resourceType: auditLog.resourceType,
+        resourceId: auditLog.resourceId,
+        metadata: auditLog.metadata,
+        ipAddress: auditLog.ipAddress,
+        createdAt: auditLog.createdAt,
+        userDisplayName: users.displayName,
+        userPartyId: users.partyId,
+      })
+      .from(auditLog)
+      .leftJoin(users, eq(auditLog.userId, users.id))
+      .where(and(...conditions))
+      .orderBy(desc(auditLog.createdAt))
+      .limit(limit + 1);
+
+    const hasMore = rows.length > limit;
+    const data = hasMore ? rows.slice(0, limit) : rows;
+    const nextCursor = hasMore ? data[data.length - 1].id : null;
+
+    return paginatedResponse(data, nextCursor, hasMore);
+  },
+);

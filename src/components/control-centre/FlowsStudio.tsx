@@ -20,10 +20,13 @@ import { ActivateEngine } from './ActivateEngine';
 import { RydAITerminal } from './RydAITerminal';
 import { OnboardingWizard } from './OnboardingWizard';
 import { CollectiveHub } from './CollectiveHub';
+import { AdminPanel } from './AdminPanel';
+import { useCantonAuth } from '@/lib/auth-context';
 
-type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN';
+type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN';
 
 export const FlowsStudio: React.FC = () => {
+  const { user } = useCantonAuth();
   const [activeTier, setActiveTier] = useState<Tier>('DISCOVER');
   const [notifications, setNotifications] = useState(2);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -56,7 +59,7 @@ export const FlowsStudio: React.FC = () => {
              <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">
                <span className="text-white/60">Mission Control</span>
                <ChevronRight className="w-3 h-3" />
-               <span className="text-blue-500">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : 'Collective'}</span>
+                <span className="text-blue-500">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : 'Marketplace'}</span>
              </div>
 
              <div className="h-4 w-px bg-white/5" />
@@ -110,6 +113,7 @@ export const FlowsStudio: React.FC = () => {
               {activeTier === 'NAVIGATE' && <NavigateHub key="navigate" />}
               {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}
+              {activeTier === 'ADMIN' && user?.role === 'admin' && <AdminPanel key="admin" />}
             </AnimatePresence>
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   addEdge,
@@ -16,26 +16,29 @@ import {
 } from '@xyflow/react';
 import { 
   Plus, 
-  ArrowRight, 
-  ChevronRight, 
-  Sparkles, 
-  Send, 
-  MessageSquare, 
-  Zap, 
   Play,
-  Lock,
-  Workflow
 } from 'lucide-react';
 import { ParticipantTray } from './ParticipantTray';
 import { WorkbenchCanvas } from './WorkbenchCanvas';
-import { LiquidGlass } from './LiquidPrimitives';
+import { useFlows, useFlow } from '@/hooks/use-flows';
 
 const NavigateHubContent: React.FC = () => {
-  const [activeView, setActiveView] = useState<'WORKBENCH'>('WORKBENCH');
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   
+  const { flows, refetch: refetchFlows } = useFlows();
+  const [activeFlowId, setActiveFlowId] = useState<string | null>(null);
+  const { version, saveVersion, createFlow } = useFlow(activeFlowId);
+  const [isSaving, setIsSaving] = useState(false);
+  
   const { screenToFlowPosition } = useReactFlow();
+
+  useEffect(() => {
+    if (version) {
+      setNodes(version.nodes as Node[]);
+      setEdges(version.edges as Edge[]);
+    }
+  }, [version]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -49,6 +52,35 @@ const NavigateHubContent: React.FC = () => {
     (params: Connection) => setEdges((eds) => addEdge({ ...params, type: 'liquid', animated: true }, eds)),
     []
   );
+
+  const handleSave = useCallback(async () => {
+    if (!activeFlowId || isSaving) return;
+    setIsSaving(true);
+    try {
+      await saveVersion(nodes, edges);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [activeFlowId, nodes, edges, saveVersion, isSaving]);
+
+  const handleNewFlow = useCallback(async () => {
+    const flow = await createFlow({ title: `Flow ${new Date().toLocaleDateString()}` });
+    if (flow) {
+      setActiveFlowId(flow.id);
+      refetchFlows();
+    }
+  }, [createFlow, refetchFlows]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleSave]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -100,6 +132,33 @@ const NavigateHubContent: React.FC = () => {
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
           className="flex-1 flex flex-col min-h-0"
         >
+          <div className="flex items-center gap-3 px-6 py-3 border-b border-white/5">
+            <select
+              value={activeFlowId ?? ''}
+              onChange={(e) => setActiveFlowId(e.target.value || null)}
+              className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
+            >
+              <option value="" className="bg-[#0a0a0a] text-white">Select a flow...</option>
+              {flows.map((f) => (
+                <option key={f.id} value={f.id} className="bg-[#0a0a0a] text-white">{f.title}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleNewFlow}
+              className="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-500 transition-colors flex items-center gap-1.5"
+            >
+              <Plus className="w-3 h-3" /> New Flow
+            </button>
+            {activeFlowId && (
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-3 py-2 bg-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/20 transition-colors disabled:opacity-50 flex items-center gap-1.5 ml-auto"
+              >
+                {isSaving ? 'Saving...' : 'Save'}
+              </button>
+            )}
+          </div>
           <ParticipantTray />
 
             <div className="flex-1 relative min-h-0 flex flex-col">

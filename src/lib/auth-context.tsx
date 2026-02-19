@@ -1,10 +1,22 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import type { UserRole } from '@/lib/auth/rbac';
+
+export interface AuthUser {
+  id: string;
+  partyId: string;
+  displayName: string;
+  email: string | null;
+  role: UserRole;
+  orgId: string;
+}
 
 interface AuthContextType {
   partyId: string | null;
   isConnected: boolean;
+  isLoading: boolean;
+  user: AuthUser | null;
   connect: (id: string) => void;
   disconnect: () => void;
 }
@@ -14,14 +26,36 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [partyId, setPartyId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
-  useEffect(() => {
+  const fetchMe = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (res.ok) {
+        const json = await res.json();
+        const u = json.data?.user;
+        if (u) {
+          setUser(u);
+          setPartyId(u.partyId);
+          setIsConnected(true);
+          return;
+        }
+      }
+    } catch {
+      // API not available yet — fall back to localStorage
+    }
+
     const saved = localStorage.getItem('flowryd_party_id');
     if (saved) {
       setPartyId(saved);
       setIsConnected(true);
     }
   }, []);
+
+  useEffect(() => {
+    fetchMe().finally(() => setIsLoading(false));
+  }, [fetchMe]);
 
   const connect = (id: string) => {
     setPartyId(id);
@@ -32,11 +66,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const disconnect = () => {
     setPartyId(null);
     setIsConnected(false);
+    setUser(null);
     localStorage.removeItem('flowryd_party_id');
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    window.location.href = '/login';
   };
 
   return (
-    <AuthContext.Provider value={{ partyId, isConnected, connect, disconnect }}>
+    <AuthContext.Provider value={{ partyId, isConnected, isLoading, user, connect, disconnect }}>
       {children}
     </AuthContext.Provider>
   );
