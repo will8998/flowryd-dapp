@@ -38,14 +38,14 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="inline-block px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold tracking-wider mb-2"
+            className="inline-block px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold tracking-wide mb-2"
           >
             PROFORMA GENERATED
           </motion.div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
             Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Flowryd Navigate</span>
           </h1>
-          <p className="text-sm text-white/40 uppercase tracking-wider mt-1">
+          <p className="text-sm text-white/40 tracking-wide mt-1">
             Preview based on {participantCount} participants in your repo network
           </p>
           <p className="text-xl text-white/60 max-w-2xl mx-auto">
@@ -68,7 +68,7 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
               <div className="space-y-6">
                 {/* Roles Covered */}
                 <div>
-                  <div className="text-xs font-bold text-green-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <div className="text-xs font-bold text-green-400 tracking-wide mb-3 flex items-center gap-2">
                     <CheckCircle2 className="w-3 h-3" /> Roles You Have Covered
                   </div>
                   <div className="space-y-3">
@@ -91,7 +91,7 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
 
                 {/* Roles Needed */}
                 <div>
-                  <div className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <div className="text-xs font-bold text-orange-400 tracking-wide mb-3 flex items-center gap-2">
                     <Clock className="w-3 h-3" /> Roles You Still Need
                   </div>
                   <div className="space-y-3">
@@ -229,7 +229,7 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
                 <div className="relative">
                   <div className="absolute -left-[29px] top-1 w-4 h-4 rounded-full bg-green-500 border-2 border-[#080808] shadow-[0_0_0_4px_rgba(34,197,94,0.2)]"></div>
                   <h3 className="text-sm font-bold text-green-400 mb-1">Step 1: Establish Custody</h3>
-                  <p className="text-xs text-white/40 mb-2 uppercase tracking-wider">BEACHHEAD • COMPLETE</p>
+                  <p className="text-xs text-white/40 mb-2 tracking-wide">Beachhead · Complete</p>
                   <div className="text-sm text-white/70 bg-black/30 p-3 rounded-lg border border-white/5">
                     • Cygnet committed<br/>
                     • State Street committed
@@ -240,7 +240,7 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
                 <div className="relative">
                   <div className="absolute -left-[29px] top-1 w-4 h-4 rounded-full bg-blue-500 animate-pulse border-2 border-[#080808] shadow-[0_0_0_4px_rgba(59,130,246,0.2)]"></div>
                   <h3 className="text-sm font-bold text-white mb-1">Step 2: Add Registries</h3>
-                  <p className="text-xs text-blue-400 mb-2 uppercase tracking-wider">NEXT ACTION</p>
+                  <p className="text-xs text-blue-400 mb-2 tracking-wide">Next action</p>
                   <div className="text-sm text-white/70 bg-blue-900/10 p-3 rounded-lg border border-blue-500/20">
                     • Contact DTCC (Priority)<br/>
                     • Contact Clearstream (Backup)
@@ -251,7 +251,7 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
                 <div className="relative">
                   <div className="absolute -left-[29px] top-1 w-4 h-4 rounded-full bg-[#222] border-2 border-white/20"></div>
                   <h3 className="text-sm font-bold text-white/60 mb-1">Step 3: Secure Collateral</h3>
-                  <p className="text-xs text-white/30 mb-2 uppercase tracking-wider">THEN</p>
+                  <p className="text-xs text-white/30 mb-2 tracking-wide">Then</p>
                   <div className="text-sm text-white/40">
                     Engage HQLAx after registries confirm participation.
                   </div>
@@ -261,7 +261,7 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
                 <div className="relative">
                   <div className="absolute -left-[29px] top-1 w-4 h-4 rounded-full bg-[#222] border-2 border-white/20"></div>
                   <h3 className="text-sm font-bold text-white/60 mb-1">Step 4: Legal Framework</h3>
-                  <p className="text-xs text-white/30 mb-2 uppercase tracking-wider">FINALLY</p>
+                  <p className="text-xs text-white/30 mb-2 tracking-wide">Finally</p>
                   <div className="text-sm text-white/40">
                     Bring in Allen & Overy for multi-party contract deployment.
                   </div>

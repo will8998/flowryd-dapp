@@ -209,7 +209,7 @@ export default function MessageThread({ messages, isLoading, dealId }: MessageTh
             <button
               onClick={loadMoreMessages}
               disabled={loadingMore}
-              className="text-[9px] font-bold text-white/25 uppercase tracking-wider hover:text-white/40 transition-colors disabled:opacity-50"
+              className="text-[9px] font-bold text-white/25 tracking-wide hover:text-white/40 transition-colors disabled:opacity-50"
             >
               {loadingMore ? (
                 <span className="flex items-center gap-1.5">

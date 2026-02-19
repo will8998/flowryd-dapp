@@ -21,6 +21,7 @@ import {
   ChevronDown,
   Layers,
   ShieldCheck,
+  Globe,
 } from 'lucide-react';
 import { ParticipantTray } from './ParticipantTray';
 import { WorkbenchCanvas } from './WorkbenchCanvas';
@@ -38,6 +39,8 @@ const NavigateHubContent: React.FC = () => {
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null);
   const { version, saveVersion, createFlow } = useFlow(activeFlowId);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishSuccess, setPublishSuccess] = useState(false);
   const initialOrgPlaced = useRef(false);
   
   const { screenToFlowPosition } = useReactFlow();
@@ -99,6 +102,26 @@ const NavigateHubContent: React.FC = () => {
       setIsSaving(false);
     }
   }, [activeFlowId, nodes, edges, saveVersion, isSaving]);
+
+  const handlePublish = useCallback(async () => {
+    if (!activeFlowId || isPublishing) return;
+    setIsPublishing(true);
+    try {
+      const response = await fetch(`/api/flows/${activeFlowId}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ public: true })
+      });
+      if (response.ok) {
+        setPublishSuccess(true);
+        setTimeout(() => setPublishSuccess(false), 2000);
+      }
+    } catch (error) {
+      console.error('Failed to publish flow:', error);
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [activeFlowId, isPublishing]);
 
   const handleNewFlow = useCallback(async () => {
     const flow = await createFlow({ title: `Flow ${new Date().toLocaleDateString()}` });
@@ -220,7 +243,7 @@ const NavigateHubContent: React.FC = () => {
 
         <button
           onClick={handleNewFlow}
-          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-500 transition-colors flex items-center gap-1.5 uppercase tracking-wider"
+          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-500 transition-colors flex items-center gap-1.5 tracking-wide"
         >
           <Plus className="w-3 h-3" /> New
         </button>
@@ -246,7 +269,7 @@ const NavigateHubContent: React.FC = () => {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="px-3 py-1.5 bg-white/10 text-white rounded-lg text-[10px] font-bold hover:bg-white/20 transition-colors disabled:opacity-50 flex items-center gap-1.5 uppercase tracking-wider"
+              className="px-3 py-1.5 bg-white/10 text-white rounded-lg text-[10px] font-bold hover:bg-white/20 transition-colors disabled:opacity-50 flex items-center gap-1.5 tracking-wide"
             >
               <Save className="w-3 h-3" />
               {isSaving ? 'Saving...' : 'Save'}
@@ -254,9 +277,20 @@ const NavigateHubContent: React.FC = () => {
             </button>
           )}
 
+          {activeFlowId && nodes.length >= 2 && (
+            <button
+              onClick={handlePublish}
+              disabled={isPublishing}
+              className="px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <Globe className="w-3 h-3" />
+              {publishSuccess ? 'Published!' : isPublishing ? 'Publishing...' : 'Publish'}
+            </button>
+          )}
+
           {nodes.length > 1 && (
             <button
-              className="px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors flex items-center gap-1.5 uppercase tracking-wider"
+              className="px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors flex items-center gap-1.5 tracking-wide"
             >
               <Play className="w-3 h-3 fill-black" /> Deal Room
             </button>

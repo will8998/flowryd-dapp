@@ -67,7 +67,7 @@ export const PrivateCanvas: React.FC<PrivateCanvasProps> = ({ flowId, onBack, on
           </button>
           <div>
             <h1 className="text-xl font-bold">{flow?.name}</h1>
-            <p className="text-[10px] text-white/40 uppercase tracking-widest">Status: {flow?.status} • {roles.filter(r => r.status !== 'GAP').length}/{roles.length} Roles Filled</p>
+            <p className="text-[10px] text-white/40 tracking-wide">Status: {flow?.status} • {roles.filter(r => r.status !== 'GAP').length}/{roles.length} Roles Filled</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -148,7 +148,7 @@ export const PrivateCanvas: React.FC<PrivateCanvasProps> = ({ flowId, onBack, on
 
             <div className="space-y-6 flex-1 overflow-y-auto">
               <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Target Candidate</p>
+                <p className="text-[10px] text-white/40 tracking-wide mb-1">Target Candidate</p>
                 <p className="text-lg font-bold">Anchorage Digital</p>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-[10px] px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/20">C7 VERIFIED</span>
@@ -158,7 +158,7 @@ export const PrivateCanvas: React.FC<PrivateCanvasProps> = ({ flowId, onBack, on
 
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest">Reward Share Proposed</label>
+                  <label className="text-[10px] text-white/40 tracking-wide">Reward Share Proposed</label>
                   <div className="flex items-center gap-4">
                     <input type="range" className="flex-1 accent-blue-500" />
                     <span className="text-lg font-mono font-bold">15%</span>
@@ -166,7 +166,7 @@ export const PrivateCanvas: React.FC<PrivateCanvasProps> = ({ flowId, onBack, on
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-white/40 uppercase tracking-widest">Requirements Message</label>
+                  <label className="text-[10px] text-white/40 tracking-wide">Requirements Message</label>
                   <textarea 
                     className="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:border-blue-500/50 outline-none"
                     placeholder="We're building a first-of-kind DAT tokenization with crypto redemption..."

@@ -57,7 +57,7 @@ export default function LoginPage() {
       className="space-y-12 text-center"
     >
       <div className="space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase text-white/40">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold tracking-wide text-white/40">
           <Zap className="w-3 h-3 text-blue-500" /> Canton Network
         </div>
         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none">
@@ -126,15 +126,15 @@ export default function LoginPage() {
       <div className="flex justify-center gap-12 pt-8 opacity-30">
         <div className="text-center space-y-1">
           <p className="text-xl font-bold">25K+</p>
-          <p className="text-[9px] uppercase tracking-widest font-bold">Parties</p>
+          <p className="text-[9px] tracking-wide font-bold">Parties</p>
         </div>
         <div className="text-center space-y-1">
           <p className="text-xl font-bold">$6T</p>
-          <p className="text-[9px] uppercase tracking-widest font-bold">Volume</p>
+          <p className="text-[9px] tracking-wide font-bold">Volume</p>
         </div>
         <div className="text-center space-y-1">
           <p className="text-xl font-bold">99.9%</p>
-          <p className="text-[9px] uppercase tracking-widest font-bold">Uptime</p>
+          <p className="text-[9px] tracking-wide font-bold">Uptime</p>
         </div>
       </div>
 

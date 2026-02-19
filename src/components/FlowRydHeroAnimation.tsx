@@ -91,7 +91,7 @@ export default function FlowRydHeroAnimation() {
               d="M 200, 200 m -160, 0 a 160,160 0 1,1 320,0 a 160,160 0 1,1 -320,0"
             />
           </defs>
-          <text className="text-[12px] font-bold tracking-[0.4em] uppercase fill-emerald-400/80">
+          <text className="text-[12px] font-bold tracking-wide fill-emerald-400/80">
             <textPath href="#textCircle" startOffset="0%">
               Advantage &nbsp; • &nbsp; Network &nbsp; • &nbsp; Code &nbsp; • &nbsp; Your &nbsp; • &nbsp;
             </textPath>

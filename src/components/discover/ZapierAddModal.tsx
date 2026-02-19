@@ -105,7 +105,7 @@ export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, on
             <div className="bg-blue-900/20 border border-blue-500/20 rounded-lg p-3">
               <div className="flex items-center gap-2 text-blue-400 mb-1">
                 <Star className="w-3 h-3 fill-current" />
-                <span className="text-xs font-bold uppercase">Pro Tip</span>
+                <span className="text-xs font-bold">Pro Tip</span>
               </div>
               <p className="text-xs text-blue-200/70 leading-relaxed">
                 Search by specific role like &quot;Lender&quot; or &quot;Custodian&quot; to find matches quickly.
@@ -135,7 +135,7 @@ export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, on
             {/* Top Apps Section (Only show on 'all' and empty search) */}
             {activeCategory === 'all' && search === '' && (
               <div className="mb-10">
-                <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4">Most Popular</h3>
+                <h3 className="text-sm font-bold text-white/60 tracking-wide mb-4">Most Popular</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {topApps.map(p => (
                     <ParticipantRow 
@@ -150,7 +150,7 @@ export const ZapierAddModal: React.FC<ZapierModalProps> = ({ isOpen, onClose, on
 
             {/* Main Grid */}
             <div>
-              <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4">
+              <h3 className="text-sm font-bold text-white/60 tracking-wide mb-4">
                 {search ? 'Search Results' : `${CATEGORIES.find(c => c.id === activeCategory)?.name}`}
               </h3>
               

@@ -122,12 +122,12 @@ const InstitutionalNode = ({ data }: { data: NodeData }) => {
               <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
                 <Building2 className="w-4 h-4 text-emerald-500" />
               </div>
-              <p className="text-[11px] font-bold font-sans uppercase text-white/90 truncate leading-tight">
+              <p className="text-[11px] font-bold font-sans text-white/90 truncate leading-tight">
                 {data.orgName || 'Your Org'}
               </p>
             </div>
             <div className="pl-[42px]">
-              <span className="text-[7px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full uppercase tracking-widest">
+              <span className="text-[7px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full tracking-wide">
                 YOU
               </span>
             </div>
@@ -142,10 +142,10 @@ const InstitutionalNode = ({ data }: { data: NodeData }) => {
               <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
                 {p ? getRoleIcon(p.cantonRole) : <Building2 className="w-4 h-4 text-white/20" />}
               </div>
-              <p className="text-[11px] font-bold font-sans uppercase text-white/90 truncate leading-tight">{p?.name || 'Unassigned'}</p>
+              <p className="text-[11px] font-bold font-sans text-white/90 truncate leading-tight">{p?.name || 'Unassigned'}</p>
             </div>
 
-            <p className="text-[8px] text-white/30 uppercase tracking-widest truncate pl-[42px]">{p?.cantonRole || 'Select Role'}</p>
+            <p className="text-[8px] text-white/30 tracking-wide truncate pl-[42px]">{p?.cantonRole || 'Select Role'}</p>
           </>
         )}
 

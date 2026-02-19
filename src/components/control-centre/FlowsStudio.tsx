@@ -56,7 +56,7 @@ export const FlowsStudio: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0 relative">
         <header className="h-16 border-b border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between px-8 z-40">
            <div className="flex items-center gap-8">
-             <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">
+             <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 tracking-wide">
                <span className="text-white/60">Mission Control</span>
                <ChevronRight className="w-3 h-3" />
                 <span className="text-blue-500">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : 'Marketplace'}</span>
@@ -77,7 +77,7 @@ export const FlowsStudio: React.FC = () => {
                    }`}>
                      {t.step < (activeTier === 'DISCOVER' ? 1 : activeTier === 'NAVIGATE' ? 2 : activeTier === 'ACTIVATE' ? 3 : 4) ? <CheckCircle2 className="w-3 h-3" /> : t.step}
                    </div>
-                   <span className={`text-[9px] font-bold uppercase tracking-widest ${activeTier === t.id ? 'text-white' : 'text-white/20'}`}>{t.label}</span>
+                   <span className={`text-[9px] font-bold tracking-wide ${activeTier === t.id ? 'text-white' : 'text-white/20'}`}>{t.label}</span>
                  </div>
                ))}
              </div>
@@ -106,20 +106,20 @@ export const FlowsStudio: React.FC = () => {
            </div>
         </header>
 
-        <main className="flex-1 relative overflow-hidden flex">
+        <main className="flex-1 relative overflow-hidden">
           <div className="flex-1 overflow-y-auto custom-scrollbar relative">
             <AnimatePresence mode="wait">
-              {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectStack={(stack) => { console.log(stack); setActiveTier('NAVIGATE'); }} />}
+              {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectJumpCut={(jumpCut) => { console.log(jumpCut); setActiveTier('NAVIGATE'); }} />}
               {activeTier === 'NAVIGATE' && <NavigateHub key="navigate" />}
               {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}
               {activeTier === 'ADMIN' && user?.role === 'admin' && <AdminPanel key="admin" />}
             </AnimatePresence>
           </div>
-
-          <RydAITerminal tier={activeTier} />
         </main>
       </div>
+
+      <RydAITerminal tier={activeTier} />
     </div>
   );
 };

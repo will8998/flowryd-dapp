@@ -255,13 +255,13 @@ export const AdminPanel: React.FC = () => {
                     <table className="w-full">
                       <thead className="sticky top-0 bg-[#0a0a0a] border-b border-white/5">
                         <tr className="text-left">
-                          <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">User</th>
-                          <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Party ID</th>
-                          <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Email</th>
-                          <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Role</th>
-                          <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Last Login</th>
-                          <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Actions</th>
+                          <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">User</th>
+                          <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Party ID</th>
+                          <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Email</th>
+                          <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Role</th>
+                          <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Status</th>
+                          <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Last Login</th>
+                          <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -292,7 +292,7 @@ export const AdminPanel: React.FC = () => {
                               <td className="px-6 py-4 text-sm text-white/80">{user.email}</td>
                               <td className="px-6 py-4">
                                 {isCurrentUser ? (
-                                  <span className={`px-2 py-0.5 bg-${roleColor}/10 border border-${roleColor}/20 rounded-full text-[8px] font-bold tracking-widest text-${roleColor} uppercase`}>
+                                  <span className={`px-2 py-0.5 bg-${roleColor}/10 border border-${roleColor}/20 rounded-full text-[8px] font-bold tracking-wide text-${roleColor}`}>
                                     {user.role}
                                   </span>
                                 ) : (
@@ -408,12 +408,12 @@ export const AdminPanel: React.FC = () => {
                       <table className="w-full">
                         <thead className="sticky top-0 bg-[#0a0a0a] border-b border-white/5">
                           <tr className="text-left">
-                            <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Timestamp</th>
-                            <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">User</th>
-                            <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Action</th>
-                            <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Resource</th>
-                            <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">Details</th>
-                            <th className="px-6 py-4 text-xs font-bold text-white/40 uppercase tracking-wider">IP Address</th>
+                             <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Timestamp</th>
+                            <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">User</th>
+                            <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Action</th>
+                            <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Resource</th>
+                            <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Details</th>
+                            <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">IP Address</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -432,7 +432,7 @@ export const AdminPanel: React.FC = () => {
                                   </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                  <span className={`px-2 py-0.5 bg-${actionColor}-500/10 border border-${actionColor}-500/20 rounded-full text-[8px] font-bold tracking-widest text-${actionColor}-500 uppercase`}>
+                                  <span className={`px-2 py-0.5 bg-${actionColor}-500/10 border border-${actionColor}-500/20 rounded-full text-[8px] font-bold tracking-wide text-${actionColor}-500`}>
                                     {entry.action}
                                   </span>
                                 </td>

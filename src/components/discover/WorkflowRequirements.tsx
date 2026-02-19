@@ -55,7 +55,7 @@ export const WorkflowRequirements: React.FC<WorkflowRequirementsProps> = ({ work
               <span className="flex items-center justify-center w-5 h-5 rounded-full bg-white/10 text-[10px] font-bold text-white/80 border border-white/10">
                 {stageIndex + 1}
               </span>
-              <h4 className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+              <h4 className="text-xs font-semibold text-white/80 tracking-wide">
                 {stage.name}
               </h4>
             </div>

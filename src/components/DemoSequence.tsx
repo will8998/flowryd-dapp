@@ -116,7 +116,7 @@ export default function DemoSequence() {
               phase === 'success' ? "bg-emerald-500 animate-pulse" : 
               phase === 'launching' ? "bg-amber-500 animate-pulse" : "bg-zinc-700"
             )}></div>
-            <span className="text-xs text-zinc-500 font-mono uppercase tracking-wider">Flowryd Protocol</span>
+            <span className="text-xs text-zinc-500 font-mono tracking-wide">Flowryd Protocol</span>
           </div>
           <div className="text-[10px] text-zinc-600 font-mono">
             {phase === 'marketplace' && 'SELECT_MODULES'}
@@ -262,7 +262,7 @@ function ReviewStackView({ selectedIds }: { selectedIds: string[] }) {
         className="w-full max-w-[200px]"
       >
         <button className={cn(
-          "w-full py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-wider transition-all duration-300",
+          "w-full py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-wide transition-all duration-300",
           "bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg shadow-cyan-500/20"
         )}>
             <MessageSquare className="w-3 h-3 fill-white" />
@@ -331,7 +331,7 @@ function NegotiationView({ isLaunching }: { isLaunching: boolean }) {
                 {msg.type !== 'system' && (
                   <>
                     <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-                    <div className="flex items-center gap-2 mb-1 opacity-50 text-[10px] uppercase tracking-wider font-mono">
+                    <div className="flex items-center gap-2 mb-1 opacity-50 text-[10px] tracking-wide font-mono">
                       {msg.type === 'user' ? <ShieldCheck className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                       {msg.type === 'user' ? 'You' : 'Counterparty'}
                     </div>

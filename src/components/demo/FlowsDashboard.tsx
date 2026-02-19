@@ -20,7 +20,7 @@ export const FlowsDashboard: React.FC<FlowsDashboardProps> = ({ onOpenFlow }) =>
               <Lock className="w-8 h-8 text-blue-500" />
               MY PRIVATE FLOWS
             </h1>
-            <p className="text-white/50 font-mono text-sm tracking-widest uppercase">
+            <p className="text-white/50 font-mono text-sm tracking-wide">
               Secure Sandbox • Design Partner Mode
             </p>
           </div>
@@ -53,7 +53,7 @@ export const FlowsDashboard: React.FC<FlowsDashboardProps> = ({ onOpenFlow }) =>
                       Created {new Date(flow.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold text-white/60 tracking-widest">
+                  <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold text-white/60 tracking-wide">
                     {flow.status}
                   </div>
                 </div>

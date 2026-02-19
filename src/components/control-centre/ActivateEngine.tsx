@@ -70,12 +70,12 @@ export const ActivateEngine: React.FC = () => {
       <div className="px-6 pt-5 pb-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-white/60">Deals</h2>
+            <h2 className="text-sm font-bold tracking-wide text-white/60">Deals</h2>
             <span className="text-[9px] font-mono text-white/30">{deals.length}</span>
           </div>
           <button
             onClick={handleNewDeal}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-emerald-400 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold tracking-wide hover:bg-emerald-400 transition-colors"
           >
             <Plus className="w-3 h-3" /> New Deal
           </button>
@@ -91,7 +91,7 @@ export const ActivateEngine: React.FC = () => {
                 {i > 0 && <div className="w-4 h-px bg-white/5 shrink-0" />}
                 <button
                   onClick={() => setActiveFilter(isActive ? null : status)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[9px] font-bold tracking-wide transition-all ${
                     isActive
                       ? `${config.bg} ${config.color} ${config.border} border`
                       : count > 0
@@ -179,7 +179,7 @@ export const ActivateEngine: React.FC = () => {
                     </div>
 
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md ${config.bg} border ${config.border}`}>
-                      <span className={`text-[8px] font-bold uppercase tracking-wider ${config.color}`}>
+                      <span className={`text-[8px] font-bold tracking-wide ${config.color}`}>
                         {config.label}
                       </span>
                     </div>

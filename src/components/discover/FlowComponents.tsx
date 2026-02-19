@@ -76,7 +76,7 @@ export const ParticipantNode: React.FC<ParticipantNodeProps> = ({ participant, x
             </div>
             <div>
               <h3 className="text-xs font-bold text-white leading-tight">{participant.name}</h3>
-              <p className="text-[9px] opacity-70 uppercase tracking-wider">{participant.cantonRole.split(' ')[0]}</p>
+              <p className="text-[9px] opacity-70 tracking-wide">{participant.cantonRole.split(' ')[0]}</p>
             </div>
           </div>
           {onRemove && (
@@ -92,11 +92,11 @@ export const ParticipantNode: React.FC<ParticipantNodeProps> = ({ participant, x
         {/* Metrics */}
         <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/5">
           <div>
-            <p className="text-[9px] text-white/40 uppercase">Assets</p>
+            <p className="text-[9px] text-white/40">Assets</p>
             <p className="text-[10px] font-mono font-medium text-white/90">{participant.holdings || 'N/A'}</p>
           </div>
           <div>
-            <p className="text-[9px] text-white/40 uppercase">Validator</p>
+            <p className="text-[9px] text-white/40">Validator</p>
             <div className="flex items-center gap-1">
               <div className={`w-1.5 h-1.5 rounded-full ${participant.validatorNodes && participant.validatorNodes > 0 ? 'bg-green-500' : 'bg-gray-600'}`} />
               <p className="text-[10px] font-mono font-medium text-white/90">{participant.validatorNodes ? 'Active' : 'None'}</p>

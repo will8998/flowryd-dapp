@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, ShieldCheck, Zap, ArrowRight, Building2, Database, Network, Layers, Sparkles, Plus, Users, Eye, X, Star, AlertTriangle } from 'lucide-react';
 import { participants } from '@/lib/canton-data';
 import { LiquidGlass } from './LiquidPrimitives';
 
-interface Stack {
+interface JumpCut {
   id: string;
   name: string;
   desc: string;
@@ -19,16 +19,33 @@ interface Stack {
   }>;
 }
 
+interface CommunityFlow {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  creatorId: string;
+  orgId: string;
+  createdAt: string;
+  participants: Array<{
+    role: string;
+    partyId: string | null;
+  }>;
+}
+
 interface NetworkGridProps {
-  onSelectStack: (stack: Stack) => void;
+  onSelectJumpCut: (jumpCut: JumpCut) => void;
 }
 
 type ViewState = 'welcome' | 'browsing' | 'filtered';
 
-export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
+export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => {
   const [filter, setFilter] = useState('');
   const [selectedRole, setSelectedRole] = useState('ALL');
   const [viewState, setViewState] = useState<ViewState>('welcome');
+  const [communityFlows, setCommunityFlows] = useState<CommunityFlow[]>([]);
+  const [joiningFlows, setJoiningFlows] = useState<Set<string>>(new Set());
+  const [joinedFlows, setJoinedFlows] = useState<Set<string>>(new Set());
 
   // Determine view state based on user interactions
   const currentViewState = useMemo<ViewState>(() => {
@@ -70,10 +87,10 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
     return counts;
   }, []);
 
-  const FEATURED_STACKS = [
+  const FEATURED_JUMP_CUTS = [
     {
-      id: 'stack_tokenization',
-      name: 'Tokenized Asset Stack',
+      id: 'jc_tokenization',
+      name: 'Tokenized Asset Flow',
       desc: 'Complete issuer-to-custody workflow for digital asset creation and management.',
       partners: ['7RIDGE', 'Texture', 'Fairmint', 'C7 Identity'],
       fee: '3%',
@@ -84,8 +101,8 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
       ]
     },
     {
-      id: 'stack_repo',
-      name: 'Verified Repo Stack',
+      id: 'jc_repo',
+      name: 'Verified Repo Flow',
       desc: 'Institutional collateral mobility and lending infrastructure.',
       partners: ['C7 Identity', 'Kaiko', 'Canton Wallet'],
       fee: '2%',
@@ -96,8 +113,8 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
       ]
     },
     {
-      id: 'stack_onboard',
-      name: 'Onboarding Stack',
+      id: 'jc_onboard',
+      name: 'Onboarding Flow',
       desc: 'KYC/AML compliance suite for seamless customer onboarding.',
       partners: ['C7 Identity', 'Memora', 'IntellectEU'],
       fee: '3%',
@@ -133,6 +150,49 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
     setViewState('welcome');
   };
 
+  useEffect(() => {
+    const fetchCommunityFlows = async () => {
+      try {
+        const response = await fetch('/api/flows/public');
+        if (response.ok) {
+          const { data } = await response.json();
+          setCommunityFlows(data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch community flows:', error);
+      }
+    };
+
+    if (viewState === 'browsing') {
+      fetchCommunityFlows();
+    }
+  }, [viewState]);
+
+  const handleJoinFlow = async (flowId: string) => {
+    if (joiningFlows.has(flowId) || joinedFlows.has(flowId)) return;
+    
+    setJoiningFlows(prev => new Set([...prev, flowId]));
+    try {
+      const response = await fetch(`/api/flows/${flowId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Requesting to join' })
+      });
+      
+      if (response.ok) {
+        setJoinedFlows(prev => new Set([...prev, flowId]));
+      }
+    } catch (error) {
+      console.error('Failed to join flow:', error);
+    } finally {
+      setJoiningFlows(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(flowId);
+        return newSet;
+      });
+    }
+  };
+
   const renderParticipantCard = (p: typeof participants[0], index: number) => (
     <motion.div
       key={p.id}
@@ -164,8 +224,8 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
       </div>
 
       <div>
-        <h3 className="text-sm font-bold font-sans uppercase tracking-tighter text-white group-hover:text-blue-400 transition-colors truncate">{p.name}</h3>
-        <p className="text-[9px] font-mono text-white/30 uppercase tracking-widest font-bold truncate">{p.cantonRole}</p>
+        <h3 className="text-sm font-bold font-sans tracking-tight text-white group-hover:text-blue-400 transition-colors truncate">{p.name}</h3>
+        <p className="text-[9px] font-mono text-white/30 tracking-wide font-bold truncate">{p.cantonRole}</p>
       </div>
 
       <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-center opacity-60 group-hover:opacity-100 transition-opacity">
@@ -178,7 +238,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
   return (
     <div className="h-full flex flex-col bg-[#020202] overflow-hidden">
       <AnimatePresence mode="wait">
-        {/* Welcome State - Hero with Featured Stacks */}
+        {/* Welcome State - Hero with Featured Jump Cuts */}
         {currentViewState === 'welcome' && (
           <motion.div
             key="welcome"
@@ -191,7 +251,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
             <div className="px-8 pt-8 pb-6 border-b border-white/5 bg-black/20 backdrop-blur-md z-10">
               <div className="flex justify-between items-center">
                 <div className="space-y-2">
-                  <h1 className="text-4xl font-bold font-sans uppercase tracking-tighter text-blue-500">Discover Network</h1>
+                  <h1 className="text-4xl font-bold font-sans tracking-tight text-blue-500">Discover Network</h1>
                   <p className="text-white/60 text-sm font-mono">Choose a ready-made workflow template or explore individual participants</p>
                 </div>
                 
@@ -211,7 +271,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
             {/* Hero Content */}
             <div className="flex-1 overflow-y-auto p-8">
               <div className="max-w-7xl mx-auto space-y-12">
-                {/* Featured Stacks - Hero Section */}
+                {/* Featured Jump Cuts - Hero Section */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -219,18 +279,18 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
                   className="space-y-6"
                 >
                   <div className="text-center space-y-3">
-                    <h2 className="text-2xl font-bold font-sans uppercase tracking-tighter text-white">Featured Workflow Templates</h2>
-                    <p className="text-white/40 text-sm font-mono">Pre-configured participant stacks for common use cases</p>
+                    <h2 className="text-2xl font-bold font-sans tracking-tight text-white">Featured Jump Cuts</h2>
+                    <p className="text-white/40 text-sm font-mono">Pre-configured participant flows for common use cases</p>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {FEATURED_STACKS.map((stack, index) => (
+                    {FEATURED_JUMP_CUTS.map((jumpCut, index) => (
                       <motion.button
-                        key={stack.id}
+                        key={jumpCut.id}
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 + index * 0.1 }}
-                        onClick={() => onSelectStack(stack)}
+                        onClick={() => onSelectJumpCut(jumpCut)}
                         className="text-left group h-full"
                       >
                         <LiquidGlass className="p-6 border-blue-500/10 hover:border-blue-500/40 bg-blue-500/5 hover:bg-blue-500/10 transition-all h-full">
@@ -243,27 +303,27 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
                             </div>
                           </div>
                           
-                          <h3 className="text-lg font-bold font-sans uppercase text-white group-hover:text-blue-400 transition-colors mb-2">{stack.name}</h3>
-                          <p className="text-sm text-white/60 mb-4 leading-relaxed">{stack.desc}</p>
+                          <h3 className="text-lg font-bold font-sans text-white group-hover:text-blue-400 transition-colors mb-2">{jumpCut.name}</h3>
+                          <p className="text-sm text-white/60 mb-4 leading-relaxed">{jumpCut.desc}</p>
                           
                           <div className="space-y-3">
                             <div className="flex -space-x-2">
-                               {stack.partners.slice(0, 4).map((p, i) => (
+                               {jumpCut.partners.slice(0, 4).map((p, i) => (
                                   <div key={i} className="w-8 h-8 rounded-full bg-black border-2 border-white/10 flex items-center justify-center text-xs font-bold text-white/60 group-hover:border-blue-500/30 transition-colors" title={p}>
                                      {p.charAt(0)}
                                   </div>
                                ))}
-                               {stack.partners.length > 4 && (
+                               {jumpCut.partners.length > 4 && (
                                  <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-white/10 flex items-center justify-center text-[10px] font-bold text-white/40">
-                                   +{stack.partners.length - 4}
+                                   +{jumpCut.partners.length - 4}
                                  </div>
                                )}
                             </div>
                             
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-blue-500/80 uppercase tracking-widest">{stack.fee} network fee</span>
+                              <span className="text-xs font-bold text-blue-500/80 tracking-wide">{jumpCut.fee} network fee</span>
                               <div className="flex items-center gap-2 text-white/40 group-hover:text-blue-400 transition-colors">
-                                <span className="text-xs font-mono">{stack.nodes.length} participants</span>
+                                <span className="text-xs font-mono">{jumpCut.nodes.length} participants</span>
                                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                               </div>
                             </div>
@@ -308,7 +368,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
             <div className="px-8 pt-8 pb-6 border-b border-white/5 bg-black/20 backdrop-blur-md z-10 space-y-4">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                  <h2 className="text-2xl font-bold font-sans uppercase tracking-tighter text-blue-500">Network Participants</h2>
+                  <h2 className="text-2xl font-bold font-sans tracking-tight text-blue-500">Network Participants</h2>
                   <p className="text-white/40 text-xs font-mono">
                     {currentViewState === 'filtered' 
                       ? `Showing ${filteredParticipants.length} of ${participants.length} participants`
@@ -352,7 +412,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
                   <button
                     key={role}
                     onClick={() => handleRoleSelect(role)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold tracking-widest transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all whitespace-nowrap ${
                       selectedRole === role 
                         ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' 
                         : 'bg-white/5 text-white/40 hover:text-white hover:bg-white/10 border border-white/10'
@@ -369,8 +429,127 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
               </motion.div>
             </div>
 
-            {/* Participants Grid */}
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8">
+              {communityFlows.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-bold font-sans tracking-tight text-emerald-500">Community Flows</h3>
+                    <div className="h-px bg-emerald-500/20 flex-1" />
+                    <span className="text-[10px] font-mono text-emerald-500/60 tracking-wide">{communityFlows.length} flows seeking members</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {communityFlows.map((flow, index) => {
+                      const isJoining = joiningFlows.has(flow.id);
+                      const hasJoined = joinedFlows.has(flow.id);
+                      const filledRoles = flow.participants.filter(p => p.partyId).length;
+                      const totalRoles = flow.participants.length;
+                      const missingRoles = flow.participants.filter(p => !p.partyId);
+                      
+                      return (
+                        <motion.div
+                          key={flow.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <LiquidGlass className="p-5 border-emerald-500/10 hover:border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all">
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="text-sm font-bold font-sans text-white truncate">{flow.title}</h4>
+                                  <p className="text-xs text-white/60 mt-1 line-clamp-2">{flow.description || 'No description available'}</p>
+                                </div>
+                                <div className="ml-3 shrink-0">
+                                  <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                                    <Users className="w-5 h-5 text-emerald-400" />
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-white/40 font-mono">
+                                    {filledRoles}/{totalRoles} roles filled
+                                  </span>
+                                  <span className="text-emerald-500/80 font-mono">
+                                    {flow.orgId?.split('::')[0]}
+                                  </span>
+                                </div>
+                                
+                                {missingRoles.length > 0 && (
+                                  <div className="space-y-2">
+                                    <p className="text-[10px] text-white/40 font-mono tracking-wide">Looking for:</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {missingRoles.slice(0, 3).map((role, i) => (
+                                        <span
+                                          key={i}
+                                          className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[9px] font-mono text-white/60"
+                                        >
+                                          {role.role}
+                                        </span>
+                                      ))}
+                                      {missingRoles.length > 3 && (
+                                        <span className="px-2 py-1 bg-white/10 border border-white/10 rounded text-[9px] font-mono text-white/40">
+                                          +{missingRoles.length - 3}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <button
+                                  onClick={() => handleJoinFlow(flow.id)}
+                                  disabled={isJoining || hasJoined}
+                                  className="w-full px-3 py-2 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                  {hasJoined ? (
+                                    <>
+                                      <Star className="w-3 h-3 fill-current" />
+                                      Request Sent
+                                    </>
+                                  ) : isJoining ? (
+                                    'Sending Request...'
+                                  ) : (
+                                    <>
+                                      <Plus className="w-3 h-3" />
+                                      Request to Join
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </LiquidGlass>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+              
+              {communityFlows.length === 0 && currentViewState === 'browsing' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-8"
+                >
+                  <div className="max-w-sm mx-auto space-y-3">
+                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto">
+                      <Users className="w-8 h-8 text-white/20" />
+                    </div>
+                    <h3 className="text-sm font-bold text-white/60">No Community Flows Yet</h3>
+                    <p className="text-xs text-white/40 font-mono leading-relaxed">
+                      Build a flow and publish it to let other participants discover and join your workflow!
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+              <div>
               <AnimatePresence mode="wait">
                 {currentViewState === 'browsing' && selectedRole === 'ALL' ? (
                   // Grouped by role
@@ -389,9 +568,9 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
                         className="space-y-4"
                       >
                         <div className="flex items-center gap-3">
-                          <h3 className="text-sm font-bold font-sans uppercase tracking-widest text-white/80">{role}</h3>
+                          <h3 className="text-sm font-bold font-sans tracking-wide text-white/80">{role}</h3>
                           <div className="h-px bg-white/10 flex-1" />
-                          <span className="text-[9px] font-mono text-white/30 uppercase tracking-widest">{roleParticipants.length} participants</span>
+                          <span className="text-[9px] font-mono text-white/30 tracking-wide">{roleParticipants.length} participants</span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                           {roleParticipants.map((p, index) => renderParticipantCard(p, index))}
@@ -410,8 +589,9 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectStack }) => {
                     {filteredParticipants.map((p, index) => renderParticipantCard(p, index))}
                   </motion.div>
                 )}
-              </AnimatePresence>
-            </div>
+               </AnimatePresence>
+               </div>
+             </div>
           </motion.div>
         )}
       </AnimatePresence>

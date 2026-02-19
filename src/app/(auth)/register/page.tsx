@@ -141,7 +141,7 @@ export default function RegisterPage() {
       className="space-y-12 text-center"
     >
       <div className="space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase text-white/40">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold tracking-wide text-white/40">
           <Zap className="w-3 h-3 text-blue-500" /> Canton Network
         </div>
         <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none">
@@ -236,20 +236,20 @@ export default function RegisterPage() {
                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                 
                 <div className="relative z-10">
-                  <p className="text-white/50 text-xs uppercase tracking-widest">Organization</p>
+                  <p className="text-white/50 text-xs tracking-wide">Organization</p>
                   <p className="text-white font-medium">{formData.orgName}</p>
                 </div>
                 <div className="relative z-10">
-                  <p className="text-white/50 text-xs uppercase tracking-widest">Party-ID</p>
+                  <p className="text-white/50 text-xs tracking-wide">Party-ID</p>
                   <p className="text-white font-medium font-mono text-sm break-all">{formData.partyId}</p>
                 </div>
                 <div className="relative z-10">
-                  <p className="text-white/50 text-xs uppercase tracking-widest">Display Name</p>
+                  <p className="text-white/50 text-xs tracking-wide">Display Name</p>
                   <p className="text-white font-medium">{formData.displayName}</p>
                 </div>
                 {formData.email && (
                   <div className="relative z-10">
-                    <p className="text-white/50 text-xs uppercase tracking-widest">Email</p>
+                    <p className="text-white/50 text-xs tracking-wide">Email</p>
                     <p className="text-white font-medium">{formData.email}</p>
                   </div>
                 )}

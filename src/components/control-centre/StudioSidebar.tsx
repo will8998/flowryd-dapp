@@ -65,7 +65,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
   const SECONDARY_ITEMS: Array<{ id?: string; label: string; icon: typeof Globe; tier?: Tier; href?: string }> = [
     { id: 'JOIN', label: 'Marketplace', icon: Users, tier: 'JOIN' },
     { label: 'Intelligence', icon: Terminal, href: '#' },
-    { label: 'App Stacks', icon: Workflow, href: '#' },
+    { label: 'Jump Cuts', icon: Workflow, href: '#' },
   ];
 
   return (
@@ -73,13 +73,13 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
       <div className="p-8 border-b border-white/5">
         <div className="flex items-center gap-3">
           <Image src="/flowrydlogo.svg" alt="Flowryd" width={100} height={24} className="h-5 w-auto" />
-          <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[8px] font-black tracking-widest rounded-full border border-blue-500/20">V1.2</span>
+          <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[8px] font-black tracking-wide rounded-full border border-blue-500/20">v1.2</span>
         </div>
       </div>
 
       <div className="flex-1 p-4 space-y-8 overflow-y-auto">
         <div className="space-y-1">
-          <p className="px-4 text-[8px] font-bold text-white/20 uppercase tracking-widest mb-4">Core</p>
+          <p className="px-4 text-[8px] font-bold text-white/20 tracking-wide mb-4">Core</p>
           {MENU_ITEMS.map((item) => (
             <button
               key={item.id}
@@ -90,7 +90,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
             >
               <div className="flex items-center gap-3">
                 <item.icon className={`w-4 h-4 ${activeTier === item.tier ? 'text-white' : 'text-blue-500'}`} />
-                <span className="text-xs font-bold tracking-wide uppercase">{item.label}</span>
+                <span className="text-xs font-bold tracking-wide">{item.label}</span>
               </div>
               {activeTier === item.tier && <ChevronRight className="w-4 h-4 opacity-50" />}
             </button>
@@ -98,7 +98,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
         </div>
 
         <div className="space-y-1">
-          <p className="px-4 text-[8px] font-bold text-white/20 uppercase tracking-widest mb-4">Ecosystem</p>
+          <p className="px-4 text-[8px] font-bold text-white/20 tracking-wide mb-4">Ecosystem</p>
           <AnimatePresence mode="wait">
             {activeTier === 'ACTIVATE' ? (
               <motion.div 
@@ -108,7 +108,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-2 px-2"
               >
-                   <p className="px-2 text-[8px] font-bold text-emerald-500/60 uppercase tracking-widest mb-2">Conversations</p>
+                   <p className="px-2 text-[8px] font-bold text-emerald-500/60 tracking-wide mb-2">Conversations</p>
                  {sidebarDeals.length > 0 ? sidebarDeals.map(deal => (
                     <button 
                       key={deal.id} 
@@ -138,7 +138,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
                      }`}
                    >
                      <item.icon className={`w-4 h-4 ${activeTier === item.tier ? 'text-white' : 'group-hover:text-emerald-500 transition-colors'}`} />
-                     <span className="text-xs font-bold tracking-wide uppercase">{item.label}</span>
+                     <span className="text-xs font-bold tracking-wide">{item.label}</span>
                    </button>
                  ))}
                  {user?.role === 'admin' && (
@@ -149,7 +149,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
                      }`}
                    >
                      <Shield className={`w-4 h-4 ${activeTier === 'ADMIN' ? 'text-white' : 'group-hover:text-blue-500 transition-colors'}`} />
-                     <span className="text-xs font-bold tracking-wide uppercase">Admin</span>
+                      <span className="text-xs font-bold tracking-wide">Admin</span>
                    </button>
                  )}
               </motion.div>
@@ -165,7 +165,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold text-white leading-none mb-1">Canton Node</p>
-            <p className="text-[10px] font-mono text-white/40 truncate uppercase">{partyId?.split('::')[1] || 'TEXTURE::1234'}</p>
+            <p className="text-[10px] font-mono text-white/40 truncate">{partyId?.split('::')[1] || 'texture::1234'}</p>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />

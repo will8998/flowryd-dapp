@@ -142,7 +142,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
           <div className="p-4 border-b border-white/5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-white/60">
+                <h2 className="text-xs font-bold tracking-wide text-white/60">
                   Participants
                 </h2>
                 <span className="text-[9px] text-white/30 font-mono">
@@ -174,7 +174,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
             <div className="px-4 py-3 border-b border-white/5">
               <div className="flex items-center gap-1.5 mb-2.5">
                 <Sparkles className="w-3 h-3 text-blue-400" />
-                <p className="text-[9px] uppercase tracking-widest text-blue-400/70 font-semibold">Templates</p>
+                <p className="text-[9px] tracking-wide text-blue-400/70 font-semibold">Jump Cuts</p>
               </div>
               <div className="space-y-1.5">
                 {workflows.map(wf => (
@@ -237,7 +237,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
                       ) : (
                         <ChevronRight className="w-3 h-3 text-white/30" />
                       )}
-                      <span className="text-[9px] uppercase tracking-widest text-white/30 font-semibold flex-1 truncate">
+                      <span className="text-[9px] tracking-wide text-white/30 font-semibold flex-1 truncate">
                         {role}
                       </span>
                       <span className="text-[9px] text-white/30 font-mono">
@@ -283,7 +283,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
                                 </div>
                                 
                                 {isRec && (
-                                  <span className="text-[6px] font-bold text-blue-400 bg-blue-500/10 px-1 py-0.5 rounded uppercase tracking-wider shrink-0">
+                                  <span className="text-[6px] font-bold text-blue-400 bg-blue-500/10 px-1 py-0.5 rounded tracking-wide shrink-0">
                                     Rec
                                   </span>
                                 )}

@@ -108,7 +108,7 @@ function LandingView({ onStart }: { onStart: () => void }) {
             <FlowRydHeroAnimation />
           </div>
 
-          <span className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white/10 border border-white/20 text-sm font-mono text-blue-300 tracking-wider backdrop-blur-sm">
+          <span className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white/10 border border-white/20 text-sm font-mono text-blue-300 tracking-wide backdrop-blur-sm">
             THE MISSING LINK NO-ONE IS TALKING ABOUT
           </span>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 leading-tight">
@@ -475,7 +475,7 @@ function AppView() {
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-xl border border-white/10 p-1 rounded-full">
         <button 
           onClick={() => setShowTeaser(false)}
-          className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all ${!showTeaser ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+          className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wide transition-all ${!showTeaser ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
         >
           DISCOVER
         </button>
@@ -483,14 +483,14 @@ function AppView() {
         <button 
           onClick={() => readinessScore >= 40 && setShowTeaser(true)}
           disabled={readinessScore < 40}
-          className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all ${showTeaser ? 'bg-blue-500 text-white shadow-lg shadow-blue-900/20' : (readinessScore >= 40 ? 'text-white/40 hover:text-white hover:bg-white/5' : 'text-white/20 cursor-not-allowed')}`}
+          className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wide transition-all ${showTeaser ? 'bg-blue-500 text-white shadow-lg shadow-blue-900/20' : (readinessScore >= 40 ? 'text-white/40 hover:text-white hover:bg-white/5' : 'text-white/20 cursor-not-allowed')}`}
         >
           NAVIGATE
         </button>
         <div className="w-px h-3 bg-white/10 mx-1" />
               <button
           disabled
-          className="px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider text-white/20 cursor-not-allowed"
+          className="px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wide text-white/20 cursor-not-allowed"
         >
           ACTIVATE
               </button>
@@ -509,7 +509,7 @@ function AppView() {
       {/* Workflow Selector */}
       <div className="absolute top-24 left-4 z-30">
         <div className="bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col gap-2 shadow-2xl min-w-[200px]">
-           <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-1">Select Workflow</h3>
+           <h3 className="text-xs font-bold text-white/40 tracking-wide mb-1">Select Workflow</h3>
           {selectedWorkflow ? (
             <div className="space-y-2">
                <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-between gap-2">
@@ -694,17 +694,17 @@ function AppView() {
         <div className="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-2 flex items-center gap-4 shadow-2xl">
           <div className="flex gap-6 px-4 border-r border-white/10">
            <div className="text-center">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider flex items-center gap-1 justify-center">
+              <div className="text-[10px] text-white/40 tracking-wide flex items-center gap-1 justify-center">
                 Assets <span className="text-[8px] text-white/20 border border-white/10 px-1 rounded bg-white/5">EST</span>
               </div>
               <div className="text-sm font-mono font-bold text-white">{formatLargeNumber(totalHoldingsVal)}</div>
            </div>
             <div className="text-center">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider">Validators</div>
+              <div className="text-[10px] text-white/40 tracking-wide">Validators</div>
               <div className="text-sm font-mono font-bold text-white">{totalValidators}</div>
               </div>
             <div className="text-center">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider">Centrality</div>
+              <div className="text-[10px] text-white/40 tracking-wide">Centrality</div>
               <div className="text-sm font-mono font-bold text-blue-400">{centralityScore}</div>
               </div>
            </div>

@@ -38,7 +38,7 @@ export const CanvasNode: React.FC<{
             </div>
             <div>
               <h3 className="text-xs font-bold leading-tight">{role.name}</h3>
-              <p className="text-[9px] opacity-60 uppercase tracking-widest">{role.status}</p>
+              <p className="text-[9px] opacity-60 tracking-wide">{role.status}</p>
             </div>
           </div>
         </div>

@@ -83,7 +83,7 @@ export const WizardOverlay: React.FC<WizardOverlayProps> = ({ onComplete, onSkip
             />
 
             <div className="flex justify-between items-start mb-3">
-              <div className="text-xs font-bold text-blue-400 uppercase tracking-wider">
+              <div className="text-xs font-bold text-blue-400 tracking-wide">
                 Step {currentStep + 1} / {STEPS.length}
               </div>
               <button onClick={onSkip} className="text-white/20 hover:text-white transition-colors">

@@ -18,21 +18,21 @@ const STEPS = [
   },
   {
     id: 'discover',
-    title: 'Step 1: DISCOVER',
+    title: 'Step 1: Discover',
     desc: 'Use the Network Grid to find institutional affinity. Identify 1st and 2nd degree partners already on Canton.',
     icon: Target,
     action: 'Next Step'
   },
   {
     id: 'navigate',
-    title: 'Step 2: NAVIGATE',
+    title: 'Step 2: Navigate',
     desc: 'Choose a proven Flow Template or build a custom multi-party workflow. This is where your strategy becomes a blueprint.',
     icon: Workflow,
     action: 'Next Step'
   },
   {
     id: 'activate',
-    title: 'Step 3: ACTIVATE',
+    title: 'Step 3: Activate',
     desc: 'Deploy smart contracts, execute transactions, and earn FA rewards. Turn your blueprints into production revenue.',
     icon: Zap,
     action: 'Enter Control Centre'
@@ -84,7 +84,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
                  <div key={i} className={`h-1 w-4 rounded-full transition-all ${i === currentStep ? 'bg-blue-500' : 'bg-white/10'}`} />
                ))}
              </div>
-             <h2 className="text-3xl font-bold font-sans uppercase tracking-tighter">{step.title}</h2>
+             <h2 className="text-3xl font-bold font-sans tracking-tight">{step.title}</h2>
              <p className="text-white/50 text-base leading-relaxed">{step.desc}</p>
            </div>
 
@@ -97,7 +97,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
               {currentStep === 0 && (
-                <p className="mt-4 text-[10px] text-white/20 uppercase tracking-widest font-bold">Estimated time to value: 45 seconds</p>
+                <p className="mt-4 text-[10px] text-white/20 tracking-wide font-bold">Estimated time to value: 45 seconds</p>
               )}
            </div>
         </div>

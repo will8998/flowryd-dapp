@@ -149,7 +149,7 @@ const DemoFlowBuilderContent: React.FC<DemoFlowBuilderProps> = ({ flowId, onBack
           </button>
           <div>
             <h1 className="text-xl font-bold text-white shadow-black drop-shadow-lg">{flow?.name}</h1>
-            <p className="text-[10px] text-white/60 uppercase tracking-widest font-bold">Builder Mode • {nodes.length} Participants</p>
+            <p className="text-[10px] text-white/60 tracking-wide font-bold">Builder Mode • {nodes.length} Participants</p>
           </div>
         </div>
         
@@ -157,7 +157,7 @@ const DemoFlowBuilderContent: React.FC<DemoFlowBuilderProps> = ({ flowId, onBack
              <button 
                 onClick={onReady}
                 // disabled={!isFlowReady} // Allow click for demo even if logic is loose
-                className={`px-6 py-3 rounded-xl font-bold font-sans uppercase tracking-wider flex items-center gap-3 transition-all shadow-xl ${
+                className={`px-6 py-3 rounded-xl font-bold font-sans tracking-wide flex items-center gap-3 transition-all shadow-xl ${
                     true // Always enabled for smooth demo 
                     ? 'bg-white text-black hover:scale-105' 
                     : 'bg-white/10 text-white/30 cursor-not-allowed'
@@ -180,8 +180,8 @@ const DemoFlowBuilderContent: React.FC<DemoFlowBuilderProps> = ({ flowId, onBack
 
           <div className="flex-1 relative min-h-0 flex flex-col">
             <div className="p-6 absolute top-20 left-0 z-10 pointer-events-none">
-                <h2 className="text-xl font-bold font-sans uppercase tracking-tighter text-blue-500">Flow Workbench</h2>
-                <p className="text-white/40 text-[9px] font-bold tracking-widest uppercase">Stage 2: Institutional Coordination</p>
+                <h2 className="text-xl font-bold font-sans tracking-tighter text-blue-500">Flow Workbench</h2>
+                <p className="text-white/40 text-[9px] font-bold tracking-wide">Stage 2: Institutional Coordination</p>
             </div>
 
             <WorkbenchCanvas 

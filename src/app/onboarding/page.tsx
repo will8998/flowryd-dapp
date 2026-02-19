@@ -305,7 +305,7 @@ export default function OnboardingPage() {
                     <div className="text-2xl font-semibold" style={{ color: label === "Matching Workflows" ? "#8b5cf6" : label === "Ready to Launch" ? "#10b981" : label === "Network Score" ? "#06b6d4" : "#f59e0b" }}>
                       {number}
                     </div>
-                    <div className="text-xs text-white/60 uppercase tracking-wide">{label}</div>
+                    <div className="text-xs text-white/60 tracking-wide">{label}</div>
                   </div>
                 ))}
               </div>

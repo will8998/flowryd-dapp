@@ -91,7 +91,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           <p className="text-white/60 text-sm">Deal not found</p>
           <button 
             onClick={() => { window.location.href = '/'; }}
-            className="mt-3 px-4 py-1.5 bg-white/10 border border-white/10 text-white/60 rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-white/15 transition-colors"
+            className="mt-3 px-4 py-1.5 bg-white/10 border border-white/10 text-white/60 rounded-lg font-bold text-[10px] tracking-wide hover:bg-white/15 transition-colors"
           >
             Go Back
           </button>
@@ -135,7 +135,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
                         : isCurrent ? stage.activeColor
                         : 'bg-white/10'
                     }`} />
-                    <span className={`text-[8px] font-bold uppercase tracking-wider hidden md:inline ${
+                    <span className={`text-[8px] font-bold tracking-wide hidden md:inline ${
                       isCurrent ? 'text-white/70' : isCompleted ? 'text-emerald-500/60' : 'text-white/15'
                     }`}>
                       {stage.label}
@@ -151,7 +151,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
               <button
                 onClick={() => handleStatusChange(nextStage.key)}
                 disabled={isTransitioning}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-black rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-emerald-50 transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-black rounded-lg text-[9px] font-bold tracking-wide hover:bg-emerald-50 transition-all disabled:opacity-50"
               >
                 {isTransitioning ? (
                   <div className="w-3 h-3 border border-black/20 border-t-transparent rounded-full animate-spin" />
@@ -201,7 +201,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           ) : (
             <>
               <div className="px-4 pt-3 pb-3 flex items-center justify-between border-b border-white/5">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-white/30">Details</span>
+                <span className="text-[9px] font-bold tracking-wide text-white/30">Details</span>
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-1 text-white/40 hover:text-white/70 hover:bg-white/5 rounded transition-colors"
@@ -214,18 +214,18 @@ export default function DealRoom({ dealId }: DealRoomProps) {
                 <div className="space-y-2.5">
                   {deal.volume && (
                     <div>
-                      <p className="text-[8px] text-white/30 uppercase tracking-widest mb-0.5">Volume</p>
+                      <p className="text-[8px] text-white/30 tracking-wide mb-0.5">Volume</p>
                       <p className="text-xs font-bold text-white/80">{deal.volume}</p>
                     </div>
                   )}
                   {deal.description && (
                     <div>
-                      <p className="text-[8px] text-white/30 uppercase tracking-widest mb-0.5">Description</p>
+                      <p className="text-[8px] text-white/30 tracking-wide mb-0.5">Description</p>
                       <p className="text-[11px] text-white/60 leading-relaxed">{deal.description}</p>
                     </div>
                   )}
                   <div>
-                    <p className="text-[8px] text-white/30 uppercase tracking-widest mb-0.5">Created</p>
+                    <p className="text-[8px] text-white/30 tracking-wide mb-0.5">Created</p>
                     <p className="text-[11px] text-white/50">{new Date(deal.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
@@ -235,7 +235,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
                 <div>
                   <div className="flex items-center gap-1.5 mb-2.5">
                     <Users className="w-3 h-3 text-white/30" />
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-white/30">
+                    <span className="text-[9px] font-bold tracking-wide text-white/30">
                       Participants
                     </span>
                     <span className="text-[8px] text-white/20 ml-auto">{participants.length}</span>
@@ -256,7 +256,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
                             {participant.displayName || participant.partyId || 'Unknown'}
                           </p>
                           {participant.role && (
-                            <p className="text-[8px] text-white/25 uppercase tracking-wider">
+                            <p className="text-[8px] text-white/25 tracking-wide">
                               {participant.role}
                             </p>
                           )}

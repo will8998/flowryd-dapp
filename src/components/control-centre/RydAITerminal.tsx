@@ -1,94 +1,279 @@
 "use client";
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Terminal as TerminalIcon, ArrowRight, Activity, Zap, Workflow, Layers } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageCircle, X, Send, Bot } from 'lucide-react';
 
 interface RydAITerminalProps {
   tier: string;
 }
 
-const CONTEXT_MESSAGES: Record<string, string> = {
-  DISCOVER: "Scanning Canton Domain 'Production-1'... Identify institutional partners to begin your workflow mission.",
-  NAVIGATE: "Flow Workbench active. Drag partners from the tray to model your multi-party coordination flow.",
-  ACTIVATE: "Deal Rooms active. Enter a private room to finalise smart contract terms and synchronise state."
-};
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+interface ChatResponse {
+  message: string;
+  suggestions?: string[];
+}
 
 export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
-  const [logs, setLogs] = useState<string[]>([]);
-  
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
+
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: inputValue.trim(),
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(msg => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          context: tier,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data: { data: ChatResponse } = await response.json();
+      
+      const assistantMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: data.data.message,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: 'I apologize, but I encountered an issue processing your request. Please try again.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+  };
+
   return (
-    <div className="w-80 border-l border-white/5 bg-black flex flex-col hidden xl:flex shadow-2xl">
-      <div className="p-5 border-b border-white/5 flex items-center justify-between bg-white/5">
-        <div className="flex items-center gap-2">
-          <TerminalIcon className="w-3.5 h-3.5 text-blue-500" />
-          <span className="text-[10px] font-bold tracking-[0.2em] uppercase">Ryd AI</span>
-        </div>
-        <div className="flex gap-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-        </div>
-      </div>
+    <>
+      <motion.button
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-600 hover:bg-blue-500 rounded-full shadow-lg shadow-blue-600/25 flex items-center justify-center transition-colors"
+        onClick={() => setIsOpen(!isOpen)}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <MessageCircle className="w-6 h-6 text-white" />
+      </motion.button>
 
-      <div className="flex-1 p-6 space-y-6 overflow-y-auto font-mono text-[11px] leading-relaxed">
-        <div className="space-y-3">
-          <p className="text-blue-400">assistant_ryd:</p>
-          <motion.p 
-            key={tier}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-white/70 italic border-l border-blue-500/20 pl-4"
-          >
-            {CONTEXT_MESSAGES[tier] || "Ready to orchestrate."}
-          </motion.p>
-        </div>
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+            />
+            
+            <motion.div
+              className="fixed bottom-24 right-6 z-50 w-96 h-[500px] bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[24px] flex flex-col overflow-hidden"
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+            >
+              <div className="p-4 border-b border-white/[0.08] bg-white/[0.02] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-600/20 rounded-full flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-white">Ryd AI</h3>
+                    <p className="text-xs text-white/40">Canton Network Assistant</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4 text-white/60 hover:text-white" />
+                </button>
+              </div>
 
-        <div className="pt-6 border-t border-white/5 space-y-4">
-          <h4 className="text-[9px] uppercase font-bold text-white/20 tracking-widest">Active Intelligence</h4>
-          <div className="space-y-3">
-             <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
-               <Activity className="w-3 h-3 text-blue-500" />
-               <div className="flex-1">
-                 <p className="text-[10px] font-bold text-white/80">Network Affinity</p>
-                 <p className="text-[9px] text-white/40">98% match with DTCC</p>
-               </div>
-             </div>
-             <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 opacity-50">
-               <Zap className="w-3 h-3 text-purple-500" />
-               <div className="flex-1">
-                 <p className="text-[10px] font-bold text-white/80">Fee Optimization</p>
-                 <p className="text-[9px] text-white/40">-12bps potential</p>
-               </div>
-             </div>
-          </div>
-        </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                {messages.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center py-8"
+                  >
+                    <Bot className="w-12 h-12 text-blue-400/40 mx-auto mb-3" />
+                    <h4 className="text-sm font-medium text-white mb-2">Welcome to Ryd AI</h4>
+                    <p className="text-xs text-white/60 leading-relaxed">
+                      I can help you navigate the Canton Network, build coordination flows, 
+                      and optimize your institutional workflows.
+                    </p>
+                  </motion.div>
+                )}
 
-        <div className="pt-6 border-t border-white/5 space-y-4">
-          <h4 className="text-[9px] uppercase font-bold text-white/20 tracking-widest">Recommended Stacks</h4>
-          <div className="p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl space-y-3 group cursor-pointer hover:bg-blue-600/20 transition-all">
-            <p className="text-[10px] font-bold text-blue-400">Verified Participant</p>
-            <div className="flex gap-1.5">
-              <div className="w-5 h-5 rounded bg-black/40 flex items-center justify-center text-[8px] text-white/40 font-bold border border-white/5">C7</div>
-              <div className="w-5 h-5 rounded bg-black/40 flex items-center justify-center text-[8px] text-white/40 font-bold border border-white/5">K</div>
-              <div className="w-5 h-5 rounded bg-black/40 flex items-center justify-center text-[8px] text-white/40 font-bold border border-white/5">CW</div>
-            </div>
-            <p className="text-[9px] text-white/40 leading-snug">Essential for institutional Repo flows.</p>
-          </div>
-        </div>
-      </div>
+                {messages.map((message) => (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`flex gap-3 ${
+                      message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+                    }`}
+                  >
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      message.role === 'user' 
+                        ? 'bg-blue-600' 
+                        : 'bg-white/10'
+                    }`}>
+                      {message.role === 'user' ? (
+                        <span className="text-xs font-bold text-white">U</span>
+                      ) : (
+                        <Bot className="w-3.5 h-3.5 text-blue-400" />
+                      )}
+                    </div>
+                    
+                    <div className={`flex-1 max-w-[280px] ${
+                      message.role === 'user' ? 'text-right' : 'text-left'
+                    }`}>
+                      <div className={`inline-block p-3 rounded-2xl text-sm leading-relaxed ${
+                        message.role === 'user'
+                          ? 'bg-blue-600 text-white rounded-tr-md'
+                          : 'bg-white/[0.08] text-white/90 rounded-tl-md'
+                      }`}>
+                        {message.content}
+                      </div>
+                      <div className={`text-xs text-white/30 mt-1 ${
+                        message.role === 'user' ? 'text-right' : 'text-left'
+                      }`}>
+                        {formatTime(message.timestamp)}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
 
-      <div className="p-4 border-t border-white/5 bg-black">
-        <div className="flex gap-2">
-          <input 
-            type="text" 
-            placeholder="Ask Ryd..." 
-            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-[10px] focus:outline-none focus:border-blue-500/50 transition-all"
-          />
-          <button className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-600/20">
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-    </div>
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-3"
+                  >
+                    <div className="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center">
+                      <Bot className="w-3.5 h-3.5 text-blue-400" />
+                    </div>
+                    <div className="bg-white/[0.08] rounded-2xl rounded-tl-md p-3">
+                      <div className="flex gap-1">
+                        <motion.div
+                          className="w-2 h-2 bg-white/40 rounded-full"
+                          animate={{ opacity: [0.4, 1, 0.4] }}
+                          transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+                        />
+                        <motion.div
+                          className="w-2 h-2 bg-white/40 rounded-full"
+                          animate={{ opacity: [0.4, 1, 0.4] }}
+                          transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                        />
+                        <motion.div
+                          className="w-2 h-2 bg-white/40 rounded-full"
+                          animate={{ opacity: [0.4, 1, 0.4] }}
+                          transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div className="p-4 border-t border-white/[0.08] bg-white/[0.02]">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Ask about Canton Network..."
+                    className="flex-1 bg-white/[0.08] border border-white/[0.12] rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50 transition-colors"
+                    disabled={isLoading}
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!inputValue.trim() || isLoading}
+                    className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:cursor-not-allowed rounded-xl flex items-center justify-center transition-colors"
+                  >
+                    {isLoading ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                      />
+                    ) : (
+                      <Send className="w-4 h-4 text-white" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
