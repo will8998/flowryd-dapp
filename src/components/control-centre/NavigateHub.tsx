@@ -28,7 +28,18 @@ import { WorkbenchCanvas } from './WorkbenchCanvas';
 import { useFlows, useFlow } from '@/hooks/use-flows';
 import { useCantonAuth } from '@/lib/auth-context';
 
-const NavigateHubContent: React.FC = () => {
+interface JumpCutData {
+  id: string;
+  name: string;
+  nodes: Array<{ role: string; participantId: string; position: { x: number; y: number } }>;
+}
+
+interface NavigateHubProps {
+  initialJumpCut?: JumpCutData | null;
+  onJumpCutConsumed?: () => void;
+}
+
+const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJumpCutConsumed }) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -41,6 +52,7 @@ const NavigateHubContent: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
+  const [isCreatingDeal, setIsCreatingDeal] = useState(false);
   const initialOrgPlaced = useRef(false);
   
   const { screenToFlowPosition } = useReactFlow();
@@ -79,6 +91,20 @@ const NavigateHubContent: React.FC = () => {
     initialOrgPlaced.current = true;
     setNodes([makeUserOrgNode(orgName)]);
   }, [activeFlowId, orgName, makeUserOrgNode]);
+
+  useEffect(() => {
+    if (!initialJumpCut || !orgName) return;
+    const userNode = makeUserOrgNode(orgName);
+    const jumpCutNodes: Node[] = initialJumpCut.nodes.map((n, i) => ({
+      id: `jc-${Date.now()}-${i}`,
+      type: 'institutional',
+      position: { x: 300 + n.position.x, y: 250 + n.position.y },
+      data: { participantId: n.participantId },
+    }));
+    setNodes([userNode, ...jumpCutNodes]);
+    setEdges([]);
+    onJumpCutConsumed?.();
+  }, [initialJumpCut, orgName, makeUserOrgNode, onJumpCutConsumed]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -290,9 +316,30 @@ const NavigateHubContent: React.FC = () => {
 
           {nodes.length > 1 && (
             <button
-              className="px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors flex items-center gap-1.5 tracking-wide"
+              onClick={async () => {
+                if (isCreatingDeal) return;
+                setIsCreatingDeal(true);
+                try {
+                  const title = activeFlow?.title || `Deal ${new Date().toLocaleDateString()}`;
+                  const res = await fetch('/api/deals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, flowId: activeFlowId }),
+                  });
+                  if (res.ok) {
+                    const { data } = await res.json();
+                    window.location.href = `/deals/${data.id}`;
+                  }
+                } catch (error) {
+                  console.error('Failed to create deal:', error);
+                } finally {
+                  setIsCreatingDeal(false);
+                }
+              }}
+              disabled={isCreatingDeal}
+              className="px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors flex items-center gap-1.5 tracking-wide disabled:opacity-50"
             >
-              <Play className="w-3 h-3 fill-black" /> Deal Room
+              <Play className="w-3 h-3 fill-black" /> {isCreatingDeal ? 'Creating...' : 'Deal Room'}
             </button>
           )}
         </div>
@@ -328,10 +375,10 @@ const NavigateHubContent: React.FC = () => {
   );
 };
 
-export const NavigateHub: React.FC = () => {
+export const NavigateHub: React.FC<NavigateHubProps> = (props) => {
   return (
     <ReactFlowProvider>
-      <NavigateHubContent />
+      <NavigateHubContent {...props} />
     </ReactFlowProvider>
   );
 };

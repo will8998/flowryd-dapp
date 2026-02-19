@@ -25,7 +25,7 @@ import {
 import { useCantonAuth } from '@/lib/auth-context';
 import Image from 'next/image';
 
-type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN';
+type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'JUMPCUTS';
 
 interface StudioSidebarProps {
   activeTier: Tier;
@@ -62,10 +62,10 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
     { id: 'ACTIVATE', label: 'Deals', icon: MessageSquare, tier: 'ACTIVATE' },
   ];
 
-  const SECONDARY_ITEMS: Array<{ id?: string; label: string; icon: typeof Globe; tier?: Tier; href?: string }> = [
+  const SECONDARY_ITEMS: Array<{ id?: string; label: string; icon: typeof Globe; tier?: Tier; action?: () => void }> = [
     { id: 'JOIN', label: 'Marketplace', icon: Users, tier: 'JOIN' },
-    { label: 'Intelligence', icon: Terminal, href: '#' },
-    { label: 'Jump Cuts', icon: Workflow, href: '#' },
+    { label: 'Intelligence', icon: Terminal, action: () => window.dispatchEvent(new Event('toggle-ryd-ai')) },
+    { label: 'Jump Cuts', icon: Workflow, tier: 'JUMPCUTS' as Tier },
   ];
 
   return (
@@ -132,7 +132,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
                 {SECONDARY_ITEMS.map((item) => (
                    <button
                      key={item.label}
-                     onClick={() => item.tier && onTierChange(item.tier)}
+                     onClick={() => { if (item.action) item.action(); else if (item.tier) onTierChange(item.tier); }}
                      className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all group ${
                        activeTier === item.tier ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-white/40 hover:bg-white/5 hover:text-white'
                      }`}

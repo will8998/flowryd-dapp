@@ -35,6 +35,12 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    const handleToggle = () => setIsOpen(prev => !prev);
+    window.addEventListener('toggle-ryd-ai', handleToggle);
+    return () => window.removeEventListener('toggle-ryd-ai', handleToggle);
+  }, []);
+
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
 

@@ -21,15 +21,23 @@ import { RydAITerminal } from './RydAITerminal';
 import { OnboardingWizard } from './OnboardingWizard';
 import { CollectiveHub } from './CollectiveHub';
 import { AdminPanel } from './AdminPanel';
+import { JumpCutsManager } from './JumpCutsManager';
 import { useCantonAuth } from '@/lib/auth-context';
 
-type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN';
+type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'JUMPCUTS';
+
+interface SelectedJumpCut {
+  id: string;
+  name: string;
+  nodes: Array<{ role: string; participantId: string; position: { x: number; y: number } }>;
+}
 
 export const FlowsStudio: React.FC = () => {
   const { user } = useCantonAuth();
   const [activeTier, setActiveTier] = useState<Tier>('DISCOVER');
   const [notifications, setNotifications] = useState(2);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [pendingJumpCut, setPendingJumpCut] = useState<SelectedJumpCut | null>(null);
 
   useEffect(() => {
     const hasSeen = localStorage.getItem('flowryd_onboarding_seen');
@@ -59,7 +67,7 @@ export const FlowsStudio: React.FC = () => {
              <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 tracking-wide">
                <span className="text-white/60">Mission Control</span>
                <ChevronRight className="w-3 h-3" />
-                <span className="text-blue-500">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : 'Marketplace'}</span>
+                <span className="text-blue-500">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : activeTier === 'JUMPCUTS' ? 'Jump Cuts' : 'Marketplace'}</span>
              </div>
 
              <div className="h-4 w-px bg-white/5" />
@@ -109,10 +117,11 @@ export const FlowsStudio: React.FC = () => {
         <main className="flex-1 relative overflow-hidden">
           <div className="flex-1 overflow-y-auto custom-scrollbar relative">
             <AnimatePresence mode="wait">
-              {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectJumpCut={(jumpCut) => { console.log(jumpCut); setActiveTier('NAVIGATE'); }} />}
-              {activeTier === 'NAVIGATE' && <NavigateHub key="navigate" />}
+              {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectJumpCut={(jumpCut) => { setPendingJumpCut({ id: jumpCut.id, name: jumpCut.name, nodes: jumpCut.nodes }); setActiveTier('NAVIGATE'); }} />}
+              {activeTier === 'NAVIGATE' && <NavigateHub key="navigate" initialJumpCut={pendingJumpCut} onJumpCutConsumed={() => setPendingJumpCut(null)} />}
               {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}
+              {activeTier === 'JUMPCUTS' && <JumpCutsManager key="jumpcuts" />}
               {activeTier === 'ADMIN' && user?.role === 'admin' && <AdminPanel key="admin" />}
             </AnimatePresence>
           </div>
