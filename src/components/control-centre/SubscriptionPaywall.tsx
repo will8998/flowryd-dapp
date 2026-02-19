@@ -54,11 +54,17 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-10 max-w-lg w-full mx-4 space-y-8 relative">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto space-y-6 relative"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-white/40 hover:text-white/80 transition-colors"
+          className="sticky top-0 float-right text-white/40 hover:text-white/80 transition-colors z-10"
         >
           <X className="w-6 h-6" />
         </button>
@@ -80,16 +86,16 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
             return (
               <div
                 key={plan.name}
-                className={`p-6 rounded-2xl transition-all ${
+                className={`p-4 rounded-2xl transition-all ${
                   isSelected 
                     ? "border-blue-500/50 bg-blue-500/5 border" 
                     : "bg-white/5 border border-white/10"
                 }`}
               >
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h3 className="text-lg font-bold text-white">{plan.name}</h3>
-                    <p className="text-white/40">${plan.price}/month</p>
+                    <h3 className="text-base font-bold text-white">{plan.name}</h3>
+                    <p className="text-white/40 text-sm">${plan.price}/month</p>
                   </div>
                   {isSelected && (
                     <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
@@ -97,10 +103,10 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
                     </div>
                   )}
                 </div>
-                <ul className="space-y-2">
+                <ul className="space-y-1">
                   {plan.features.map((feature, index) => (
-                    <li key={index} className="text-white/60 text-sm">
-                      • {feature}
+                    <li key={index} className="text-white/60 text-xs">
+                      {feature}
                     </li>
                   ))}
                 </ul>

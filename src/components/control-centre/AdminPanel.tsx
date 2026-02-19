@@ -9,8 +9,10 @@ import {
   UserCheck, 
   Clock,
   CreditCard,
+  Crown,
 } from 'lucide-react';
 import { useCantonAuth } from '@/lib/auth-context';
+import { useSubscription } from '@/hooks/use-subscription';
 import { BillingPanel } from './BillingPanel';
 
 interface User {
@@ -62,19 +64,55 @@ const AUDIT_ACTIONS = [
 
 const RESOURCE_TYPES = ['user', 'flow', 'deal', 'room', 'message', 'file', 'subscription', 'provider', 'provider_application'];
 
+const TIERS = ['discover', 'navigate', 'activate'] as const;
+
+const TIER_LABELS: Record<string, string> = {
+  discover: 'Discover',
+  navigate: 'Navigate',
+  activate: 'Activate',
+};
+
+const TIER_COLORS: Record<string, string> = {
+  discover: 'white',
+  navigate: 'blue',
+  activate: 'emerald',
+};
+
 export const AdminPanel: React.FC = () => {
   const { user: currentUser } = useCantonAuth();
+  const { subscription, refetch: refetchSubscription } = useSubscription();
   const [activeTab, setActiveTab] = useState<Tab>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState<string>();
   const [hasMore, setHasMore] = useState(false);
+  const [tierUpdating, setTierUpdating] = useState(false);
 
   const [actionFilter, setActionFilter] = useState<string>('');
   const [resourceTypeFilter, setResourceTypeFilter] = useState<string>('');
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
+
+  const currentTier = (subscription as { plan?: { tier?: string } })?.plan?.tier ?? null;
+
+  const updateOrgTier = async (tier: string) => {
+    try {
+      setTierUpdating(true);
+      const res = await fetch('/api/admin/subscriptions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier }),
+      });
+      if (res.ok) {
+        await refetchSubscription();
+      }
+    } catch (error) {
+      console.error('Failed to update tier:', error);
+    } finally {
+      setTierUpdating(false);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -243,8 +281,46 @@ export const AdminPanel: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="h-full flex flex-col"
+              className="h-full flex flex-col gap-4"
             >
+              <div className="bg-[#0a0a0a] border border-white/10 rounded-[20px] p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                      <Crown className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Organization Tier</h3>
+                      <p className="text-xs text-white/40">
+                        {currentTier
+                          ? `Current: ${TIER_LABELS[currentTier] ?? currentTier}`
+                          : 'No active subscription'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {TIERS.map((tier) => {
+                      const isActive = currentTier === tier;
+                      const color = TIER_COLORS[tier];
+                      return (
+                        <button
+                          key={tier}
+                          onClick={() => updateOrgTier(tier)}
+                          disabled={tierUpdating || isActive}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                            isActive
+                              ? `bg-${color}-500/20 text-${color}-400 border border-${color}-500/30`
+                              : 'bg-white/5 text-white/40 border border-white/10 hover:text-white hover:bg-white/10'
+                          } disabled:opacity-50`}
+                        >
+                          {TIER_LABELS[tier]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
               <div className="bg-[#0a0a0a] border border-white/10 rounded-[20px] flex-1 flex flex-col overflow-hidden">
                 <div className="p-6 border-b border-white/5">
                   <h2 className="text-lg font-bold text-white">Organization Users</h2>
