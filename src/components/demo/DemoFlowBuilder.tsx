@@ -176,7 +176,7 @@ const DemoFlowBuilderContent: React.FC<DemoFlowBuilderProps> = ({ flowId, onBack
           exit={{ opacity: 0 }}
           className="flex-1 flex flex-col min-h-0 relative"
         >
-          <ParticipantTray />
+          <ParticipantTray isCollapsed={false} onToggle={() => {}} />
 
           <div className="flex-1 relative min-h-0 flex flex-col">
             <div className="p-6 absolute top-20 left-0 z-10 pointer-events-none">

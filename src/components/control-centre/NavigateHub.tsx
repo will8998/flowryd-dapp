@@ -17,6 +17,10 @@ import {
 import { 
   Plus, 
   Play,
+  Save,
+  ChevronDown,
+  Layers,
+  ShieldCheck,
 } from 'lucide-react';
 import { ParticipantTray } from './ParticipantTray';
 import { WorkbenchCanvas } from './WorkbenchCanvas';
@@ -25,6 +29,8 @@ import { useFlows, useFlow } from '@/hooks/use-flows';
 const NavigateHubContent: React.FC = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showFlowSelector, setShowFlowSelector] = useState(false);
   
   const { flows, refetch: refetchFlows } = useFlows();
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null);
@@ -32,6 +38,8 @@ const NavigateHubContent: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   
   const { screenToFlowPosition } = useReactFlow();
+
+  const activeFlow = flows.find(f => f.id === activeFlowId);
 
   useEffect(() => {
     if (version) {
@@ -68,8 +76,14 @@ const NavigateHubContent: React.FC = () => {
     if (flow) {
       setActiveFlowId(flow.id);
       refetchFlows();
+      setShowFlowSelector(false);
     }
   }, [createFlow, refetchFlows]);
+
+  const selectFlow = useCallback((flowId: string) => {
+    setActiveFlowId(flowId);
+    setShowFlowSelector(false);
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -116,89 +130,131 @@ const NavigateHubContent: React.FC = () => {
     [screenToFlowPosition]
   );
 
-  const APP_STACKS = [
-    { name: 'Tokenized Asset Stack', apps: 4 },
-    { name: 'Verified Repo Stack', apps: 3 },
-  ];
-
   return (
     <div className="h-full flex flex-col bg-[#020202] relative overflow-hidden">
-      <AnimatePresence mode="wait">
-        <motion.div 
-          key="workbench"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ type: "spring", stiffness: 400, damping: 30 }}
-          className="flex-1 flex flex-col min-h-0"
-        >
-          <div className="flex items-center gap-3 px-6 py-3 border-b border-white/5">
-            <select
-              value={activeFlowId ?? ''}
-              onChange={(e) => setActiveFlowId(e.target.value || null)}
-              className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
-            >
-              <option value="" className="bg-[#0a0a0a] text-white">Select a flow...</option>
-              {flows.map((f) => (
-                <option key={f.id} value={f.id} className="bg-[#0a0a0a] text-white">{f.title}</option>
-              ))}
-            </select>
-            <button
-              onClick={handleNewFlow}
-              className="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-500 transition-colors flex items-center gap-1.5"
-            >
-              <Plus className="w-3 h-3" /> New Flow
-            </button>
-            {activeFlowId && (
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="px-3 py-2 bg-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/20 transition-colors disabled:opacity-50 flex items-center gap-1.5 ml-auto"
+      {/* Unified Toolbar */}
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-white/5 bg-black/40 backdrop-blur-md z-20 shrink-0">
+        {/* Flow Selector */}
+        <div className="relative">
+          <button
+            onClick={() => setShowFlowSelector(!showFlowSelector)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors min-w-[160px]"
+          >
+            <Layers className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+            <span className="text-xs font-mono text-white/80 truncate">
+              {activeFlow?.title || 'Select a flow...'}
+            </span>
+            <ChevronDown className="w-3 h-3 text-white/30 shrink-0 ml-auto" />
+          </button>
+
+          <AnimatePresence>
+            {showFlowSelector && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="absolute top-full left-0 mt-1 w-64 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
               >
-                {isSaving ? 'Saving...' : 'Save'}
-              </button>
-            )}
-          </div>
-          <ParticipantTray />
-
-            <div className="flex-1 relative min-h-0 flex flex-col">
-              <div className="p-6 absolute top-0 left-0 z-10 pointer-events-none">
-                 <h2 className="text-xl font-bold uppercase tracking-tighter text-blue-500">Flow Workbench</h2>
-                 <p className="text-white/40 text-[9px] font-bold tracking-widest uppercase">Stage 2: Institutional Coordination</p>
-              </div>
-
-              <div className="absolute top-20 left-6 z-10 space-y-2">
-                 <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest mb-1">Ready Stacks</p>
-                 {APP_STACKS.map(s => (
-                   <button key={s.name} className="block w-40 p-3 bg-white/5 border border-white/10 rounded-xl text-left hover:border-blue-500 transition-all group backdrop-blur-sm">
-                      <p className="text-[9px] font-bold text-white/80 group-hover:text-blue-400">{s.name}</p>
-                      <p className="text-[7px] text-white/30 uppercase mt-0.5">{s.apps} Apps</p>
-                   </button>
-                 ))}
-              </div>
-
-            {nodes.length > 1 && (
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
-                  <button 
-                    className="px-10 py-4 bg-white text-black rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all flex items-center gap-3 opacity-50 cursor-not-allowed"
+                <div className="p-2 max-h-48 overflow-y-auto">
+                  {flows.length === 0 ? (
+                    <p className="text-[10px] text-white/30 font-mono text-center py-3">No flows yet</p>
+                  ) : (
+                    flows.map(f => (
+                      <button
+                        key={f.id}
+                        onClick={() => selectFlow(f.id)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-colors ${
+                          f.id === activeFlowId ? 'bg-blue-500/10 text-blue-400' : 'text-white/60 hover:bg-white/5 hover:text-white'
+                        }`}
+                      >
+                        {f.title}
+                      </button>
+                    ))
+                  )}
+                </div>
+                <div className="border-t border-white/5 p-2">
+                  <button
+                    onClick={handleNewFlow}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/10 transition-colors"
                   >
-                    Initialize Deal Room <Play className="w-5 h-5 fill-black" />
+                    <Plus className="w-3 h-3" /> New Flow
                   </button>
-              </div>
+                </div>
+              </motion.div>
             )}
+          </AnimatePresence>
+        </div>
 
-            <WorkbenchCanvas 
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-            />
+        <button
+          onClick={handleNewFlow}
+          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-500 transition-colors flex items-center gap-1.5 uppercase tracking-wider"
+        >
+          <Plus className="w-3 h-3" /> New
+        </button>
+
+        <div className="h-4 w-px bg-white/5" />
+
+        {/* Status Indicators */}
+        {nodes.length > 0 && (
+          <div className="flex items-center gap-3">
+            <span className="text-[9px] font-mono text-white/30">
+              {nodes.length} node{nodes.length !== 1 ? 's' : ''} · {edges.length} edge{edges.length !== 1 ? 's' : ''}
+            </span>
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-md">
+              <ShieldCheck className="w-3 h-3 text-emerald-500" />
+              <span className="text-[9px] font-bold text-emerald-500 font-mono">99.9%</span>
+            </div>
           </div>
-        </motion.div>
-      </AnimatePresence>
+        )}
+
+        {/* Right Actions */}
+        <div className="ml-auto flex items-center gap-2">
+          {activeFlowId && (
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-3 py-1.5 bg-white/10 text-white rounded-lg text-[10px] font-bold hover:bg-white/20 transition-colors disabled:opacity-50 flex items-center gap-1.5 uppercase tracking-wider"
+            >
+              <Save className="w-3 h-3" />
+              {isSaving ? 'Saving...' : 'Save'}
+              <span className="text-white/30 font-normal">⌘S</span>
+            </button>
+          )}
+
+          {nodes.length > 1 && (
+            <button
+              className="px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors flex items-center gap-1.5 uppercase tracking-wider"
+            >
+              <Play className="w-3 h-3 fill-black" /> Deal Room
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content: Sidebar + Canvas */}
+      <div className="flex-1 flex min-h-0">
+        <ParticipantTray
+          isCollapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+
+        <div className="flex-1 relative min-h-0">
+          <WorkbenchCanvas 
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+          />
+        </div>
+      </div>
+
+      {/* Click-away for flow selector */}
+      {showFlowSelector && (
+        <div className="fixed inset-0 z-10" onClick={() => setShowFlowSelector(false)} />
+      )}
     </div>
   );
 };
