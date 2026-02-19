@@ -23,6 +23,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { useCantonAuth } from '@/lib/auth-context';
+import { useSubscription } from '@/hooks/use-subscription';
 import Image from 'next/image';
 
 type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'JUMPCUTS';
@@ -40,6 +41,7 @@ interface SidebarDeal {
 
 export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTierChange }) => {
   const { partyId, user, disconnect } = useCantonAuth();
+  const { subscription } = useSubscription();
   const [sidebarDeals, setSidebarDeals] = useState<SidebarDeal[]>([]);
   
   const fetchDeals = useCallback(async () => {
@@ -75,6 +77,12 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
           <Image src="/flowrydlogo.svg" alt="Flowryd" width={100} height={24} className="h-5 w-auto" />
           <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[8px] font-black tracking-wide rounded-full border border-blue-500/20">v1.2</span>
         </div>
+        {subscription && (
+          <div className="mt-3 flex items-center gap-2">
+            <span className={`w-1.5 h-1.5 rounded-full ${subscription.status === 'active' ? 'bg-emerald-500' : subscription.status === 'trial' ? 'bg-blue-500' : 'bg-amber-500'}`} />
+            <span className="text-[9px] font-bold text-white/40 tracking-wide">{subscription.plan?.name ?? 'Plan'}</span>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 p-4 space-y-8 overflow-y-auto">

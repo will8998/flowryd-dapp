@@ -15,14 +15,18 @@ import {
 } from 'lucide-react';
 import { StudioSidebar } from './StudioSidebar';
 import { NetworkGrid } from './NetworkGrid';
-import { NavigateHub } from './NavigateHub';
+import { NavigatePathways } from './NavigatePathways';
+import { FlowSections } from './FlowSections';
 import { ActivateEngine } from './ActivateEngine';
 import { RydAITerminal } from './RydAITerminal';
 import { OnboardingWizard } from './OnboardingWizard';
 import { CollectiveHub } from './CollectiveHub';
 import { AdminPanel } from './AdminPanel';
 import { JumpCutsManager } from './JumpCutsManager';
+import { RetainerWidget } from './RetainerWidget';
+import { SubscriptionPaywall } from './SubscriptionPaywall';
 import { useCantonAuth } from '@/lib/auth-context';
+import { useSubscription } from '@/hooks/use-subscription';
 
 type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'JUMPCUTS';
 
@@ -32,12 +36,20 @@ interface SelectedJumpCut {
   nodes: Array<{ role: string; participantId: string; position: { x: number; y: number } }>;
 }
 
+const TIER_REQUIREMENTS: Partial<Record<Tier, string>> = {
+  NAVIGATE: 'Navigate',
+  ACTIVATE: 'Activate',
+};
+
 export const FlowsStudio: React.FC = () => {
   const { user } = useCantonAuth();
+  const { subscription } = useSubscription();
   const [activeTier, setActiveTier] = useState<Tier>('DISCOVER');
   const [notifications, setNotifications] = useState(2);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pendingJumpCut, setPendingJumpCut] = useState<SelectedJumpCut | null>(null);
+  const [navigateView, setNavigateView] = useState<'library' | 'create'>('library');
+  const [paywallTier, setPaywallTier] = useState<string | null>(null);
 
   useEffect(() => {
     const hasSeen = localStorage.getItem('flowryd_onboarding_seen');
@@ -51,6 +63,18 @@ export const FlowsStudio: React.FC = () => {
     localStorage.setItem('flowryd_onboarding_seen', 'true');
   };
 
+  const handleTierChange = (tier: Tier) => {
+    const requiredPlan = TIER_REQUIREMENTS[tier];
+    if (requiredPlan && !subscription) {
+      setPaywallTier(requiredPlan);
+      return;
+    }
+    setActiveTier(tier);
+    if (tier === 'NAVIGATE') {
+      setNavigateView('library');
+    }
+  };
+
   return (
     <div className="flex h-screen bg-[#020202] text-white overflow-hidden selection:bg-blue-500/30">
       <AnimatePresence>
@@ -59,7 +83,14 @@ export const FlowsStudio: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <StudioSidebar activeTier={activeTier} onTierChange={setActiveTier} />
+      {paywallTier && (
+        <SubscriptionPaywall
+          requiredTier={paywallTier}
+          onClose={() => setPaywallTier(null)}
+        />
+      )}
+
+      <StudioSidebar activeTier={activeTier} onTierChange={handleTierChange} />
 
       <div className="flex-1 flex flex-col min-w-0 relative">
         <header className="h-16 border-b border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between px-8 z-40">
@@ -117,8 +148,31 @@ export const FlowsStudio: React.FC = () => {
         <main className="flex-1 relative overflow-hidden">
           <div className="flex-1 overflow-y-auto custom-scrollbar relative">
             <AnimatePresence mode="wait">
-              {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectJumpCut={(jumpCut) => { setPendingJumpCut({ id: jumpCut.id, name: jumpCut.name, nodes: jumpCut.nodes }); setActiveTier('NAVIGATE'); }} />}
-              {activeTier === 'NAVIGATE' && <NavigateHub key="navigate" initialJumpCut={pendingJumpCut} onJumpCutConsumed={() => setPendingJumpCut(null)} />}
+              {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectJumpCut={(jumpCut) => { setPendingJumpCut({ id: jumpCut.id, name: jumpCut.name, nodes: jumpCut.nodes }); handleTierChange('NAVIGATE'); setNavigateView('create'); }} />}
+              {activeTier === 'NAVIGATE' && navigateView === 'library' && (
+                <div key="navigate-library" className="h-full flex flex-col">
+                  <div className="p-6 pb-0 flex justify-end">
+                    <button
+                      onClick={() => setNavigateView('create')}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
+                    >
+                      + Create New Flow
+                    </button>
+                  </div>
+                  <div className="flex-1">
+                    <FlowSections />
+                  </div>
+                </div>
+              )}
+              {activeTier === 'NAVIGATE' && navigateView === 'create' && (
+                <NavigatePathways
+                  key="navigate-create"
+                  initialJumpCut={pendingJumpCut}
+                  onJumpCutConsumed={() => setPendingJumpCut(null)}
+                  onNavigateToTier={(tier) => handleTierChange(tier as Tier)}
+                  onBackToLibrary={() => setNavigateView('library')}
+                />
+              )}
               {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}
               {activeTier === 'JUMPCUTS' && <JumpCutsManager key="jumpcuts" />}
@@ -129,6 +183,7 @@ export const FlowsStudio: React.FC = () => {
       </div>
 
       <RydAITerminal tier={activeTier} />
+      <RetainerWidget />
     </div>
   );
 };

@@ -10,9 +10,15 @@ export const auditActionEnum = pgEnum('audit_action', [
   'flow.create', 'flow.update', 'flow.publish', 'flow.delete', 'flow.version',
   'deal.create', 'deal.status_change', 'deal.participant_add', 'deal.participant_remove',
   'room.create', 'room.join', 'room.leave',
-  'message.send', 'file.upload'
+  'message.send', 'file.upload',
+  'subscription.create', 'subscription.cancel', 'subscription.renew',
+  'provider.apply', 'provider.approve', 'provider.reject'
 ]);
 export const joinRequestStatusEnum = pgEnum('join_request_status', ['pending', 'approved', 'rejected']);
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['pending', 'trial', 'active', 'past_due', 'cancelled', 'expired']);
+export const planTierEnum = pgEnum('plan_tier', ['discover', 'navigate', 'activate']);
+export const providerStatusEnum = pgEnum('provider_status', ['pending', 'active', 'inactive']);
+export const providerCategoryEnum = pgEnum('provider_category', ['strategy', 'development', 'creative']);
 
 // Tables
 export const organizations = pgTable('organizations', {
@@ -66,7 +72,10 @@ export const flows = pgTable('flows', {
   createdBy: uuid('created_by').notNull().references(() => users.id),
   updatedBy: uuid('updated_by').references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  isFeatured: boolean('is_featured').default(false),
+  featuredHeadline: varchar('featured_headline', { length: 500 }),
+  featuredSource: varchar('featured_source', { length: 500 })
 }, (table) => ({
   idxFlowsOrgStatusTemplate: index('idx_flows_org_status_template').on(table.orgId, table.status, table.isTemplate)
 }));
@@ -193,6 +202,89 @@ export const nodeApiConfigs = pgTable('node_api_configs', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
 
+export const plans = pgTable('plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  tier: planTierEnum('tier').notNull(),
+  priceAmount: integer('price_amount').notNull(), // in cents
+  priceCurrency: varchar('price_currency', { length: 10 }).default('$CC'),
+  interval: varchar('interval', { length: 20 }).notNull().default('monthly'),
+  features: jsonb('features').default('[]'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const subscriptions = pgTable('subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  planId: uuid('plan_id').notNull().references(() => plans.id),
+  status: subscriptionStatusEnum('status').default('pending'),
+  currentPeriodStart: timestamp('current_period_start', { withTimezone: true }),
+  currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+  trialEndsAt: timestamp('trial_ends_at', { withTimezone: true }),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => ({
+  idxSubscriptionsOrgStatus: index('idx_subscriptions_org_status').on(table.orgId, table.status)
+}));
+
+export const invoices = pgTable('invoices', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  subscriptionId: uuid('subscription_id').notNull().references(() => subscriptions.id),
+  amountDue: integer('amount_due').notNull(),
+  currency: varchar('currency', { length: 10 }).default('$CC'),
+  status: varchar('invoice_status', { length: 20 }).default('draft'),
+  lineItems: jsonb('line_items').default('[]'),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  dueDate: timestamp('due_date', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const paymentMethods = pgTable('payment_methods', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  type: varchar('type', { length: 32 }).notNull().default('canton_cc'),
+  label: varchar('label', { length: 255 }),
+  walletAddress: varchar('wallet_address', { length: 255 }),
+  isDefault: boolean('is_default').default(false),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const providers = pgTable('providers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  category: providerCategoryEnum('category').notNull(),
+  description: text('description'),
+  website: varchar('website', { length: 512 }),
+  contactEmail: varchar('contact_email', { length: 255 }),
+  logoUrl: varchar('logo_url', { length: 512 }),
+  status: providerStatusEnum('status').default('active'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const providerApplications = pgTable('provider_applications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  providerId: uuid('provider_id').notNull().references(() => providers.id),
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  message: text('message'),
+  status: joinRequestStatusEnum('status').default('pending'),
+  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => ({
+  uniqueProviderApplicant: uniqueIndex('unique_provider_applicant').on(table.providerId, table.userId)
+}));
+
 // Type exports
 export type Organization = InferSelectModel<typeof organizations>;
 export type NewOrganization = InferInsertModel<typeof organizations>;
@@ -232,3 +324,21 @@ export type NewActiveSession = InferInsertModel<typeof activeSessions>;
 
 export type NodeApiConfig = InferSelectModel<typeof nodeApiConfigs>;
 export type NewNodeApiConfig = InferInsertModel<typeof nodeApiConfigs>;
+
+export type Plan = InferSelectModel<typeof plans>;
+export type NewPlan = InferInsertModel<typeof plans>;
+
+export type Subscription = InferSelectModel<typeof subscriptions>;
+export type NewSubscription = InferInsertModel<typeof subscriptions>;
+
+export type Invoice = InferSelectModel<typeof invoices>;
+export type NewInvoice = InferInsertModel<typeof invoices>;
+
+export type PaymentMethod = InferSelectModel<typeof paymentMethods>;
+export type NewPaymentMethod = InferInsertModel<typeof paymentMethods>;
+
+export type Provider = InferSelectModel<typeof providers>;
+export type NewProvider = InferInsertModel<typeof providers>;
+
+export type ProviderApplication = InferSelectModel<typeof providerApplications>;
+export type NewProviderApplication = InferInsertModel<typeof providerApplications>;

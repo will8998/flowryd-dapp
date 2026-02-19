@@ -25,7 +25,15 @@ export interface Workflow {
   name: string;
   stages: WorkflowStage[];
   description: string;
-  roles: string[]; // Flat list for backward compatibility / easy lookup
+  roles: string[];
+  featuredApps?: FeaturedApp[];
+  orchestrationFee?: number;
+  stackCategory?: 'defi' | 'custody' | 'compliance' | 'issuance' | 'custom';
+}
+
+export interface FeaturedApp {
+  participantId: string;
+  revenueSharePct: number;
 }
 
 export const participants: Participant[] = [

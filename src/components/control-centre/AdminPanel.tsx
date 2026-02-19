@@ -8,8 +8,10 @@ import {
   UserX, 
   UserCheck, 
   Clock,
+  CreditCard,
 } from 'lucide-react';
 import { useCantonAuth } from '@/lib/auth-context';
+import { BillingPanel } from './BillingPanel';
 
 interface User {
   id: string;
@@ -47,16 +49,18 @@ interface AuditResponse {
   hasMore: boolean;
 }
 
-type Tab = 'users' | 'audit';
+type Tab = 'users' | 'audit' | 'billing';
 
 const AUDIT_ACTIONS = [
   'user.register', 'user.login', 'user.logout', 'user.role_change',
   'flow.create', 'flow.update', 'flow.publish', 'flow.delete', 'flow.version',
   'deal.create', 'deal.status_change', 'deal.participant_add', 'deal.participant_remove',
-  'room.create', 'room.join', 'room.leave', 'message.send', 'file.upload'
+  'room.create', 'room.join', 'room.leave', 'message.send', 'file.upload',
+  'subscription.create', 'subscription.cancel', 'subscription.renew',
+  'provider.apply', 'provider.approve', 'provider.reject'
 ];
 
-const RESOURCE_TYPES = ['user', 'flow', 'deal', 'room', 'message', 'file'];
+const RESOURCE_TYPES = ['user', 'flow', 'deal', 'room', 'message', 'file', 'subscription', 'provider', 'provider_application'];
 
 export const AdminPanel: React.FC = () => {
   const { user: currentUser } = useCantonAuth();
@@ -212,7 +216,8 @@ export const AdminPanel: React.FC = () => {
         <div className="flex gap-2 mt-6">
           {[
             { id: 'users' as Tab, label: 'User Management', icon: Users },
-            { id: 'audit' as Tab, label: 'Audit Log', icon: Clock }
+            { id: 'audit' as Tab, label: 'Audit Log', icon: Clock },
+            { id: 'billing' as Tab, label: 'Billing', icon: CreditCard }
           ].map(tab => (
             <button
               key={tab.id}
@@ -475,6 +480,18 @@ export const AdminPanel: React.FC = () => {
                   )}
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'billing' && (
+            <motion.div
+              key="billing"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-full overflow-y-auto custom-scrollbar"
+            >
+              <BillingPanel />
             </motion.div>
           )}
         </AnimatePresence>

@@ -14,7 +14,9 @@ export type Permission =
   | 'deal.upload_file'
   | 'deal.read_messages'
   | 'admin.manage_users'
-  | 'admin.view_audit';
+  | 'admin.view_audit'
+  | 'subscription.manage'
+  | 'provider.apply';
 
 const PERMISSION_MATRIX: Record<Permission, UserRole[]> = {
   'flow.create': ['admin', 'editor'],
@@ -29,6 +31,8 @@ const PERMISSION_MATRIX: Record<Permission, UserRole[]> = {
   'deal.read_messages': ['admin', 'editor', 'viewer'],
   'admin.manage_users': ['admin'],
   'admin.view_audit': ['admin'],
+  'subscription.manage': ['admin'],
+  'provider.apply': ['admin', 'editor'],
 };
 
 export function hasPermission(role: UserRole, permission: Permission): boolean {

@@ -112,3 +112,34 @@ export function validateBody<T>(schema: ZodType<T>): Middleware {
     return next();
   };
 }
+
+export function requireTier(...allowedTiers: string[]): Middleware {
+  return async (req, ctx, next) => {
+    if (!ctx.user) {
+      throw new UnauthorizedError();
+    }
+
+    // Import dynamically to avoid circular deps
+    const { db } = await import('@/db');
+    const { subscriptions, plans } = await import('@/db/schema');
+    const { eq, and, notInArray } = await import('drizzle-orm');
+
+    const [sub] = await db
+      .select({ tier: plans.tier })
+      .from(subscriptions)
+      .innerJoin(plans, eq(subscriptions.planId, plans.id))
+      .where(
+        and(
+          eq(subscriptions.orgId, ctx.user.orgId),
+          notInArray(subscriptions.status, ['cancelled', 'expired'])
+        )
+      )
+      .limit(1);
+
+    if (!sub || !allowedTiers.includes(sub.tier)) {
+      throw new ForbiddenError('SUBSCRIPTION_REQUIRED');
+    }
+
+    return next();
+  };
+}

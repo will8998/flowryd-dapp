@@ -46,7 +46,14 @@ export const publishFlowSchema = z.object({
   isTemplate: z.boolean().optional(),
 });
 
+export const updateFlowFeaturedSchema = z.object({
+  isFeatured: z.boolean(),
+  featuredHeadline: z.string().max(500).optional(),
+  featuredSource: z.string().max(500).optional(),
+});
+
 export type CreateFlowInput = z.infer<typeof createFlowSchema>;
 export type UpdateFlowInput = z.infer<typeof updateFlowSchema>;
 export type SaveVersionInput = z.infer<typeof saveVersionSchema>;
 export type PublishFlowInput = z.infer<typeof publishFlowSchema>;
+export type UpdateFlowFeaturedInput = z.infer<typeof updateFlowFeaturedSchema>;

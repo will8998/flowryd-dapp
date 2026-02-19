@@ -12,7 +12,13 @@ import {
   joinRequests,
   auditLog,
   activeSessions,
-  nodeApiConfigs
+  nodeApiConfigs,
+  plans,
+  subscriptions,
+  invoices,
+  paymentMethods,
+  providers,
+  providerApplications
 } from './schema';
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({
@@ -20,7 +26,11 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   flows: many(flows),
   deals: many(deals),
   nodeApiConfigs: many(nodeApiConfigs),
-  auditLogs: many(auditLog)
+  auditLogs: many(auditLog),
+  subscriptions: many(subscriptions),
+  invoices: many(invoices),
+  paymentMethods: many(paymentMethods),
+  providerApplications: many(providerApplications)
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -39,7 +49,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   joinRequests: many(joinRequests, { relationName: 'joinRequestRequester' }),
   reviewedJoinRequests: many(joinRequests, { relationName: 'joinRequestReviewer' }),
   auditLogs: many(auditLog),
-  activeSessions: many(activeSessions)
+  activeSessions: many(activeSessions),
+  providerApplications: many(providerApplications)
 }));
 
 export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
@@ -182,4 +193,57 @@ export const nodeApiConfigsRelations = relations(nodeApiConfigs, ({ one }) => ({
     fields: [nodeApiConfigs.orgId],
     references: [organizations.id]
   })
+}));
+
+export const plansRelations = relations(plans, ({ many }) => ({
+  subscriptions: many(subscriptions),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [subscriptions.orgId],
+    references: [organizations.id]
+  }),
+  plan: one(plans, {
+    fields: [subscriptions.planId],
+    references: [plans.id]
+  }),
+  invoices: many(invoices),
+}));
+
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [invoices.orgId],
+    references: [organizations.id]
+  }),
+  subscription: one(subscriptions, {
+    fields: [invoices.subscriptionId],
+    references: [subscriptions.id]
+  }),
+}));
+
+export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [paymentMethods.orgId],
+    references: [organizations.id]
+  }),
+}));
+
+export const providersRelations = relations(providers, ({ many }) => ({
+  applications: many(providerApplications),
+}));
+
+export const providerApplicationsRelations = relations(providerApplications, ({ one }) => ({
+  provider: one(providers, {
+    fields: [providerApplications.providerId],
+    references: [providers.id]
+  }),
+  organization: one(organizations, {
+    fields: [providerApplications.orgId],
+    references: [organizations.id]
+  }),
+  user: one(users, {
+    fields: [providerApplications.userId],
+    references: [users.id]
+  }),
 }));

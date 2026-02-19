@@ -14,7 +14,7 @@ import {
   Users, 
   Layers 
 } from 'lucide-react';
-import { workflows, participants, type Workflow as WorkflowType, type WorkflowStage } from '@/lib/canton-data';
+import { workflows, participants, type Workflow as WorkflowType, type WorkflowStage, type FeaturedApp } from '@/lib/canton-data';
 
 interface CustomWorkflow extends WorkflowType {
   isCustom?: boolean;
@@ -66,6 +66,9 @@ export const JumpCutsManager: React.FC = () => {
       description: 'Enter description...',
       roles: [],
       stages: [],
+      featuredApps: [],
+      orchestrationFee: 0,
+      stackCategory: 'custom',
       isCustom: true
     };
     setJumpCuts(prev => [...prev, newWorkflow]);
@@ -460,6 +463,171 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {(isEditing || (localWorkflow.featuredApps && localWorkflow.featuredApps.length > 0)) && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-amber-500 flex items-center gap-2">
+                      <Workflow className="w-4 h-4" />
+                      App Stack {localWorkflow.featuredApps && localWorkflow.featuredApps.length > 0 && `(${localWorkflow.featuredApps.length})`}
+                    </h4>
+                  </div>
+
+                  <div className="bg-white/5 rounded-lg p-4 space-y-4">
+                    {isEditing && (
+                      <>
+                        {/* Stack Category */}
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Stack Category</label>
+                          <select
+                            value={localWorkflow.stackCategory || 'custom'}
+                            onChange={(e) => updateLocalWorkflow({ stackCategory: e.target.value as 'defi' | 'custody' | 'compliance' | 'issuance' | 'custom' })}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500/50"
+                          >
+                            <option value="defi">DeFi</option>
+                            <option value="custody">Custody</option>
+                            <option value="compliance">Compliance</option>
+                            <option value="issuance">Issuance</option>
+                            <option value="custom">Custom</option>
+                          </select>
+                        </div>
+
+                        {/* Orchestration Fee */}
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-white/60 uppercase tracking-wider">
+                            Orchestration Fee: {localWorkflow.orchestrationFee ?? 0}%
+                          </label>
+                          <input
+                            type="range"
+                            min="0"
+                            max="25"
+                            value={localWorkflow.orchestrationFee ?? 0}
+                            onChange={(e) => updateLocalWorkflow({ orchestrationFee: parseInt(e.target.value) })}
+                            className="w-full h-2 bg-white/10 rounded-lg appearance-none slider-thumb:appearance-none slider-thumb:w-4 slider-thumb:h-4 slider-thumb:rounded-full slider-thumb:bg-amber-500 slider-thumb:cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                          />
+                          <div className="flex justify-between text-xs text-white/40">
+                            <span>0%</span>
+                            <span>25%</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Featured Apps */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-medium text-white/60 uppercase tracking-wider">
+                          Featured Apps {localWorkflow.featuredApps && `(${localWorkflow.featuredApps.length})`}
+                        </label>
+                        {isEditing && (
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const existingApps = localWorkflow.featuredApps || [];
+                                const newApp: FeaturedApp = {
+                                  participantId: e.target.value,
+                                  revenueSharePct: 10
+                                };
+                                updateLocalWorkflow({
+                                  featuredApps: [...existingApps, newApp]
+                                });
+                                e.target.value = '';
+                              }
+                            }}
+                            className="bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                          >
+                            <option value="">Add App...</option>
+                            {participants
+                              .filter(p => !localWorkflow.featuredApps?.some(fa => fa.participantId === p.id))
+                              .map(participant => (
+                                <option key={participant.id} value={participant.id} className="bg-gray-800">
+                                  {participant.name}
+                                </option>
+                              ))}
+                          </select>
+                        )}
+                      </div>
+
+                      {localWorkflow.featuredApps && localWorkflow.featuredApps.length > 0 ? (
+                        <div className="space-y-2">
+                          {localWorkflow.featuredApps.map((app, index) => {
+                            const participant = participants.find(p => p.id === app.participantId);
+                            return (
+                              <div key={app.participantId} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-white font-medium text-sm">
+                                    {participant?.name || app.participantId}
+                                  </span>
+                                  {!isEditing && (
+                                    <span className="px-2 py-1 bg-amber-500/20 text-amber-400 rounded text-xs font-mono">
+                                      {app.revenueSharePct}%
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {isEditing && (
+                                    <>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={app.revenueSharePct}
+                                        onChange={(e) => {
+                                          const updatedApps = localWorkflow.featuredApps!.map((fa, i) =>
+                                            i === index ? { ...fa, revenueSharePct: parseInt(e.target.value) || 0 } : fa
+                                          );
+                                          updateLocalWorkflow({ featuredApps: updatedApps });
+                                        }}
+                                        className="w-16 text-center bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-amber-500/50"
+                                      />
+                                      <span className="text-white/60 text-sm">%</span>
+                                      <button
+                                        onClick={() => {
+                                          const updatedApps = localWorkflow.featuredApps!.filter((_, i) => i !== index);
+                                          updateLocalWorkflow({ featuredApps: updatedApps });
+                                        }}
+                                        className="p-1.5 text-red-400 hover:bg-red-600/20 rounded transition-colors"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4">
+                          <p className="text-white/40 text-sm">No featured apps selected</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Read-only view for non-editing mode */}
+                    {!isEditing && (
+                      <div className="flex flex-wrap gap-2">
+                        {localWorkflow.stackCategory && (
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            localWorkflow.stackCategory === 'defi' ? 'bg-blue-500/20 text-blue-400' :
+                            localWorkflow.stackCategory === 'custody' ? 'bg-emerald-500/20 text-emerald-400' :
+                            localWorkflow.stackCategory === 'compliance' ? 'bg-amber-500/20 text-amber-400' :
+                            localWorkflow.stackCategory === 'issuance' ? 'bg-purple-500/20 text-purple-400' :
+                            'bg-white/20 text-white/60'
+                          }`}>
+                            {localWorkflow.stackCategory.toUpperCase()}
+                          </span>
+                        )}
+                        {(localWorkflow.orchestrationFee ?? 0) > 0 && (
+                          <span className="px-2 py-1 bg-amber-500/20 text-amber-400 rounded text-xs font-medium">
+                            {localWorkflow.orchestrationFee}% Fee
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
