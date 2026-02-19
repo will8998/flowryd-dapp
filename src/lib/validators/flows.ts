@@ -15,6 +15,7 @@ export const updateFlowSchema = z.object({
   description: z.string().max(5000).optional(),
   workflowType: z.string().max(64).optional(),
   isPublic: z.boolean().optional(),
+  status: z.enum(['draft', 'published', 'archived']).optional(),
 });
 
 const nodeSchema = z.object({
