@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Globe, Layers, MessageSquare, Users, Workflow, Shield, Plus, Terminal, Bell, HelpCircle } from 'lucide-react';
+import { Search, Globe, Layers, MessageSquare, Users, Shield, Plus, Terminal, Bell, HelpCircle } from 'lucide-react';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -65,16 +65,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
         group: 'Navigation',
         action: () => {
           onTierChange('JOIN');
-          onClose();
-        }
-      },
-      {
-        id: 'nav-jump-cuts',
-        label: 'Go to Jump Cuts',
-        icon: Workflow,
-        group: 'Navigation',
-        action: () => {
-          onTierChange('JUMPCUTS');
           onClose();
         }
       },

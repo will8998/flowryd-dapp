@@ -17,14 +17,14 @@ import { RydAITerminal } from './RydAITerminal';
 import { OnboardingWizard } from './OnboardingWizard';
 import { CollectiveHub } from './CollectiveHub';
 import { AdminPanel } from './AdminPanel';
-import { JumpCutsManager } from './JumpCutsManager';
+
 import { RetainerWidget } from './RetainerWidget';
 import { CommandPalette } from './CommandPalette';
 import { NotificationPanel } from './NotificationPanel';
 import { HelpModal } from './HelpModal';
 import { useCantonAuth } from '@/lib/auth-context';
 
-type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'JUMPCUTS';
+type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN';
 
 interface SelectedJumpCut {
   id: string;
@@ -91,7 +91,7 @@ export const FlowsStudio: React.FC = () => {
              <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 tracking-wide">
                <span className="text-white/60">Mission Control</span>
                <ChevronRight className="w-3 h-3" />
-                 <span className="text-white/80">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : activeTier === 'JUMPCUTS' ? 'Jump Cuts' : 'Marketplace'}</span>
+                 <span className="text-white/80">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : 'Marketplace'}</span>
              </div>
 
              <div className="h-4 w-px bg-white/5" />
@@ -181,7 +181,6 @@ export const FlowsStudio: React.FC = () => {
               )}
               {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}
-              {activeTier === 'JUMPCUTS' && <JumpCutsManager key="jumpcuts" />}
               {activeTier === 'ADMIN' && user?.role === 'admin' && <AdminPanel key="admin" />}
             </AnimatePresence>
           </div>

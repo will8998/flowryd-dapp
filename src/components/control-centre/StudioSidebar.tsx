@@ -8,7 +8,7 @@ import {
   Users, 
   Terminal, 
   Settings, 
-  Workflow,
+
   Shield,
   LogOut,
   ChevronRight,
@@ -18,7 +18,7 @@ import { useCantonAuth } from '@/lib/auth-context';
 import { useSubscription } from '@/hooks/use-subscription';
 import Image from 'next/image';
 
-type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'JUMPCUTS';
+type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN';
 
 interface StudioSidebarProps {
   activeTier: Tier;
@@ -59,7 +59,6 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
   const SECONDARY_ITEMS: Array<{ id?: string; label: string; icon: typeof Globe; tier?: Tier; action?: () => void }> = [
     { id: 'JOIN', label: 'Marketplace', icon: Users, tier: 'JOIN' },
     { label: 'Intelligence', icon: Terminal, action: () => window.dispatchEvent(new Event('toggle-ryd-ai')) },
-    { label: 'Jump Cuts', icon: Workflow, tier: 'JUMPCUTS' as Tier },
   ];
 
   return (
