@@ -447,9 +447,10 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                     {communityFlows.map((flow, index) => {
                       const isJoining = joiningFlows.has(flow.id);
                       const hasJoined = joinedFlows.has(flow.id);
-                      const filledRoles = flow.participants.filter(p => p.partyId).length;
-                      const totalRoles = flow.participants.length;
-                      const missingRoles = flow.participants.filter(p => !p.partyId);
+                      const flowParticipants = flow.participants || [];
+                      const filledRoles = flowParticipants.filter(p => p.partyId).length;
+                      const totalRoles = flowParticipants.length;
+                      const missingRoles = flowParticipants.filter(p => !p.partyId);
                       
                       return (
                         <motion.div
