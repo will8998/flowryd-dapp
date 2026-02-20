@@ -174,9 +174,12 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
   const { startDate, endDate } = getDateRange(period);
   const truncFormat = getDateTruncFormat(granularity);
 
+  // Use raw SQL alias approach to ensure SELECT and GROUP BY expressions match exactly
+  const dateExpr = sql<string>`date_trunc(${truncFormat}, ${users.createdAt})`;
+
   const userGrowthData = await db
     .select({
-      date: sql<string>`date_trunc(${truncFormat}, ${users.createdAt})::date`,
+      date: sql<string>`${dateExpr}::date`,
       count: count()
     })
     .from(users)
@@ -186,12 +189,13 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(users.createdAt, endDate)
       )
     )
-    .groupBy(sql`date_trunc(${truncFormat}, ${users.createdAt})`)
-    .orderBy(sql`date_trunc(${truncFormat}, ${users.createdAt})`);
+    .groupBy(dateExpr)
+    .orderBy(dateExpr);
 
+  const flowDateExpr = sql<string>`date_trunc(${truncFormat}, ${flows.createdAt})`;
   const flowCreatedData = await db
     .select({
-      date: sql<string>`date_trunc(${truncFormat}, ${flows.createdAt})::date`,
+      date: sql<string>`${flowDateExpr}::date`,
       created: count()
     })
     .from(flows)
@@ -201,12 +205,13 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(flows.createdAt, endDate)
       )
     )
-    .groupBy(sql`date_trunc(${truncFormat}, ${flows.createdAt})`)
-    .orderBy(sql`date_trunc(${truncFormat}, ${flows.createdAt})`);
+    .groupBy(flowDateExpr)
+    .orderBy(flowDateExpr);
 
+  const auditDateExpr = sql<string>`date_trunc(${truncFormat}, ${auditLog.createdAt})`;
   const flowPublishedData = await db
     .select({
-      date: sql<string>`date_trunc(${truncFormat}, ${auditLog.createdAt})::date`,
+      date: sql<string>`${auditDateExpr}::date`,
       published: count()
     })
     .from(auditLog)
@@ -217,12 +222,13 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(auditLog.createdAt, endDate)
       )
     )
-    .groupBy(sql`date_trunc(${truncFormat}, ${auditLog.createdAt})`)
-    .orderBy(sql`date_trunc(${truncFormat}, ${auditLog.createdAt})`);
+    .groupBy(auditDateExpr)
+    .orderBy(auditDateExpr);
 
+  const dealDateExpr = sql<string>`date_trunc(${truncFormat}, ${deals.createdAt})`;
   const dealCreatedData = await db
     .select({
-      date: sql<string>`date_trunc(${truncFormat}, ${deals.createdAt})::date`,
+      date: sql<string>`${dealDateExpr}::date`,
       created: count()
     })
     .from(deals)
@@ -232,12 +238,13 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(deals.createdAt, endDate)
       )
     )
-    .groupBy(sql`date_trunc(${truncFormat}, ${deals.createdAt})`)
-    .orderBy(sql`date_trunc(${truncFormat}, ${deals.createdAt})`);
+    .groupBy(dealDateExpr)
+    .orderBy(dealDateExpr);
 
+  const dealUpdatedExpr = sql<string>`date_trunc(${truncFormat}, ${deals.updatedAt})`;
   const dealCommittedData = await db
     .select({
-      date: sql<string>`date_trunc(${truncFormat}, ${deals.updatedAt})::date`,
+      date: sql<string>`${dealUpdatedExpr}::date`,
       committed: count()
     })
     .from(deals)
@@ -248,12 +255,13 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(deals.updatedAt, endDate)
       )
     )
-    .groupBy(sql`date_trunc(${truncFormat}, ${deals.updatedAt})`)
-    .orderBy(sql`date_trunc(${truncFormat}, ${deals.updatedAt})`);
+    .groupBy(dealUpdatedExpr)
+    .orderBy(dealUpdatedExpr);
 
+  const invoiceDateExpr = sql<string>`date_trunc(${truncFormat}, ${invoices.paidAt})`;
   const revenueData = await db
     .select({
-      date: sql<string>`date_trunc(${truncFormat}, ${invoices.paidAt})::date`,
+      date: sql<string>`${invoiceDateExpr}::date`,
       amount: sum(invoices.amountDue).mapWith(Number)
     })
     .from(invoices)
@@ -264,8 +272,8 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(invoices.paidAt, endDate)
       )
     )
-    .groupBy(sql`date_trunc(${truncFormat}, ${invoices.paidAt})`)
-    .orderBy(sql`date_trunc(${truncFormat}, ${invoices.paidAt})`);
+    .groupBy(invoiceDateExpr)
+    .orderBy(invoiceDateExpr);
 
   const flowActivityMap = new Map<string, { created: number; published: number }>();
   

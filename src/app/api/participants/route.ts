@@ -11,7 +11,14 @@ export const GET = withMiddleware(
   async (req: NextRequest, _ctx: ApiContext) => {
     const url = new URL(req.url);
     const queryParams = Object.fromEntries(url.searchParams.entries());
-    const query = participantListQuerySchema.parse(queryParams);
+    
+    const safeParams = {
+      ...queryParams,
+      limit: Math.min(Number(queryParams.limit) || 50, 100),
+      offset: Number(queryParams.offset) || 0,
+    };
+    
+    const query = participantListQuerySchema.parse(safeParams);
 
     const whereConditions = [];
 
