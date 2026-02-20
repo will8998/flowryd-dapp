@@ -56,7 +56,7 @@ export const RetainerWidget: React.FC = () => {
           stiffness: 300,
           damping: 25
         }}
-        className={`fixed top-20 right-6 z-50 ${minimized ? '' : 'w-80'}`}
+        className={`fixed bottom-24 right-6 z-40 ${minimized ? '' : 'w-80'}`}
       >
         {minimized ? (
           <div

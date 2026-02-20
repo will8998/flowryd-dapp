@@ -25,6 +25,7 @@ import {
   Settings,
   Undo,
   Redo,
+  LayoutGrid,
 } from 'lucide-react';
 import { ParticipantTray } from './ParticipantTray';
 import { WorkbenchCanvas } from './WorkbenchCanvas';
@@ -32,11 +33,13 @@ import { NodeConfigPanel } from './NodeConfigPanel';
 import { FlowCreationModal } from './FlowCreationModal';
 import { FlowSettingsPanel } from './FlowSettingsPanel';
 import { PublishFlowModal } from './PublishFlowModal';
+import { WorkbenchWizard } from './WorkbenchWizard';
 import { useFlows, useFlow } from '@/hooks/use-flows';
 import type { Flow } from '@/hooks/use-flows';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { useUndoRedo } from '@/hooks/use-undo-redo';
 import { useCantonAuth } from '@/lib/auth-context';
+import { participants as cantonParticipants, workflows as cantonWorkflows } from '@/lib/canton-data';
 
 interface JumpCutData {
   id: string;
@@ -72,6 +75,10 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [isCreatingDeal, setIsCreatingDeal] = useState(false);
+  const [showWizard, setShowWizard] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !localStorage.getItem('flowryd-workbench-wizard-seen');
+  });
   const initialOrgPlaced = useRef(false);
   
   const { undo, redo, canUndo, canRedo, pushState } = useUndoRedo();
@@ -82,7 +89,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
     saveVersion,
   });
   
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const { user } = useCantonAuth();
 
   const activeFlow = flows.find(f => f.id === activeFlowId);
@@ -368,6 +375,90 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
     setEdges((eds) => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
   }, []);
 
+  const dismissWizard = useCallback(() => {
+    setShowWizard(false);
+    localStorage.setItem('flowryd-workbench-wizard-seen', '1');
+  }, []);
+
+  const handleAutoLayout = useCallback(() => {
+    if (nodes.length <= 1) return;
+
+    const hasCap = (p: typeof cantonParticipants[0], cap: string) => p.capabilities[cap] === 1;
+    const userNode = nodes.find(n => n.id === 'user-org');
+    const otherNodes = nodes.filter(n => n.id !== 'user-org');
+    const positions: Record<string, { x: number; y: number }> = {};
+
+    if (userNode) {
+      positions['user-org'] = { x: 100, y: 300 };
+    }
+
+    const wf = selectedWorkflow ? cantonWorkflows.find(w => w.id === selectedWorkflow) : null;
+
+    if (wf && wf.stages) {
+      const stageGroups: Node[][] = Array.from({ length: wf.stages.length }, () => []);
+      const leftovers: Node[] = [];
+
+      otherNodes.forEach(node => {
+        const p = cantonParticipants.find(cp => cp.id === node.data.participantId);
+        if (!p) { leftovers.push(node); return; }
+
+        let foundStage = -1;
+        for (let i = 0; i < wf.stages.length; i++) {
+          if (wf.stages[i].roles.some((role: string) => hasCap(p, role))) {
+            foundStage = i;
+            break;
+          }
+        }
+        if (foundStage !== -1) {
+          stageGroups[foundStage].push(node);
+        } else {
+          leftovers.push(node);
+        }
+      });
+
+      let currentX = 400;
+      const X_GAP = 280;
+      const Y_GAP = 160;
+
+      stageGroups.forEach((group) => {
+        if (group.length > 0) {
+          group.forEach((node, idx) => {
+            const y = 300 + (idx - (group.length - 1) / 2) * Y_GAP;
+            positions[node.id] = { x: currentX, y };
+          });
+          currentX += X_GAP;
+        }
+      });
+
+      if (leftovers.length > 0) {
+        leftovers.forEach((node, idx) => {
+          const y = 300 + (idx - (leftovers.length - 1) / 2) * Y_GAP;
+          positions[node.id] = { x: currentX, y };
+        });
+      }
+    } else {
+      const GRID_X_START = 400;
+      const COLS = 3;
+      const X_GAP = 240;
+      const Y_GAP = 160;
+
+      otherNodes.forEach((node, i) => {
+        const col = i % COLS;
+        const row = Math.floor(i / COLS);
+        positions[node.id] = {
+          x: GRID_X_START + col * X_GAP,
+          y: 200 + row * Y_GAP,
+        };
+      });
+    }
+
+    setNodes(nds =>
+      nds.map(n => positions[n.id] ? { ...n, position: positions[n.id] } : n)
+    );
+
+    setTimeout(() => fitView({ padding: 0.2, duration: 400 }), 50);
+  }, [nodes, selectedWorkflow, fitView]);
+
   const handleSelectTemplate = useCallback(async (templateId: string) => {
     try {
       const template = templates.find(t => t.id === templateId);
@@ -388,6 +479,74 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
       setTimeout(() => setError(null), 4000);
     }
   }, [templates, createFlow, refetchFlows]);
+
+  const parseHoldings = (val: string | undefined): number => {
+    if (!val || val === 'N/A') return 0;
+    const num = parseFloat(val.replace(/[^0-9.]/g, ''));
+    if (val.includes('T')) return num * 1000000000000;
+    if (val.includes('B')) return num * 1000000000;
+    if (val.includes('M')) return num * 1000000;
+    return num;
+  };
+
+  const formatLargeNumber = (num: number): string => {
+    if (num >= 1000000000000) return `$${(num / 1000000000000).toFixed(1)}T`;
+    if (num >= 1000000000) return `$${(num / 1000000000).toFixed(1)}B`;
+    if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;
+    return `$${num.toLocaleString()}`;
+  };
+
+  const canvasMetrics = useMemo(() => {
+    const nodeParticipants = nodes
+      .filter(n => n.data.participantId && !n.data.isUserOrg)
+      .map(n => cantonParticipants.find(p => p.id === n.data.participantId))
+      .filter(Boolean);
+
+    const totalHoldings = nodeParticipants.reduce((acc, p) => acc + parseHoldings(p?.holdings), 0);
+    const totalValidators = nodeParticipants.reduce((acc, p) => acc + (p?.validatorNodes || 0), 0);
+    
+    // Centrality score (same algorithm as discover page)
+    const allNodes = nodes.length;
+    if (allNodes === 0) return { totalHoldings: 0, totalValidators: 0, centrality: 0 };
+    
+    let score = 0;
+    const foundationCount = nodeParticipants.filter(p => p?.superValidator).length;
+    score += (foundationCount / Math.max(allNodes, 1)) * 25;
+    const validatorCount = nodeParticipants.filter(p => (p?.validatorNodes || 0) > 0).length;
+    score += (validatorCount / Math.max(allNodes, 1)) * 25;
+    const uniqueRoles = new Set(nodeParticipants.flatMap(p => Object.keys(p?.capabilities || {})));
+    score += Math.min(uniqueRoles.size / 8, 1) * 25;
+    score += Math.min(allNodes / 10, 1) * 25;
+    
+    return {
+      totalHoldings,
+      totalValidators,
+      centrality: Math.round(score),
+    };
+  }, [nodes]);
+
+  const readinessData = useMemo(() => {
+    if (!selectedWorkflow) return null;
+    
+    const wf = cantonWorkflows.find(w => w.id === selectedWorkflow);
+    if (!wf) return null;
+    
+    const requiredRoles = wf.roles;
+    const nodeParticipants = nodes
+      .filter(n => n.data.participantId && !n.data.isUserOrg)
+      .map(n => cantonParticipants.find(p => p.id === n.data.participantId))
+      .filter(Boolean);
+    
+    const fulfilledRoles = requiredRoles.filter(role => 
+      nodeParticipants.some(p => p?.capabilities[role] === 1)
+    );
+    
+    return {
+      total: requiredRoles.length,
+      fulfilled: fulfilledRoles.length,
+      percentage: Math.round((fulfilledRoles.length / requiredRoles.length) * 100),
+    };
+  }, [nodes, selectedWorkflow]);
 
   return (
     <div className="h-full flex flex-col bg-background relative overflow-hidden">
@@ -505,6 +664,14 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
             title="Redo (⇧⌘Z)"
           >
             <Redo className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={handleAutoLayout}
+            disabled={nodes.length <= 1}
+            className="px-2 py-1.5 text-white/40 hover:text-white/70 hover:bg-white/5 rounded-lg transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-white/40"
+            title="Auto Layout"
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -693,6 +860,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
               onDragOver={onDragOver}
               onNodeClick={onNodeClick}
               selectedNodeId={selectedNodeId}
+              selectedWorkflowId={selectedWorkflow}
             />
           )}
           <NodeConfigPanel
@@ -705,6 +873,62 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
             onUpdateNode={handleUpdateNode}
             onDeleteNode={handleDeleteNode}
           />
+
+          <AnimatePresence>
+            {nodes.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30"
+              >
+                <div className="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-lg p-2 flex items-center gap-4 shadow-2xl">
+                  <div className="flex gap-6 px-4">
+                    <div className="text-center">
+                      <div className="text-[10px] text-white/40 tracking-wide flex items-center gap-1 justify-center">
+                        Assets <span className="text-[8px] text-white/20 border border-white/10 px-1 rounded bg-white/5">EST</span>
+                      </div>
+                      <div className="text-sm font-mono font-bold text-white">{formatLargeNumber(canvasMetrics.totalHoldings)}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-[10px] text-white/40 tracking-wide">Validators</div>
+                      <div className="text-sm font-mono font-bold text-white">{canvasMetrics.totalValidators}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-[10px] text-white/40 tracking-wide">Centrality</div>
+                      <div className="text-sm font-mono font-bold text-white">{canvasMetrics.centrality}</div>
+                    </div>
+                  </div>
+
+                  {readinessData && (
+                    <>
+                      <div className="w-px h-8 bg-white/10" />
+                      <div className="flex items-center gap-4 px-2">
+                        <div className="w-32">
+                          <div className="flex justify-between mb-1">
+                            <span className="text-[10px] text-white/60">Readiness</span>
+                            <span className="text-[10px] text-white font-bold">{readinessData.percentage}%</span>
+                          </div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <motion.div
+                              className="h-full bg-gradient-to-r from-white/60 to-white/80 rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${readinessData.percentage}%` }}
+                              transition={{ duration: 0.5, ease: "easeOut" }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-[9px] text-white/30 font-mono">
+                          {readinessData.fulfilled}/{readinessData.total} roles
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -742,6 +966,10 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
         nodeCount={nodes.length}
         edgeCount={edges.length}
       />
+
+      {showWizard && (
+        <WorkbenchWizard onComplete={dismissWizard} onSkip={dismissWizard} />
+      )}
     </div>
   );
 };
