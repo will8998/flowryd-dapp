@@ -165,7 +165,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
                 placeholder="Search participants..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/80 placeholder:text-white/30 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-colors"
+                className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-white/5 border border-white/10 rounded-lg text-white/80 placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:bg-white/[0.08] transition-colors"
               />
             </div>
           </div>
@@ -173,15 +173,15 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
           {onSelectWorkflow && !activeWorkflow && (
             <div className="px-4 py-3 border-b border-white/5">
               <div className="flex items-center gap-1.5 mb-2.5">
-                <Sparkles className="w-3 h-3 text-blue-400" />
-                <p className="text-[9px] tracking-wide text-blue-400/70 font-semibold">Jump Cuts</p>
+                <Sparkles className="w-3 h-3 text-white/60" />
+                <p className="text-[9px] tracking-wide text-white/60 font-semibold">Jump Cuts</p>
               </div>
               <div className="space-y-1.5">
                 {workflows.map(wf => (
                   <button
                     key={wf.id}
                     onClick={() => onSelectWorkflow(wf.id)}
-                    className="w-full text-left px-3 py-2.5 bg-white/[0.02] border border-white/5 rounded-lg hover:bg-blue-500/5 hover:border-blue-500/20 transition-all group/wf"
+                    className="w-full text-left px-3 py-2.5 bg-white/[0.02] border border-white/5 rounded-lg hover:bg-white/5 hover:border-white/10 transition-all group/wf"
                   >
                     <p className="text-[11px] font-semibold text-white/60 group-hover/wf:text-white/80 transition-colors">{wf.name}</p>
                     <p className="text-[8px] text-white/25 mt-0.5 line-clamp-1">{wf.description}</p>
@@ -192,11 +192,11 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
           )}
 
           {activeWorkflow && onSelectWorkflow && (
-            <div className="px-4 py-3 border-b border-blue-500/10 bg-blue-500/[0.02]">
+            <div className="px-4 py-3 border-b border-white/10 bg-white/10">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-blue-400" />
-                  <p className="text-[10px] font-bold text-blue-400">{activeWorkflow.name}</p>
+                  <Sparkles className="w-3 h-3 text-white/60" />
+                  <p className="text-[10px] font-bold text-white/60">{activeWorkflow.name}</p>
                 </div>
                 <button 
                   onClick={() => onSelectWorkflow(null)} 
@@ -208,7 +208,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
               <div className="space-y-1">
                 {activeWorkflow.stages.map((stage, i) => (
                   <div key={i} className="flex items-start gap-2 py-0.5">
-                    <span className="text-[8px] text-blue-500/50 font-mono w-3 shrink-0 pt-px">{i + 1}.</span>
+                    <span className="text-[8px] text-white/50 font-mono w-3 shrink-0 pt-px">{i + 1}.</span>
                     <span className="text-[9px] text-white/40">{stage.name}</span>
                   </div>
                 ))}
@@ -264,13 +264,13 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
                                 onDragStart={(event) => onDragStart(event, participant.id)}
                                 className={`flex items-center gap-2 p-2 rounded-md cursor-grab active:cursor-grabbing group/item hover:scale-[1.02] transition-all ${
                                   isRec 
-                                    ? 'bg-blue-500/[0.06] hover:bg-blue-500/10 border border-blue-500/10' 
+                                    ? 'bg-white/10 hover:bg-white/10 border border-white/10' 
                                     : 'hover:bg-white/5'
                                 }`}
                                 style={{ height: '40px' }}
                               >
                                 <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                                  <IconComponent className={`w-4 h-4 ${isRec ? 'text-blue-400' : 'text-blue-500'}`} />
+                                  <IconComponent className={`w-4 h-4 ${isRec ? 'text-white/70' : 'text-white/70'}`} />
                                 </div>
                                 
                                 <div className="min-w-0 flex-1">
@@ -283,7 +283,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
                                 </div>
                                 
                                 {isRec && (
-                                  <span className="text-[6px] font-bold text-blue-400 bg-blue-500/10 px-1 py-0.5 rounded tracking-wide shrink-0">
+                                  <span className="text-[6px] font-bold text-white/60 bg-white/10 px-1 py-0.5 rounded tracking-wide shrink-0">
                                     Rec
                                   </span>
                                 )}

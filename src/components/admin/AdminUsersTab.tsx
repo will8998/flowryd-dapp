@@ -126,17 +126,17 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`mb-4 p-3 rounded-lg border text-sm ${
+          className={`mb-4 p-3 rounded border text-sm ${
             banner.type === 'success'
-              ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
-              : 'bg-red-500/20 border border-red-500/30 text-red-400'
+              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/60'
+              : 'bg-red-500/10 border border-red-500/20 text-red-400/60'
           }`}
         >
           {banner.message}
         </motion.div>
       )}
 
-      <div className="bg-black/20 border border-white/5 rounded-2xl flex-1 flex flex-col overflow-hidden">
+      <div className="bg-black/20 border border-white/5 rounded flex-1 flex flex-col overflow-hidden">
         <div className="p-6 border-b border-white/5">
           <h2 className="text-lg font-bold text-white">Organization Users</h2>
           <p className="text-sm text-white/40 mt-1">Manage user roles and access</p>
@@ -168,13 +168,13 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
                     <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm font-bold">
+                          <div className="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-sm font-bold">
                             {user.displayName.charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <div className="font-medium text-white">{user.displayName}</div>
                             {isCurrentUser && (
-                              <div className="text-xs text-blue-400">(You)</div>
+                              <div className="text-xs text-white/70">(You)</div>
                             )}
                           </div>
                         </div>
@@ -189,10 +189,10 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
                         {isCurrentUser ? (
                           <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
                             user.role === 'admin' 
-                              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                              ? 'bg-white/10 text-white/70 border-white/20'
                               : user.role === 'editor'
-                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                              : 'bg-white/20 text-white/60 border-white/30'
+                              ? 'bg-white/10 text-white/70 border-white/20'
+                              : 'bg-white/10 text-white/60 border-white/20'
                           }`}>
                             {user.role}
                           </span>
@@ -200,7 +200,7 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
                           <select
                             value={user.role}
                             onChange={(e) => updateUserRole(user.id, e.target.value as 'admin' | 'editor' | 'viewer')}
-                            className="bg-white/5 border border-white/10 hover:border-white/10 rounded px-2 py-1 text-xs text-white"
+                            className="bg-white/5 border border-white/10 hover:border-white/20 rounded px-2 py-1 text-xs text-white"
                           >
                             <option value="viewer">Viewer</option>
                             <option value="editor">Editor</option>
@@ -210,7 +210,7 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                          <span className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500/80' : 'bg-red-500/80'}`} />
                           <span className="text-xs text-white/60">
                             {user.isActive ? 'Active' : 'Inactive'}
                           </span>
@@ -223,10 +223,10 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
                         {!isCurrentUser && (
                           <button
                             onClick={() => toggleUserActive(user.id, user.isActive)}
-                            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                            className={`px-3 py-1.5 rounded text-sm transition-colors ${
                               user.isActive 
-                                ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30' 
-                                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30'
+                                ? 'border border-white/20 hover:border-white/40 text-white' 
+                                : 'border border-white/20 hover:border-white/40 text-white'
                             }`}
                             title={user.isActive ? 'Deactivate user' : 'Activate user'}
                           >

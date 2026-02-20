@@ -82,8 +82,8 @@ const MessageBubble: React.FC<{ message: Message; isReply?: boolean }> = ({ mess
       animate={{ opacity: 1, y: 0 }}
       className={`flex gap-2.5 ${isReply ? 'ml-5 mt-1.5' : 'mb-3'}`}
     >
-      <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
-        <span className="text-[9px] font-bold text-blue-400">{avatar}</span>
+      <div className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0 mt-0.5">
+        <span className="text-[9px] font-bold text-white/60">{avatar}</span>
       </div>
 
       <div className="flex-1 min-w-0">
@@ -100,8 +100,8 @@ const MessageBubble: React.FC<{ message: Message; isReply?: boolean }> = ({ mess
         {isFile ? (
           <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-2.5 max-w-xs mt-1">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-                <FileText className="w-3.5 h-3.5 text-blue-400" />
+              <div className="w-7 h-7 rounded-md bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                <FileText className="w-3.5 h-3.5 text-white/60" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-medium text-white/80 truncate">
@@ -227,7 +227,7 @@ export default function MessageThread({ messages, isLoading, dealId }: MessageTh
         {groupedMessages.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
-              <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 rounded bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-3">
                 <MessageCircle className="w-5 h-5 text-white/15" />
               </div>
               <p className="text-[12px] text-white/30">No messages yet</p>

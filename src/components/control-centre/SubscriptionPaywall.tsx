@@ -61,7 +61,7 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto space-y-6 relative"
+        className="bg-[#0a0a0a] border border-white/10 rounded p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto space-y-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -72,7 +72,7 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
         </button>
 
         <div className="flex justify-center">
-          <Lock className="w-12 h-12 text-blue-500" />
+          <Lock className="w-12 h-12 text-white/70" />
         </div>
 
         <div className="text-center space-y-4">
@@ -88,9 +88,9 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
             return (
               <div
                 key={plan.name}
-                className={`p-4 rounded-2xl transition-all ${
+                className={`p-4 rounded transition-all ${
                   isSelected 
-                    ? "border-blue-500/50 bg-blue-500/5 border" 
+                    ? "border-white/30 bg-white/5 border" 
                     : "bg-white/5 border border-white/10"
                 }`}
               >
@@ -100,7 +100,7 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
                     <p className="text-white/40 text-sm">${plan.price}/month</p>
                   </div>
                   {isSelected && (
-                    <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                    <div className="bg-white/20 text-white text-xs px-2 py-1 rounded">
                       Required
                     </div>
                   )}
@@ -120,7 +120,7 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
         {selectedPlan && (
           <button
             onClick={() => handleSubscribe(selectedPlan.name)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+            className="w-full border border-white/30 text-white font-bold py-3 px-6 rounded hover:border-white/50 transition-colors"
           >
             Subscribe to {selectedPlan.name}
           </button>
@@ -137,7 +137,7 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
             <div>
               <button
                 onClick={onSkip}
-                className="text-amber-500/60 hover:text-amber-500 text-xs cursor-pointer transition-colors font-mono"
+                className="text-white/30 hover:text-white/50 text-xs cursor-pointer transition-colors font-mono"
               >
                 [TEST] Skip Subscription →
               </button>

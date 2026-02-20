@@ -58,10 +58,10 @@ export default function LoginPage() {
     >
       <div className="space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold tracking-wide text-white/40">
-          <Zap className="w-3 h-3 text-blue-500" /> Canton Network
+          <Zap className="w-3 h-3 text-white/60" /> Canton Network
         </div>
         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none">
-          Flowryd <span className="text-blue-600">OS</span>
+          Flowryd <span className="text-white">OS</span>
         </h1>
         <p className="text-lg text-white/40 max-w-sm mx-auto leading-relaxed">
           The orchestration layer for institutional multi-party workflows.
@@ -69,9 +69,9 @@ export default function LoginPage() {
       </div>
 
       <div className="space-y-4">
-        <div className="bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/10 p-2 rounded-[32px] shadow-2xl ring-1 ring-white/5 group hover:ring-blue-500/30 transition-all duration-500">
+        <div className="bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/10 p-2 rounded shadow-2xl ring-1 ring-white/5 group hover:ring-white/20 transition-all duration-500">
           <form onSubmit={handleSubmit} className="relative flex items-center">
-            <div className="absolute left-6 text-white/20 group-focus-within:text-blue-500 transition-colors">
+            <div className="absolute left-6 text-white/20 group-focus-within:text-white/60 transition-colors">
               <Terminal className="w-5 h-5" />
             </div>
             <input 
@@ -86,13 +86,13 @@ export default function LoginPage() {
               <button 
                 type="submit"
                 disabled={!partyIdInput || isLoading}
-                className="w-12 h-12 bg-white text-black rounded-[20px] flex items-center justify-center hover:bg-blue-50 hover:scale-105 transition-all disabled:opacity-20 disabled:scale-100 disabled:hover:bg-white"
+                className="w-12 h-12 border border-white/30 text-white rounded flex items-center justify-center hover:border-white/50 hover:bg-white/5 hover:scale-105 transition-all disabled:opacity-20 disabled:scale-100 disabled:hover:border-white/30 disabled:hover:bg-transparent"
               >
                 {isLoading ? (
                   <motion.div 
                     animate={{ rotate: 360 }} 
                     transition={{ repeat: Infinity, duration: 1 }} 
-                    className="w-5 h-5 border-2 border-black border-t-transparent rounded-full" 
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full" 
                   />
                 ) : (
                   <ArrowRight className="w-5 h-5" />
@@ -113,7 +113,7 @@ export default function LoginPage() {
               {error}
               {error === 'No account found' && (
                 <div className="mt-2">
-                  <Link href="/register" className="text-blue-400 hover:text-blue-300 underline">
+                  <Link href="/register" className="text-white/50 hover:text-white/70 underline">
                     Register your organization →
                   </Link>
                 </div>

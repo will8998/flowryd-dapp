@@ -15,10 +15,10 @@ interface DealRoomProps {
 
 const STAGES = [
   { key: 'draft',       label: 'Draft',       color: 'bg-white/40',    activeColor: 'bg-white/60' },
-  { key: 'open',        label: 'Open',        color: 'bg-blue-500/40', activeColor: 'bg-blue-500' },
-  { key: 'negotiating', label: 'Negotiate',   color: 'bg-yellow-500/40', activeColor: 'bg-yellow-500' },
-  { key: 'locked',      label: 'Locked',      color: 'bg-orange-500/40', activeColor: 'bg-orange-500' },
-  { key: 'committed',   label: 'Committed',   color: 'bg-emerald-500/40', activeColor: 'bg-emerald-500' },
+  { key: 'open',        label: 'Open',        color: 'bg-white/20', activeColor: 'bg-white/30' },
+  { key: 'negotiating', label: 'Negotiate',   color: 'bg-white/20', activeColor: 'bg-white/30' },
+  { key: 'locked',      label: 'Locked',      color: 'bg-white/20', activeColor: 'bg-white/30' },
+  { key: 'committed',   label: 'Committed',   color: 'bg-white/40', activeColor: 'bg-white/60' },
 ];
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
@@ -79,7 +79,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
   if (dealLoading) {
     return (
       <div className="h-screen bg-[#020202] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-white/30 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -114,7 +114,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-bold text-white truncate">{deal.title}</h1>
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isConnected ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isConnected ? 'bg-white/70' : 'bg-white/30 animate-pulse'}`} />
             </div>
           </div>
 
@@ -127,16 +127,16 @@ export default function DealRoom({ dealId }: DealRoomProps) {
               return (
                 <div key={stage.key} className="flex items-center gap-0.5">
                   {i > 0 && (
-                    <div className={`w-5 h-px ${isCompleted ? 'bg-emerald-500/40' : 'bg-white/5'}`} />
+                    <div className={`w-5 h-px ${isCompleted ? 'bg-white/40' : 'bg-white/5'}`} />
                   )}
                   <div className="flex items-center gap-1.5 group relative">
                     <div className={`w-2 h-2 rounded-full transition-all ${
-                      isCompleted ? 'bg-emerald-500'
+                      isCompleted ? 'bg-white/70'
                         : isCurrent ? stage.activeColor
                         : 'bg-white/10'
                     }`} />
                     <span className={`text-[8px] font-bold tracking-wide hidden md:inline ${
-                      isCurrent ? 'text-white/70' : isCompleted ? 'text-emerald-500/60' : 'text-white/15'
+                      isCurrent ? 'text-white/70' : isCompleted ? 'text-white/60' : 'text-white/15'
                     }`}>
                       {stage.label}
                     </span>
@@ -151,7 +151,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
               <button
                 onClick={() => handleStatusChange(nextStage.key)}
                 disabled={isTransitioning}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-black rounded-lg text-[9px] font-bold tracking-wide hover:bg-emerald-50 transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-white/30 text-white rounded text-[9px] font-bold tracking-wide hover:border-white/50 transition-all disabled:opacity-50"
               >
                 {isTransitioning ? (
                   <div className="w-3 h-3 border border-black/20 border-t-transparent rounded-full animate-spin" />
@@ -246,8 +246,8 @@ export default function DealRoom({ dealId }: DealRoomProps) {
                         key={participant.id}
                         className="flex items-center gap-2.5 py-1.5 px-2 rounded-md hover:bg-white/[0.03] transition-colors"
                       >
-                        <div className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-                          <span className="text-[8px] font-bold text-blue-400">
+                        <div className="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                          <span className="text-[8px] font-bold text-white/60">
                             {(participant.displayName || participant.partyId || 'U')[0].toUpperCase()}
                           </span>
                         </div>

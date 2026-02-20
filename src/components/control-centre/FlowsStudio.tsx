@@ -24,6 +24,9 @@ import { CollectiveHub } from './CollectiveHub';
 import { AdminPanel } from './AdminPanel';
 import { JumpCutsManager } from './JumpCutsManager';
 import { RetainerWidget } from './RetainerWidget';
+import { CommandPalette } from './CommandPalette';
+import { NotificationPanel } from './NotificationPanel';
+import { HelpModal } from './HelpModal';
 import { useCantonAuth } from '@/lib/auth-context';
 
 type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'JUMPCUTS';
@@ -37,10 +40,24 @@ interface SelectedJumpCut {
 export const FlowsStudio: React.FC = () => {
   const { user } = useCantonAuth();
   const [activeTier, setActiveTier] = useState<Tier>('DISCOVER');
-  const [notifications, setNotifications] = useState(2);
+  const [notifications, setNotifications] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [pendingJumpCut, setPendingJumpCut] = useState<SelectedJumpCut | null>(null);
   const [navigateView, setNavigateView] = useState<'library' | 'create'>('library');
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const hasSeen = localStorage.getItem('flowryd_onboarding_seen');
@@ -56,13 +73,15 @@ export const FlowsStudio: React.FC = () => {
 
   const handleTierChange = (tier: Tier) => {
     setActiveTier(tier);
+    setShowCommandPalette(false);
+    setShowNotifications(false);
     if (tier === 'NAVIGATE') {
       setNavigateView('library');
     }
   };
 
   return (
-    <div className="flex h-screen bg-[#020202] text-white overflow-hidden selection:bg-blue-500/30">
+    <div className="flex h-screen bg-background text-white overflow-hidden selection:bg-white/30">
       <AnimatePresence>
         {showOnboarding && (
           <OnboardingWizard onComplete={handleOnboardingComplete} />
@@ -77,7 +96,7 @@ export const FlowsStudio: React.FC = () => {
              <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 tracking-wide">
                <span className="text-white/60">Mission Control</span>
                <ChevronRight className="w-3 h-3" />
-                <span className="text-blue-500">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : activeTier === 'JUMPCUTS' ? 'Jump Cuts' : 'Marketplace'}</span>
+                 <span className="text-white/80">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : activeTier === 'JUMPCUTS' ? 'Jump Cuts' : 'Marketplace'}</span>
              </div>
 
              <div className="h-4 w-px bg-white/5" />
@@ -89,10 +108,10 @@ export const FlowsStudio: React.FC = () => {
                  { id: 'ACTIVATE', step: 3, label: '3. Finalise Deals' }
                ].map(t => (
                  <div key={t.id} className="flex items-center gap-2">
-                   <div className={`w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold font-mono transition-all ${
-                     activeTier === t.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 
-                     (t.step < (activeTier === 'DISCOVER' ? 1 : activeTier === 'NAVIGATE' ? 2 : activeTier === 'ACTIVATE' ? 3 : 4) ? 'bg-emerald-500/20 text-emerald-500' : 'bg-white/5 text-white/20')
-                   }`}>
+                    <div className={`w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold font-mono transition-all ${
+                      activeTier === t.id ? 'border border-white/30 bg-black/40 text-white' : 
+                      (t.step < (activeTier === 'DISCOVER' ? 1 : activeTier === 'NAVIGATE' ? 2 : activeTier === 'ACTIVATE' ? 3 : 4) ? 'bg-white/20 text-white/60' : 'bg-white/5 text-white/20')
+                    }`}>
                      {t.step < (activeTier === 'DISCOVER' ? 1 : activeTier === 'NAVIGATE' ? 2 : activeTier === 'ACTIVATE' ? 3 : 4) ? <CheckCircle2 className="w-3 h-3" /> : t.step}
                    </div>
                    <span className={`text-[9px] font-bold tracking-wide ${activeTier === t.id ? 'text-white' : 'text-white/20'}`}>{t.label}</span>
@@ -102,25 +121,38 @@ export const FlowsStudio: React.FC = () => {
            </div>
 
            <div className="flex items-center gap-6">
-             <div className="relative group hidden md:block">
-               <Command className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
-               <input 
-                 type="text" 
-                 placeholder="Command Palette (⌘K)" 
-                 className="bg-white/5 border border-white/10 rounded-full py-2 pl-9 pr-4 text-[10px] w-64 focus:outline-none focus:border-blue-500/50 transition-all font-mono"
-                 readOnly
-               />
-             </div>
+              <div 
+                className="relative group hidden md:block cursor-pointer"
+                onClick={() => setShowCommandPalette(true)}
+              >
+                <Command className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
+                <div className="bg-white/5 border border-white/10 rounded py-2 pl-9 pr-4 text-[10px] w-64 font-mono text-white/30 hover:border-white/20 transition-all">
+                  Command Palette (⌘K)
+                </div>
+              </div>
 
-             <div className="flex items-center gap-2">
-               <button className="p-2 text-white/40 hover:text-white transition-colors relative">
-                 <Bell className="w-4 h-4" />
-                 {notifications > 0 && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-blue-600 rounded-full" />}
-               </button>
-               <button className="p-2 text-white/40 hover:text-white transition-colors">
-                 <HelpCircle className="w-4 h-4" />
-               </button>
-             </div>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <button 
+                    className="p-2 text-white/40 hover:text-white transition-colors relative"
+                    onClick={() => setShowNotifications(prev => !prev)}
+                  >
+                    <Bell className="w-4 h-4" />
+                    {notifications > 0 && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-blue-500 rounded-full" />}
+                  </button>
+                  <NotificationPanel
+                    isOpen={showNotifications}
+                    onClose={() => setShowNotifications(false)}
+                    onCountChange={setNotifications}
+                  />
+                </div>
+                <button 
+                  className="p-2 text-white/40 hover:text-white transition-colors"
+                  onClick={() => setShowHelp(true)}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                </button>
+              </div>
            </div>
         </header>
 
@@ -133,7 +165,7 @@ export const FlowsStudio: React.FC = () => {
                   <div className="p-6 pb-0 flex justify-end">
                     <button
                       onClick={() => setNavigateView('create')}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
+                      className="px-4 py-2 border border-white/20 hover:border-white/40 rounded text-white text-sm font-medium transition-colors"
                     >
                       + Create New Flow
                     </button>
@@ -163,6 +195,18 @@ export const FlowsStudio: React.FC = () => {
 
       <RydAITerminal tier={activeTier} />
       <RetainerWidget />
+
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        activeTier={activeTier}
+        onTierChange={(tier) => handleTierChange(tier as Tier)}
+        userRole={user?.role}
+      />
+      <HelpModal
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+      />
     </div>
   );
 };

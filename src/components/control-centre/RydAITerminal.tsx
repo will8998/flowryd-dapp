@@ -114,7 +114,7 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
   return (
     <>
       <motion.button
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-600 hover:bg-blue-500 rounded-full shadow-lg shadow-blue-600/25 flex items-center justify-center transition-colors"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 border border-white/30 bg-black/40 rounded-full flex items-center justify-center transition-colors"
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -134,7 +134,7 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
             />
             
             <motion.div
-              className="fixed bottom-24 right-6 z-50 w-96 h-[500px] bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[24px] flex flex-col overflow-hidden"
+              className="fixed bottom-24 right-6 z-50 w-96 h-[500px] bg-black/30 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded flex flex-col overflow-hidden"
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -142,8 +142,8 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
             >
               <div className="p-4 border-b border-white/[0.08] bg-white/[0.02] flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-600/20 rounded-full flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-blue-400" />
+                  <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-white/60" />
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-white">Ryd AI</h3>
@@ -165,7 +165,7 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center py-8"
                   >
-                    <Bot className="w-12 h-12 text-blue-400/40 mx-auto mb-3" />
+                    <Bot className="w-12 h-12 text-white/40 mx-auto mb-3" />
                     <h4 className="text-sm font-medium text-white mb-2">Welcome to Ryd AI</h4>
                     <p className="text-xs text-white/60 leading-relaxed">
                       I can help you navigate the Canton Network, build coordination flows, 
@@ -185,13 +185,13 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
                   >
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
                       message.role === 'user' 
-                        ? 'bg-blue-600' 
+                        ? 'bg-white/15' 
                         : 'bg-white/10'
                     }`}>
                       {message.role === 'user' ? (
                         <span className="text-xs font-bold text-white">U</span>
                       ) : (
-                        <Bot className="w-3.5 h-3.5 text-blue-400" />
+                        <Bot className="w-3.5 h-3.5 text-white/60" />
                       )}
                     </div>
                     
@@ -200,7 +200,7 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
                     }`}>
                       <div className={`inline-block p-3 rounded-2xl text-sm leading-relaxed ${
                         message.role === 'user'
-                          ? 'bg-blue-600 text-white rounded-tr-md'
+                          ? 'bg-white/15 text-white rounded-tr-md'
                           : 'bg-white/[0.08] text-white/90 rounded-tl-md'
                       }`}>
                         {message.content}
@@ -221,7 +221,7 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
                     className="flex gap-3"
                   >
                     <div className="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center">
-                      <Bot className="w-3.5 h-3.5 text-blue-400" />
+                      <Bot className="w-3.5 h-3.5 text-white/60" />
                     </div>
                     <div className="bg-white/[0.08] rounded-2xl rounded-tl-md p-3">
                       <div className="flex gap-1">
@@ -256,13 +256,13 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Ask about Canton Network..."
-                    className="flex-1 bg-white/[0.08] border border-white/[0.12] rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50 transition-colors"
+                    className="flex-1 bg-white/[0.08] border border-white/[0.12] rounded px-4 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
                     disabled={isLoading}
                   />
                   <button
                     onClick={sendMessage}
                     disabled={!inputValue.trim() || isLoading}
-                    className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:cursor-not-allowed rounded-xl flex items-center justify-center transition-colors"
+                    className="w-10 h-10 border border-white/30 bg-black/40 hover:border-white/50 disabled:opacity-50 disabled:cursor-not-allowed rounded flex items-center justify-center transition-colors"
                   >
                     {isLoading ? (
                       <motion.div

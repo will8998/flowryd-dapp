@@ -22,11 +22,11 @@ function InputField({ icon: Icon, placeholder, value, onChange, type = 'text', r
 }) {
   return (
     <div className="relative group">
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded-[32px] shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 group-hover:ring-blue-500/20 group-focus-within:ring-blue-500/30 transition-all duration-500 group-focus-within:border-white/20">
-        <div className="absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 group-hover:ring-white/20 group-focus-within:ring-white/30 transition-all duration-500 group-focus-within:border-white/30">
+        <div className="absolute inset-0 rounded bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
         
         <div className="relative flex items-center">
-          <div className="absolute left-6 text-white/30 group-focus-within:text-blue-400 transition-all duration-300">
+          <div className="absolute left-6 text-white/30 group-focus-within:text-white/60 transition-all duration-300">
             <Icon className="w-5 h-5" />
           </div>
           <input
@@ -34,7 +34,7 @@ function InputField({ icon: Icon, placeholder, value, onChange, type = 'text', r
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full bg-transparent border-none py-4 pl-14 pr-6 text-sm text-white placeholder:text-white/30 focus:outline-none selection:bg-blue-500/30"
+            className="w-full bg-transparent border-none py-4 pl-14 pr-6 text-sm text-white placeholder:text-white/30 focus:outline-none selection:bg-white/20"
             required={required}
           />
         </div>
@@ -125,9 +125,9 @@ export default function RegisterPage() {
       key={step}
       className={`w-3 h-3 rounded-full transition-all duration-500 backdrop-blur-sm border shadow-lg ${
         step === currentStep
-          ? 'bg-blue-500 border-blue-400/50 ring-2 ring-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.5)]'
+          ? 'bg-white/60 border-white/40 ring-2 ring-white/30 shadow-[0_0_20px_rgba(255,255,255,0.3)]'
           : step < currentStep
-          ? 'bg-blue-500/70 border-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
+          ? 'bg-white/60 border-white/40 shadow-[0_0_10px_rgba(255,255,255,0.2)]'
           : 'bg-white/10 border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.3)]'
       }`}
     />
@@ -142,10 +142,10 @@ export default function RegisterPage() {
     >
       <div className="space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold tracking-wide text-white/40">
-          <Zap className="w-3 h-3 text-blue-500" /> Canton Network
+          <Zap className="w-3 h-3 text-white/60" /> Canton Network
         </div>
         <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none">
-          Join <span className="text-blue-600">Flowryd</span>
+          Join <span className="text-white">Flowryd</span>
         </h1>
         <p className="text-lg text-white/40 max-w-sm mx-auto leading-relaxed">
           Register your organization to start orchestrating multi-party workflows.
@@ -231,7 +231,7 @@ export default function RegisterPage() {
             >
               <h2 className="text-xl font-semibold mb-6">Confirm Details</h2>
               
-              <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 space-y-4 text-left shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden">
+              <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded p-6 space-y-4 text-left shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent" />
                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                 
@@ -275,7 +275,7 @@ export default function RegisterPage() {
           {currentStep > 1 && (
             <button
               onClick={prevStep}
-              className="flex-1 bg-white/5 backdrop-blur-xl border border-white/10 text-white py-4 px-6 rounded-[20px] flex items-center justify-center gap-2 transition-all duration-300 hover:bg-white/10 hover:border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)]"
+              className="flex-1 bg-white/5 backdrop-blur-xl border border-white/10 text-white py-4 px-6 rounded flex items-center justify-center gap-2 transition-all duration-300 hover:bg-white/10 hover:border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)]"
             >
               <ArrowLeft className="w-4 h-4" />
               Back
@@ -289,13 +289,13 @@ export default function RegisterPage() {
               (currentStep === 2 && !canProceedStep2) ||
               isLoading
             }
-            className="flex-1 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl border border-white/20 text-black py-4 px-6 rounded-[20px] flex items-center justify-center gap-2 font-medium transition-all duration-300 disabled:opacity-20 disabled:hover:from-white/90 disabled:scale-100 hover:from-white hover:to-white/90 hover:scale-105 hover:shadow-[0_8px_32px_rgba(255,255,255,0.3),inset_0_1px_0_rgba(255,255,255,0.4)] shadow-[0_8px_32px_rgba(255,255,255,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]"
+            className="flex-1 border border-white/30 text-white rounded py-4 px-6 flex items-center justify-center gap-2 font-medium transition-all duration-300 disabled:opacity-20 disabled:scale-100 disabled:hover:border-white/30 disabled:hover:bg-transparent hover:border-white/50 hover:bg-white/5 hover:scale-105"
           >
             {isLoading ? (
               <motion.div 
                 animate={{ rotate: 360 }} 
                 transition={{ repeat: Infinity, duration: 1 }} 
-                className="w-5 h-5 border-2 border-black border-t-transparent rounded-full" 
+                className="w-5 h-5 border-2 border-white border-t-transparent rounded-full" 
               />
             ) : currentStep === 3 ? (
               <>

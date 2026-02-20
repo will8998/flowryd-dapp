@@ -216,20 +216,14 @@ export const AdminPanel: React.FC = () => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'blue-500';
-      case 'editor': return 'emerald-500';
+      case 'admin': return 'white';
+      case 'editor': return 'white';
       case 'viewer': return 'white';
       default: return 'white';
     }
   };
 
   const getActionColor = (action: string) => {
-    if (action.startsWith('user.')) return 'blue';
-    if (action.startsWith('flow.')) return 'purple';
-    if (action.startsWith('deal.')) return 'emerald';
-    if (action.startsWith('room.')) return 'yellow';
-    if (action.startsWith('message.')) return 'cyan';
-    if (action.startsWith('file.')) return 'orange';
     return 'white';
   };
 
@@ -242,8 +236,8 @@ export const AdminPanel: React.FC = () => {
     >
       <div className="p-8 border-b border-white/5">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-            <Shield className="w-6 h-6 text-blue-500" />
+          <div className="p-3 bg-white/10 border border-white/10 rounded">
+            <Shield className="w-6 h-6 text-white/70" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
@@ -260,9 +254,9 @@ export const AdminPanel: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-all ${
                 activeTab === tab.id 
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
+                  ? 'border border-white/30 bg-black/40 text-white' 
                   : 'text-white/40 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -283,7 +277,7 @@ export const AdminPanel: React.FC = () => {
               exit={{ opacity: 0 }}
               className="h-full flex flex-col gap-4"
             >
-              <div className="bg-[#0a0a0a] border border-white/10 rounded-[20px] p-5">
+              <div className="border border-white/10 bg-black/30 rounded p-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
@@ -307,10 +301,10 @@ export const AdminPanel: React.FC = () => {
                           key={tier}
                           onClick={() => updateOrgTier(tier)}
                           disabled={tierUpdating || isActive}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
                             isActive
-                              ? `bg-${color}-500/20 text-${color}-400 border border-${color}-500/30`
-                              : 'bg-white/5 text-white/40 border border-white/10 hover:text-white hover:bg-white/10'
+                              ? 'border border-white/30 bg-white/10 text-white'
+                              : 'border border-white/20 hover:border-white/40 text-white/40 hover:text-white bg-transparent'
                           } disabled:opacity-50`}
                         >
                           {TIER_LABELS[tier]}
@@ -321,7 +315,7 @@ export const AdminPanel: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-[#0a0a0a] border border-white/10 rounded-[20px] flex-1 flex flex-col overflow-hidden">
+              <div className="border border-white/10 bg-black/30 rounded flex-1 flex flex-col overflow-hidden">
                 <div className="p-6 border-b border-white/5">
                   <h2 className="text-lg font-bold text-white">Organization Users</h2>
                   <p className="text-sm text-white/40 mt-1">Manage user roles and access</p>
@@ -354,13 +348,13 @@ export const AdminPanel: React.FC = () => {
                             <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                               <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm font-bold">
+                                   <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-sm font-bold">
                                     {user.displayName.charAt(0).toUpperCase()}
                                   </div>
                                   <div>
                                     <div className="font-medium text-white">{user.displayName}</div>
                                     {isCurrentUser && (
-                                      <div className="text-xs text-blue-400">(You)</div>
+                                       <div className="text-xs text-white/60">(You)</div>
                                     )}
                                   </div>
                                 </div>
@@ -373,7 +367,7 @@ export const AdminPanel: React.FC = () => {
                               <td className="px-6 py-4 text-sm text-white/80">{user.email}</td>
                               <td className="px-6 py-4">
                                 {isCurrentUser ? (
-                                  <span className={`px-2 py-0.5 bg-${roleColor}/10 border border-${roleColor}/20 rounded-full text-[8px] font-bold tracking-wide text-${roleColor}`}>
+                                   <span className="px-2 py-0.5 bg-white/10 border border-white/20 rounded-full text-[8px] font-bold tracking-wide text-white/60">
                                     {user.role}
                                   </span>
                                 ) : (
@@ -390,7 +384,7 @@ export const AdminPanel: React.FC = () => {
                               </td>
                               <td className="px-6 py-4">
                                 <div className="flex items-center gap-2">
-                                  <span className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                   <span className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-white/60' : 'bg-white/20'}`} />
                                   <span className="text-xs text-white/60">
                                     {user.isActive ? 'Active' : 'Deactivated'}
                                   </span>
@@ -403,11 +397,11 @@ export const AdminPanel: React.FC = () => {
                                 {!isCurrentUser && (
                                   <button
                                     onClick={() => toggleUserActive(user.id, user.isActive)}
-                                    className={`p-2 rounded-lg transition-colors ${
-                                      user.isActive 
-                                        ? 'text-red-400 hover:bg-red-500/10' 
-                                        : 'text-emerald-400 hover:bg-emerald-500/10'
-                                    }`}
+                                     className={`p-2 rounded transition-colors ${
+                                       user.isActive 
+                                         ? 'text-white/60 hover:bg-white/10' 
+                                         : 'text-white/40 hover:bg-white/5'
+                                     }`}
                                     title={user.isActive ? 'Deactivate user' : 'Reactivate user'}
                                   >
                                     {user.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
@@ -437,7 +431,7 @@ export const AdminPanel: React.FC = () => {
                 <select
                   value={actionFilter}
                   onChange={(e) => setActionFilter(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"
+                  className="bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white"
                 >
                   <option value="">All Actions</option>
                   {AUDIT_ACTIONS.map(action => (
@@ -448,7 +442,7 @@ export const AdminPanel: React.FC = () => {
                 <select
                   value={resourceTypeFilter}
                   onChange={(e) => setResourceTypeFilter(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"
+                  className="bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white"
                 >
                   <option value="">All Resources</option>
                   {RESOURCE_TYPES.map(type => (
@@ -460,7 +454,7 @@ export const AdminPanel: React.FC = () => {
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"
+                  className="bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white"
                   placeholder="From date"
                 />
 
@@ -468,12 +462,12 @@ export const AdminPanel: React.FC = () => {
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"
+                  className="bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white"
                   placeholder="To date"
                 />
               </div>
 
-              <div className="bg-[#0a0a0a] border border-white/10 rounded-[20px] flex-1 flex flex-col overflow-hidden">
+              <div className="border border-white/10 bg-black/30 rounded flex-1 flex flex-col overflow-hidden">
                 <div className="p-6 border-b border-white/5">
                   <h2 className="text-lg font-bold text-white">System Audit Log</h2>
                   <p className="text-sm text-white/40 mt-1">Track all system activities and changes</p>
@@ -487,7 +481,7 @@ export const AdminPanel: React.FC = () => {
                   ) : (
                     <>
                       <table className="w-full">
-                        <thead className="sticky top-0 bg-[#0a0a0a] border-b border-white/5">
+                        <thead className="sticky top-0 bg-black/30 border-b border-white/5">
                           <tr className="text-left">
                              <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Timestamp</th>
                             <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">User</th>
@@ -513,7 +507,7 @@ export const AdminPanel: React.FC = () => {
                                   </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                  <span className={`px-2 py-0.5 bg-${actionColor}-500/10 border border-${actionColor}-500/20 rounded-full text-[8px] font-bold tracking-wide text-${actionColor}-500`}>
+                                   <span className="px-2 py-0.5 bg-white/10 border border-white/20 rounded-full text-[8px] font-bold tracking-wide text-white/60">
                                     {entry.action}
                                   </span>
                                 </td>
@@ -546,7 +540,7 @@ export const AdminPanel: React.FC = () => {
                           <button
                             onClick={() => loadAuditLogs(false)}
                             disabled={loading}
-                            className="px-6 py-2 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-400 font-medium hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                            className="px-6 py-2 border border-white/20 text-white/60 rounded hover:border-white/40 font-medium transition-colors disabled:opacity-50"
                           >
                             {loading ? 'Loading...' : 'Load More'}
                           </button>

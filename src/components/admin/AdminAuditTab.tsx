@@ -110,19 +110,19 @@ export const AdminAuditTab: React.FC = () => {
     const color = getActionColor(action);
     switch (color) {
       case 'blue':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+        return 'bg-blue-500/10 text-blue-400/60 border-blue-500/20';
       case 'purple':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+        return 'bg-purple-500/10 text-purple-400/60 border-purple-500/20';
       case 'emerald':
-        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+        return 'bg-emerald-500/10 text-emerald-400/60 border-emerald-500/20';
       case 'yellow':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+        return 'bg-yellow-500/10 text-yellow-400/60 border-yellow-500/20';
       case 'cyan':
-        return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
+        return 'bg-cyan-500/10 text-cyan-400/60 border-cyan-500/20';
       case 'orange':
-        return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
+        return 'bg-orange-500/10 text-orange-400/60 border-orange-500/20';
       default:
-        return 'bg-white/20 text-white/60 border-white/30';
+        return 'bg-white/10 text-white/60 border-white/20';
     }
   };
 
@@ -137,10 +137,10 @@ export const AdminAuditTab: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`mb-4 p-3 rounded-lg border text-sm ${
+          className={`mb-4 p-3 rounded border text-sm ${
             banner.type === 'success'
-              ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
-              : 'bg-red-500/20 border border-red-500/30 text-red-400'
+              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/60'
+              : 'bg-red-500/10 border border-red-500/20 text-red-400/60'
           }`}
         >
           {banner.message}
@@ -151,7 +151,7 @@ export const AdminAuditTab: React.FC = () => {
         <select
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
-          className="bg-white/5 border border-white/5 hover:border-white/10 rounded-xl px-3 py-2 text-sm text-white"
+          className="bg-white/5 border border-white/5 hover:border-white/10 rounded px-3 py-2 text-sm text-white"
         >
           <option value="">All Actions</option>
           {AUDIT_ACTIONS.map(action => (
@@ -162,7 +162,7 @@ export const AdminAuditTab: React.FC = () => {
         <select
           value={resourceTypeFilter}
           onChange={(e) => setResourceTypeFilter(e.target.value)}
-          className="bg-white/5 border border-white/5 hover:border-white/10 rounded-xl px-3 py-2 text-sm text-white"
+          className="bg-white/5 border border-white/5 hover:border-white/10 rounded px-3 py-2 text-sm text-white"
         >
           <option value="">All Resources</option>
           {RESOURCE_TYPES.map(type => (
@@ -174,7 +174,7 @@ export const AdminAuditTab: React.FC = () => {
           type="date"
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
-          className="bg-white/5 border border-white/5 hover:border-white/10 rounded-xl px-3 py-2 text-sm text-white"
+          className="bg-white/5 border border-white/5 hover:border-white/10 rounded px-3 py-2 text-sm text-white"
           placeholder="From date"
         />
 
@@ -182,12 +182,12 @@ export const AdminAuditTab: React.FC = () => {
           type="date"
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
-          className="bg-white/5 border border-white/5 hover:border-white/10 rounded-xl px-3 py-2 text-sm text-white"
+          className="bg-white/5 border border-white/5 hover:border-white/10 rounded px-3 py-2 text-sm text-white"
           placeholder="To date"
         />
       </div>
 
-      <div className="bg-black/20 border border-white/5 rounded-2xl flex-1 flex flex-col overflow-hidden">
+      <div className="bg-black/20 border border-white/5 rounded flex-1 flex flex-col overflow-hidden">
         <div className="p-6 border-b border-white/5">
           <h2 className="text-lg font-bold text-white">System Audit Log</h2>
           <p className="text-sm text-white/40 mt-1">Track all system activities and changes</p>
@@ -256,7 +256,7 @@ export const AdminAuditTab: React.FC = () => {
                   <button
                     onClick={() => loadAuditLogs(false)}
                     disabled={loading}
-                    className="px-3 py-1.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-sm hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                    className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm transition-colors disabled:opacity-50"
                   >
                     {loading ? 'Loading...' : 'Load More'}
                   </button>

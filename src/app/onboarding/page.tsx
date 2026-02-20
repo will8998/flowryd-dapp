@@ -52,12 +52,12 @@ export default function OnboardingPage() {
   const backStep = () => setStep((s) => Math.max(1, s - 1));
 
   return (
-    <main className="min-h-[100svh] bg-gradient-to-br from-[#0b0f1a] to-[#0f172a] text-white">
+    <main className="min-h-[100svh] bg-background text-white">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
         {/* header */}
         <div className="mb-8 text-center">
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
-            Onboard your <span style={{ color: "#c4ff61" }}>Flowryd</span> node
+            Onboard your <span className="text-white">Flowryd</span> node
           </h1>
           <p className="text-white/60 mt-2">
             Configure your experience and preview high‑match opportunities in minutes.
@@ -70,23 +70,23 @@ export default function OnboardingPage() {
           <div className="grid grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((n) => (
               <div key={n} className="text-center relative">
-                <div
-                  className={cn(
-                    "mx-auto w-10 h-10 rounded-full flex items-center justify-center border text-sm font-semibold",
-                    step === n && "border-white/40 bg-white/10",
-                    step > n && "bg-emerald-500 border-emerald-500",
-                    step < n && "border-white/20 bg-black"
-                  )}
-                >
-                  {n}
-                </div>
-                <div className={cn("mt-1 text-xs text-white/40", step === n && "text-[#c4ff61]")}>Step {n}</div>
+                 <div
+                   className={cn(
+                     "mx-auto w-10 h-10 rounded-full flex items-center justify-center border text-sm font-semibold",
+                     step === n && "border-white/40 bg-white/10",
+                     step > n && "bg-white/60 border-white/60",
+                     step < n && "border-white/20 bg-black"
+                   )}
+                 >
+                   {n}
+                 </div>
+                 <div className={cn("mt-1 text-xs text-white/40", step === n && "text-white/80")}>Step {n}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur p-6 md:p-8">
+        <div className="rounded border border-white/10 bg-black/30 backdrop-blur p-6 md:p-8">
           {/* Step 1 */}
           {step === 1 && (
             <div>
@@ -98,19 +98,19 @@ export default function OnboardingPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-white/60 mb-1">Organization Name</label>
-                  <input
-                    className="w-full rounded-xl border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
-                    value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
-                  />
+                   <input
+                     className="w-full rounded border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
+                     value={orgName}
+                     onChange={(e) => setOrgName(e.target.value)}
+                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-1">Organization Type</label>
-                  <select
-                    className="w-full rounded-xl border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
-                    value={orgType}
-                    onChange={(e) => setOrgType(e.target.value)}
-                  >
+                   <select
+                     className="w-full rounded border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
+                     value={orgType}
+                     onChange={(e) => setOrgType(e.target.value)}
+                   >
                     <option value="">Select type…</option>
                     <option value="validator">Validator Infrastructure Provider</option>
                     <option value="bank">Bank</option>
@@ -125,11 +125,11 @@ export default function OnboardingPage() {
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-1">Primary Jurisdiction</label>
-                  <select
-                    className="w-full rounded-xl border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
-                    value={jurisdiction}
-                    onChange={(e) => setJurisdiction(e.target.value)}
-                  >
+                   <select
+                     className="w-full rounded border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
+                     value={jurisdiction}
+                     onChange={(e) => setJurisdiction(e.target.value)}
+                   >
                     <option value="">Select jurisdiction…</option>
                     <option value="us">United States</option>
                     <option value="uk">United Kingdom</option>
@@ -141,15 +141,15 @@ export default function OnboardingPage() {
                   </select>
                 </div>
               </div>
-              <div className="mt-6 flex gap-3">
-                <button
-                  disabled={!canContinue}
-                  onClick={continueStep}
-                  className="rounded-lg bg-gradient-to-r from-violet-500 to-cyan-400 px-4 py-2 text-sm font-medium disabled:opacity-50"
-                >
-                  Continue ↗
-                </button>
-              </div>
+               <div className="mt-6 flex gap-3">
+                 <button
+                   disabled={!canContinue}
+                   onClick={continueStep}
+                   className="rounded border border-white/30 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 hover:border-white/50"
+                 >
+                   Continue ↗
+                 </button>
+               </div>
             </div>
           )}
 
@@ -163,29 +163,29 @@ export default function OnboardingPage() {
                   <button
                     key={k}
                     onClick={() => setRole(k)}
-                    className={cn(
-                      "text-left rounded-2xl border p-4 transition",
-                      "border-white/15 bg-black/40 hover:border-white/30",
-                      role === k && "border-violet-400 bg-gradient-to-br from-violet-500/10 to-cyan-400/10"
-                    )}
+                     className={cn(
+                       "text-left rounded border p-4 transition",
+                       "border-white/15 bg-black/40 hover:border-white/30",
+                       role === k && "border-white/30 bg-black/30"
+                     )}
                   >
-                    <div className="text-2xl mb-1">{roleMeta[k].icon}</div>
-                    <div className="font-medium">{roleMeta[k].title}</div>
-                    <div className="text-[#c4ff61] text-sm">{roleMeta[k].reward}</div>
-                    <div className="text-white/60 text-sm mt-1">{roleMeta[k].blurb}</div>
+                     <div className="text-2xl mb-1">{roleMeta[k].icon}</div>
+                     <div className="font-medium">{roleMeta[k].title}</div>
+                     <div className="text-white/80 text-sm">{roleMeta[k].reward}</div>
+                     <div className="text-white/60 text-sm mt-1">{roleMeta[k].blurb}</div>
                   </button>
                 ))}
               </div>
-              <div className="flex gap-3">
-                <button onClick={backStep} className="rounded-lg border border-white/15 px-4 py-2 text-sm">← Back</button>
-                <button
-                  disabled={!canContinue}
-                  onClick={continueStep}
-                  className="rounded-lg bg-gradient-to-r from-violet-500 to-cyan-400 px-4 py-2 text-sm font-medium disabled:opacity-50"
-                >
-                  Continue ↗
-                </button>
-              </div>
+               <div className="flex gap-3">
+                 <button onClick={backStep} className="rounded border border-white/15 px-4 py-2 text-sm">← Back</button>
+                 <button
+                   disabled={!canContinue}
+                   onClick={continueStep}
+                   className="rounded border border-white/30 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 hover:border-white/50"
+                 >
+                   Continue ↗
+                 </button>
+               </div>
             </div>
           )}
 
@@ -229,12 +229,12 @@ export default function OnboardingPage() {
                   ]}
                 />
               </div>
-              <div className="flex gap-3 mt-6">
-                <button onClick={backStep} className="rounded-lg border border-white/15 px-4 py-2 text-sm">← Back</button>
-                <button onClick={continueStep} className="rounded-lg bg-gradient-to-r from-violet-500 to-cyan-400 px-4 py-2 text-sm font-medium">
-                  Continue ↗
-                </button>
-              </div>
+               <div className="flex gap-3 mt-6">
+                 <button onClick={backStep} className="rounded border border-white/15 px-4 py-2 text-sm">← Back</button>
+                 <button onClick={continueStep} className="rounded border border-white/30 text-white px-4 py-2 text-sm font-medium hover:border-white/50">
+                   Continue ↗
+                 </button>
+               </div>
             </div>
           )}
 
@@ -252,25 +252,25 @@ export default function OnboardingPage() {
                     max={10}
                     value={readiness}
                     onChange={(e) => setReadiness(parseInt(e.target.value))}
-                    className="w-full accent-violet-500"
+                     className="w-full accent-white"
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-1">Existing Canton Network Connections</label>
-                  <input
-                    type="number"
-                    value={connections}
-                    onChange={(e) => setConnections(parseInt(e.target.value || "0"))}
-                    className="w-full rounded-xl border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
-                  />
+                   <input
+                     type="number"
+                     value={connections}
+                     onChange={(e) => setConnections(parseInt(e.target.value || "0"))}
+                     className="w-full rounded border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
+                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-1">Monthly Transaction Volume (Optional)</label>
-                  <select
-                    value={volume}
-                    onChange={(e) => setVolume(e.target.value)}
-                    className="w-full rounded-xl border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
-                  >
+                   <select
+                     value={volume}
+                     onChange={(e) => setVolume(e.target.value)}
+                     className="w-full rounded border border-white/15 bg-black/40 px-4 py-3 outline-none focus:border-white/30"
+                   >
                     <option value="">Select range…</option>
                     <option value="0">No volume yet</option>
                     <option value="1000">{`< $1M`}</option>
@@ -282,16 +282,16 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <button onClick={backStep} className="rounded-lg border border-white/15 px-4 py-2 text-sm">← Back</button>
-                <button
-                  onClick={() => setSubmitted(true)}
-                  disabled={submitted}
-                  className="rounded-lg bg-gradient-to-r from-violet-500 to-cyan-400 px-4 py-2 text-sm font-medium disabled:opacity-60"
-                >
-                  {submitted ? 'Dashboard generation coming soon!' : 'Generate My Dashboard 🚀'}
-                </button>
-              </div>
+               <div className="flex gap-3 mt-6">
+                 <button onClick={backStep} className="rounded border border-white/15 px-4 py-2 text-sm">← Back</button>
+                 <button
+                   onClick={() => setSubmitted(true)}
+                   disabled={submitted}
+                   className="rounded border border-white/30 text-white px-4 py-2 text-sm font-medium disabled:opacity-60 hover:border-white/50"
+                 >
+                   {submitted ? 'Dashboard generation coming soon!' : 'Generate My Dashboard 🚀'}
+                 </button>
+               </div>
 
               {/* Preview cards */}
               <div className="grid md:grid-cols-4 gap-4 mt-8">
@@ -301,12 +301,12 @@ export default function OnboardingPage() {
                   ["CC/Month Potential", "45K"],
                   ["Network Score", "92"],
                 ].map(([label, number]) => (
-                  <div key={label} className="rounded-xl border border-white/10 bg-black/40 p-4 text-center">
-                    <div className="text-2xl font-semibold" style={{ color: label === "Matching Workflows" ? "#8b5cf6" : label === "Ready to Launch" ? "#10b981" : label === "Network Score" ? "#06b6d4" : "#f59e0b" }}>
-                      {number}
-                    </div>
-                    <div className="text-xs text-white/60 tracking-wide">{label}</div>
-                  </div>
+                   <div key={label} className="rounded border border-white/10 bg-black/40 p-4 text-center">
+                     <div className="text-2xl font-semibold text-white">
+                       {number}
+                     </div>
+                     <div className="text-xs text-white/60 tracking-wide">{label}</div>
+                   </div>
                 ))}
               </div>
             </div>
@@ -334,18 +334,18 @@ function CheckboxGroup({
     <div>
       <div className="mb-2 font-medium">{title}</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {options.map(([k, label]) => (
-          <label key={k} className="relative rounded-lg border border-white/10 bg-black/40 px-3 py-3 cursor-pointer select-none hover:border-white/30">
-            <input
-              type="checkbox"
-              className="absolute opacity-0"
-              checked={state.includes(k)}
-              onChange={() => toggle(k)}
-            />
-            <span className={cn("text-sm", state.includes(k) && "text-[#c4ff61]")}>{label}</span>
-            <span className={cn("absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400", state.includes(k) ? "opacity-100" : "opacity-0")}>✓</span>
-          </label>
-        ))}
+         {options.map(([k, label]) => (
+           <label key={k} className="relative rounded border border-white/10 bg-black/40 px-3 py-3 cursor-pointer select-none hover:border-white/30">
+             <input
+               type="checkbox"
+               className="absolute opacity-0"
+               checked={state.includes(k)}
+               onChange={() => toggle(k)}
+             />
+             <span className={cn("text-sm", state.includes(k) && "text-white")}>{label}</span>
+             <span className={cn("absolute right-3 top-1/2 -translate-y-1/2 text-white/60", state.includes(k) ? "opacity-100" : "opacity-0")}>✓</span>
+           </label>
+         ))}
       </div>
     </div>
   );

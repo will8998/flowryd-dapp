@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Radio, Factory, Newspaper, LayoutTemplate, Loader2, Workflow } from 'lucide-react';
 import { useFlowSections } from '@/hooks/use-flow-sections';
-import { LiquidGlass } from './LiquidPrimitives';
+
 
 interface SectionFlow {
   id: string;
@@ -66,7 +66,7 @@ export const FlowSections: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'published': return 'bg-emerald-500';
+      case 'published': return 'bg-white/40';
       case 'draft': return 'bg-amber-500';
       case 'archived': return 'bg-white/20';
       default: return 'bg-white/20';
@@ -80,7 +80,7 @@ export const FlowSections: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <LiquidGlass className="p-6 space-y-4">
+      <div className="p-6 border border-white/10 bg-black/30 rounded space-y-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h3 className="text-lg font-bold text-white mb-2">{flow.title}</h3>
@@ -92,7 +92,7 @@ export const FlowSections: React.FC = () => {
         </div>
 
         {flow.workflowType && (
-          <div className="inline-flex items-center px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs font-medium">
+          <div className="inline-flex items-center px-2 py-1 rounded bg-white/10 text-white/60 text-xs font-medium">
             {flow.workflowType}
           </div>
         )}
@@ -107,7 +107,7 @@ export const FlowSections: React.FC = () => {
         )}
 
         {activeTab === 'templates' && (
-          <div className="inline-flex items-center px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs font-medium">
+          <div className="inline-flex items-center px-2 py-1 rounded bg-white/10 text-white/60 text-xs font-medium">
             Template
           </div>
         )}
@@ -116,7 +116,7 @@ export const FlowSections: React.FC = () => {
           <span>Updated {formatDate(flow.updatedAt)}</span>
           {flow.createdBy && <span>by {flow.createdBy}</span>}
         </div>
-      </LiquidGlass>
+      </div>
     </motion.div>
   );
 
@@ -124,7 +124,7 @@ export const FlowSections: React.FC = () => {
     if (isLoading) {
       return (
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-white/40 animate-spin" />
         </div>
       );
     }
@@ -148,17 +148,17 @@ export const FlowSections: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#020202] text-white">
+    <div className="h-full flex flex-col bg-background text-white">
       <div className="p-8 border-b border-white/5">
         <div className="flex items-center gap-3 mb-2">
-          <Workflow className="w-6 h-6 text-blue-500" />
+          <Workflow className="w-6 h-6 text-white/70" />
           <h1 className="text-2xl font-bold">Flows Studio</h1>
         </div>
         <p className="text-white/40">Browse your workflow library</p>
       </div>
 
       <div className="p-8 pb-0">
-        <div className="flex gap-2 p-1 bg-white/5 border border-white/10 rounded-2xl w-fit">
+        <div className="flex gap-2 p-1 bg-white/5 border border-white/10 rounded w-fit">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -168,9 +168,9 @@ export const FlowSections: React.FC = () => {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`
-                  flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 text-sm font-medium
+                  flex items-center gap-2 px-4 py-2 rounded transition-all duration-200 text-sm font-medium
                   ${isActive 
-                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
+                    ? 'border border-white/30 bg-black/40 text-white' 
                     : 'text-white/40 hover:text-white hover:bg-white/5'
                   }
                 `}
@@ -179,7 +179,7 @@ export const FlowSections: React.FC = () => {
                 <span>{tab.label}</span>
                 <span className={`
                   inline-flex items-center justify-center w-5 h-5 text-xs rounded-full
-                  ${isActive ? 'bg-blue-500/30 text-blue-300' : 'bg-white/10 text-white/30'}
+                  ${isActive ? 'bg-white/20 text-white/60' : 'bg-white/10 text-white/30'}
                 `}>
                   {tab.count}
                 </span>

@@ -75,11 +75,11 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
       <div className="p-8 border-b border-white/5">
         <div className="flex items-center gap-3">
           <Image src="/flowrydlogo.svg" alt="Flowryd" width={100} height={24} className="h-5 w-auto" />
-          <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[8px] font-black tracking-wide rounded-full border border-blue-500/20">v1.2</span>
+          <span className="px-2 py-0.5 bg-white/10 text-white/50 text-[8px] font-black tracking-wide rounded-full border border-white/10">v1.2</span>
         </div>
         {subscription && (
           <div className="mt-3 flex items-center gap-2">
-            <span className={`w-1.5 h-1.5 rounded-full ${subscription.status === 'active' ? 'bg-emerald-500' : subscription.status === 'trial' ? 'bg-blue-500' : 'bg-amber-500'}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${subscription.status === 'active' ? 'bg-white/60' : subscription.status === 'trial' ? 'bg-white/60' : 'bg-white/60'}`} />
             <span className="text-[9px] font-bold text-white/40 tracking-wide">{subscription.plan?.name ?? 'Plan'}</span>
           </div>
         )}
@@ -92,12 +92,12 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
             <button
               key={item.id}
               onClick={() => onTierChange(item.tier)}
-              className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all group ${
-                activeTier === item.tier ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-white/40 hover:bg-white/5 hover:text-white'
+              className={`w-full flex items-center justify-between p-4 rounded transition-all group ${
+                activeTier === item.tier ? 'border border-white/30 bg-black/40 text-white' : 'text-white/40 hover:bg-white/5 hover:text-white'
               }`}
             >
               <div className="flex items-center gap-3">
-                <item.icon className={`w-4 h-4 ${activeTier === item.tier ? 'text-white' : 'text-blue-500'}`} />
+                <item.icon className={`w-4 h-4 ${activeTier === item.tier ? 'text-white' : 'text-white/60'}`} />
                 <span className="text-xs font-bold tracking-wide">{item.label}</span>
               </div>
               {activeTier === item.tier && <ChevronRight className="w-4 h-4 opacity-50" />}
@@ -116,14 +116,14 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-2 px-2"
               >
-                   <p className="px-2 text-[8px] font-bold text-emerald-500/60 tracking-wide mb-2">Conversations</p>
+                   <p className="px-2 text-[8px] font-bold text-white/30 tracking-wide mb-2">Conversations</p>
                  {sidebarDeals.length > 0 ? sidebarDeals.map(deal => (
                     <button 
                       key={deal.id} 
                       onClick={() => window.location.href = `/deals/${deal.id}`}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 text-left hover:border-emerald-500/50 transition-all group"
+                      className="w-full flex items-center gap-3 p-3 rounded bg-white/5 border border-white/5 text-left hover:border-white/30 transition-all group"
                     >
-                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                       <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
                        <span className="text-[10px] font-bold text-white/80 group-hover:text-white transition-colors truncate">{deal.title}</span>
                     </button>
                   )) : (
@@ -141,22 +141,22 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
                    <button
                      key={item.label}
                      onClick={() => { if (item.action) item.action(); else if (item.tier) onTierChange(item.tier); }}
-                     className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all group ${
-                       activeTier === item.tier ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-white/40 hover:bg-white/5 hover:text-white'
+                     className={`w-full flex items-center gap-3 p-4 rounded transition-all group ${
+                       activeTier === item.tier ? 'border border-white/30 bg-black/40 text-white' : 'text-white/40 hover:bg-white/5 hover:text-white'
                      }`}
                    >
-                     <item.icon className={`w-4 h-4 ${activeTier === item.tier ? 'text-white' : 'group-hover:text-emerald-500 transition-colors'}`} />
+                     <item.icon className={`w-4 h-4 ${activeTier === item.tier ? 'text-white' : 'group-hover:text-white/70 transition-colors'}`} />
                      <span className="text-xs font-bold tracking-wide">{item.label}</span>
                    </button>
                  ))}
                  {user?.role === 'admin' && (
                    <button
                      onClick={() => onTierChange('ADMIN')}
-                     className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all group ${
-                       activeTier === 'ADMIN' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-white/40 hover:bg-white/5 hover:text-white'
+                     className={`w-full flex items-center gap-3 p-4 rounded transition-all group ${
+                       activeTier === 'ADMIN' ? 'border border-white/30 bg-black/40 text-white' : 'text-white/40 hover:bg-white/5 hover:text-white'
                      }`}
                    >
-                     <Shield className={`w-4 h-4 ${activeTier === 'ADMIN' ? 'text-white' : 'group-hover:text-blue-500 transition-colors'}`} />
+                     <Shield className={`w-4 h-4 ${activeTier === 'ADMIN' ? 'text-white' : 'group-hover:text-white/70 transition-colors'}`} />
                       <span className="text-xs font-bold tracking-wide">Admin</span>
                    </button>
                  )}
@@ -167,8 +167,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
       </div>
 
       <div className="p-6 bg-black border-t border-white/5 space-y-4">
-        <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-2xl">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-xs font-bold font-sans">
+        <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded">
+          <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-xs font-bold font-sans">
             {partyId?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
@@ -181,12 +181,12 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
         </div>
         
         <div className="grid grid-cols-2 gap-2">
-           <button className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-white/40 hover:text-white">
+           <button className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded hover:bg-white/10 transition-all text-white/40 hover:text-white">
              <Settings className="w-4 h-4" />
            </button>
            <button 
              onClick={disconnect}
-             className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all text-white/40"
+             className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all text-white/40"
            >
              <LogOut className="w-4 h-4" />
            </button>

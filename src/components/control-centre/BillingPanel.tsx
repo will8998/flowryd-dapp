@@ -24,13 +24,13 @@ export const BillingPanel: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      active: { bg: "bg-emerald-500/10", text: "text-emerald-400", icon: Check },
-      trial: { bg: "bg-blue-500/10", text: "text-blue-400", icon: Crown },
-      past_due: { bg: "bg-amber-500/10", text: "text-amber-400", icon: X },
-      cancelled: { bg: "bg-red-500/10", text: "text-red-400", icon: X },
-      paid: { bg: "bg-emerald-500/10", text: "text-emerald-400", icon: Check },
+      active: { bg: "bg-white/10", text: "text-white/60", icon: Check },
+      trial: { bg: "bg-white/10", text: "text-white/60", icon: Crown },
+      past_due: { bg: "bg-white/10", text: "text-white/40", icon: X },
+      cancelled: { bg: "bg-white/10", text: "text-white/40", icon: X },
+      paid: { bg: "bg-white/10", text: "text-white/60", icon: Check },
       draft: { bg: "bg-white/10", text: "text-white/40", icon: Receipt },
-      void: { bg: "bg-red-500/10", text: "text-red-400", icon: X }
+      void: { bg: "bg-white/10", text: "text-white/40", icon: X }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
@@ -66,7 +66,7 @@ export const BillingPanel: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="bg-[#0a0a0a] border border-white/10 rounded-[20px] p-8">
+      <div className="border border-white/10 bg-black/30 rounded p-8">
         <h2 className="text-lg font-bold text-white mb-6">Current Plan</h2>
         
         {subscription ? (
@@ -79,7 +79,7 @@ export const BillingPanel: React.FC = () => {
                   <span className="text-white/60">{formatCurrency(subscription.plan?.priceAmount || 0)}/month</span>
                 </div>
               </div>
-              <Crown className="w-8 h-8 text-blue-500" />
+              <Crown className="w-8 h-8 text-white/70" />
             </div>
 
             <div className="text-white/40 text-sm">
@@ -88,7 +88,7 @@ export const BillingPanel: React.FC = () => {
 
             <button
               onClick={handleCancel}
-              className="text-red-400 hover:bg-red-500/10 px-4 py-2 rounded-xl text-sm transition-colors"
+              className="text-white/60 hover:bg-white/10 px-4 py-2 rounded text-sm transition-colors"
             >
               Cancel Subscription
             </button>
@@ -98,7 +98,7 @@ export const BillingPanel: React.FC = () => {
             <p className="text-white/40">No active subscription</p>
             <button
               onClick={() => setShowPlans(!showPlans)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl text-sm transition-colors"
+              className="border border-white/20 text-white rounded hover:border-white/40 font-bold py-2 px-4 text-sm transition-colors"
             >
               Choose a Plan
             </button>
@@ -109,12 +109,12 @@ export const BillingPanel: React.FC = () => {
           <div className="mt-8 pt-8 border-t border-white/10">
             {plansLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-white/40" />
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {plans?.map((plan) => (
-                  <div key={plan.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                  <div key={plan.id} className="bg-white/5 border border-white/10 rounded p-6 space-y-4">
                     <div>
                       <h4 className="text-lg font-bold text-white">{plan.name}</h4>
                       <p className="text-2xl font-bold text-white">{formatCurrency(plan.priceAmount)}</p>
@@ -124,7 +124,7 @@ export const BillingPanel: React.FC = () => {
                     <ul className="space-y-2">
                       {plan.features?.map((feature, index) => (
                         <li key={index} className="text-white/60 text-sm flex items-center gap-2">
-                          <Check className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                           <Check className="w-4 h-4 text-white/40 flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
@@ -132,7 +132,7 @@ export const BillingPanel: React.FC = () => {
 
                     <button
                       onClick={() => handleSubscribe(plan.id)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl text-sm transition-colors"
+                      className="w-full border border-white/30 text-white rounded hover:border-white/50 font-bold py-2 px-4 text-sm transition-colors"
                     >
                       Subscribe
                     </button>
@@ -144,7 +144,7 @@ export const BillingPanel: React.FC = () => {
         )}
       </div>
 
-      <div className="bg-[#0a0a0a] border border-white/10 rounded-[20px] p-8">
+      <div className="border border-white/10 bg-black/30 rounded p-8">
         <h2 className="text-lg font-bold text-white mb-6">Invoice History</h2>
         
         {invoices ? (

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Layers, Sparkles } from 'lucide-react';
-import { LiquidGlass } from './LiquidPrimitives';
+
 import { NavigateHub } from './NavigateHub';
 
 interface NavigatePathwaysProps {
@@ -96,11 +96,9 @@ export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpC
               onClick={() => setSelectedPathway(pathway.key)}
               className="cursor-pointer"
             >
-              <LiquidGlass 
-                className={`p-10 space-y-6 border-white/[0.08] hover:border-${pathway.accent}/30 transition-colors duration-300`}
-              >
-                <div className={`w-16 h-16 rounded-2xl bg-${pathway.accent}/10 flex items-center justify-center`}>
-                  <IconComponent className={`w-8 h-8 text-${pathway.accent}`} />
+              <div className="p-10 space-y-6 border border-white/10 bg-black/30 rounded hover:border-white/30 transition-colors duration-300">
+                <div className="w-16 h-16 rounded bg-white/10 flex items-center justify-center">
+                  <IconComponent className="w-8 h-8 text-white/70" />
                 </div>
                 <div className="space-y-3">
                   <div>
@@ -111,7 +109,7 @@ export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpC
                     {pathway.description}
                   </p>
                 </div>
-              </LiquidGlass>
+              </div>
             </motion.div>
           );
         })}
@@ -160,7 +158,7 @@ export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpC
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#020202] text-white relative">
+    <div className="h-full flex flex-col bg-background text-white relative">
       <AnimatePresence mode="wait">
         {selectedPathway ? renderSelectedContent() : renderPathwaySelector()}
       </AnimatePresence>

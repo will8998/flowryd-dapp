@@ -153,21 +153,21 @@ export const AdminJoinRequestsTab: React.FC = () => {
     switch (status) {
       case 'pending':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-500/10 text-yellow-400/60 border border-yellow-500/20 rounded-full text-xs font-medium">
             <Clock className="w-3 h-3" />
             Pending
           </span>
         );
       case 'approved':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/10 text-green-400/60 border border-green-500/20 rounded-full text-xs font-medium">
             <CheckCircle2 className="w-3 h-3" />
             Approved
           </span>
         );
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-500/10 text-red-400/60 border border-red-500/20 rounded-full text-xs font-medium">
             <XCircle className="w-3 h-3" />
             Rejected
           </span>
@@ -197,10 +197,10 @@ export const AdminJoinRequestsTab: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`p-4 rounded-lg border ${
+            className={`p-4 rounded border ${
               banner.type === 'success' 
-                ? 'bg-green-500/20 border-green-500/30 text-green-400' 
-                : 'bg-red-500/20 border-red-500/30 text-red-400'
+                ? 'bg-green-500/10 border-green-500/20 text-green-400/60' 
+                : 'bg-red-500/10 border-red-500/20 text-red-400/60'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -218,8 +218,8 @@ export const AdminJoinRequestsTab: React.FC = () => {
       {!loading && flows.length > 0 && (
         <div className="bg-black/20 backdrop-blur-xl border border-white/5 rounded-lg p-6">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-              <UserPlus className="w-6 h-6 text-blue-400" />
+            <div className="p-3 bg-white/10 border border-white/20 rounded">
+              <UserPlus className="w-6 h-6 text-white/70" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Join Requests Overview</h2>
@@ -233,7 +233,7 @@ export const AdminJoinRequestsTab: React.FC = () => {
 
       {loading && (
         <div className="bg-black/20 backdrop-blur-xl border border-white/5 rounded-lg p-8 text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-blue-400" />
+          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-white/40" />
           <p className="text-white/60">Loading join requests...</p>
         </div>
       )}
@@ -265,7 +265,7 @@ export const AdminJoinRequestsTab: React.FC = () => {
                       )}
                     </div>
                     {pendingCount > 0 && (
-                      <div className="px-3 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full text-sm font-medium">
+                      <div className="px-3 py-1 bg-yellow-500/10 text-yellow-400/60 border border-yellow-500/20 rounded-full text-sm font-medium">
                         {pendingCount} pending
                       </div>
                     )}
@@ -324,8 +324,8 @@ export const AdminJoinRequestsTab: React.FC = () => {
                                     onClick={() => handleAction(request.id, flow.id, 'approved')}
                                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                                       confirmAction?.requestId === request.id && confirmAction?.action === 'approved'
-                                        ? 'bg-green-500/30 text-green-300 border border-green-500/50' 
-                                        : 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
+                                        ? 'border border-white/40 bg-black/40 text-white' 
+                                        : 'border border-white/20 hover:border-white/40 text-white'
                                     }`}
                                   >
                                     {confirmAction?.requestId === request.id && confirmAction?.action === 'approved' 
@@ -337,8 +337,8 @@ export const AdminJoinRequestsTab: React.FC = () => {
                                     onClick={() => handleAction(request.id, flow.id, 'rejected')}
                                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                                       confirmAction?.requestId === request.id && confirmAction?.action === 'rejected'
-                                        ? 'bg-red-500/30 text-red-300 border border-red-500/50' 
-                                        : 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                                        ? 'border border-white/40 bg-black/40 text-white' 
+                                        : 'border border-white/20 hover:border-white/40 text-white'
                                     }`}
                                   >
                                     {confirmAction?.requestId === request.id && confirmAction?.action === 'rejected' 

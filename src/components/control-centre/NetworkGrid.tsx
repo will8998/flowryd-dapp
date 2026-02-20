@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, ShieldCheck, Zap, ArrowRight, Building2, Database, Network, Layers, Sparkles, Plus, Users, Eye, X, Star, AlertTriangle } from 'lucide-react';
 import { participants } from '@/lib/canton-data';
-import { LiquidGlass } from './LiquidPrimitives';
+
 
 interface JumpCut {
   id: string;
@@ -199,38 +199,38 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className={`bg-[#0a0a0a] border rounded-[24px] p-5 hover:border-blue-500/30 hover:bg-white/[0.01] transition-all group relative overflow-hidden cursor-pointer ${
-        p.criticality === 'CRITICAL' ? 'border-amber-500/20 border-l-amber-500/60 border-l-2' : 'border-white/10'
+      className={`bg-black/30 border rounded p-5 hover:border-white/30 hover:bg-white/[0.01] transition-all group relative overflow-hidden cursor-pointer ${
+        p.criticality === 'CRITICAL' ? 'border-white/20 border-l-white/40 border-l-2' : 'border-white/10'
       }`}
     >
       {p.criticality === 'CRITICAL' && (
         <div className="absolute top-3 right-3">
-          <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_#f59e0b] animate-pulse" title="Critical Participant" />
+          <div className="w-2 h-2 rounded-full bg-white/60 animate-pulse" title="Critical Participant" />
         </div>
       )}
       
       <div className="flex justify-between items-start mb-3">
-        <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
-          {p.name.includes('Goldman') || p.name.includes('Bank') ? <Building2 className="w-5 h-5 text-blue-500" /> : 
-           p.name.includes('DTCC') ? <Database className="w-5 h-5 text-blue-500" /> : 
-           <Network className="w-5 h-5 text-blue-500" />}
+        <div className="w-10 h-10 bg-white/5 border border-white/10 rounded flex items-center justify-center group-hover:scale-105 transition-transform">
+          {p.name.includes('Goldman') || p.name.includes('Bank') ? <Building2 className="w-5 h-5 text-white/70" /> : 
+           p.name.includes('DTCC') ? <Database className="w-5 h-5 text-white/70" /> : 
+           <Network className="w-5 h-5 text-white/70" />}
         </div>
         <div className="flex gap-1">
            {p.superValidator && (
-             <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]" title="Super Validator" />
+             <div className="w-2 h-2 rounded-full bg-white/40" title="Super Validator" />
            )}
-           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" title="VP Badge" />
+           <div className="w-2 h-2 rounded-full bg-white/40" title="VP Badge" />
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-bold font-sans tracking-tight text-white group-hover:text-blue-400 transition-colors truncate">{p.name}</h3>
+        <h3 className="text-sm font-bold font-sans tracking-tight text-white group-hover:text-white transition-colors truncate">{p.name}</h3>
         <p className="text-[9px] font-mono text-white/30 tracking-wide font-bold truncate">{p.cantonRole}</p>
       </div>
 
       <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-center opacity-60 group-hover:opacity-100 transition-opacity">
          <span className="text-[9px] text-white/40 font-mono">{p.validatorNodes ? `${p.validatorNodes} Nodes` : 'Hosted'}</span>
-         <ArrowRight className="w-3 h-3 text-white/20 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+         <ArrowRight className="w-3 h-3 text-white/20 group-hover:text-white/70 group-hover:translate-x-1 transition-all" />
       </div>
     </motion.div>
   );
@@ -251,7 +251,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
             <div className="px-8 pt-8 pb-6 border-b border-white/5 bg-black/20 backdrop-blur-md z-10">
               <div className="flex justify-between items-center">
                 <div className="space-y-2">
-                  <h1 className="text-4xl font-bold font-sans tracking-tight text-blue-500">Discover Network</h1>
+                  <h1 className="text-4xl font-bold font-sans tracking-tight text-white">Discover Network</h1>
                   <p className="text-white/60 text-sm font-mono">Choose a ready-made workflow template or explore individual participants</p>
                 </div>
                 
@@ -262,7 +262,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                     value={filter}
                     onChange={handleSearchChange}
                     placeholder="Search participants..."
-                    className="w-80 bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all font-mono placeholder-white/30"
+                    className="w-80 bg-white/5 border border-white/10 rounded py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-white/30 transition-all font-mono placeholder-white/30"
                   />
                 </div>
               </div>
@@ -293,23 +293,23 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                         onClick={() => onSelectJumpCut(jumpCut)}
                         className="text-left group h-full"
                       >
-                        <LiquidGlass className="p-6 border-blue-500/10 hover:border-blue-500/40 bg-blue-500/5 hover:bg-blue-500/10 transition-all h-full">
+                        <div className="p-6 border border-white/10 bg-black/30 rounded hover:border-white/30 transition-all h-full">
                           <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 bg-blue-500/20 rounded-xl text-blue-400">
+                            <div className="p-3 bg-white/10 rounded text-white/70">
                               <Layers className="w-6 h-6" />
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all group-hover:scale-110">
+                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 group-hover:text-white transition-all group-hover:scale-110">
                                <Plus className="w-4 h-4" />
                             </div>
                           </div>
                           
-                          <h3 className="text-lg font-bold font-sans text-white group-hover:text-blue-400 transition-colors mb-2">{jumpCut.name}</h3>
+                          <h3 className="text-lg font-bold font-sans text-white group-hover:text-white transition-colors mb-2">{jumpCut.name}</h3>
                           <p className="text-sm text-white/60 mb-4 leading-relaxed">{jumpCut.desc}</p>
                           
                           <div className="space-y-3">
                             <div className="flex -space-x-2">
                                {jumpCut.partners.slice(0, 4).map((p, i) => (
-                                  <div key={i} className="w-8 h-8 rounded-full bg-black border-2 border-white/10 flex items-center justify-center text-xs font-bold text-white/60 group-hover:border-blue-500/30 transition-colors" title={p}>
+                                   <div key={i} className="w-8 h-8 rounded-full bg-black border-2 border-white/10 flex items-center justify-center text-xs font-bold text-white/60 group-hover:border-white/30 transition-colors" title={p}>
                                      {p.charAt(0)}
                                   </div>
                                ))}
@@ -321,14 +321,14 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                             </div>
                             
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-blue-500/80 tracking-wide">{jumpCut.fee} network fee</span>
-                              <div className="flex items-center gap-2 text-white/40 group-hover:text-blue-400 transition-colors">
+                              <span className="text-xs font-bold text-white/50 tracking-wide">{jumpCut.fee} network fee</span>
+                              <div className="flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
                                 <span className="text-xs font-mono">{jumpCut.nodes.length} participants</span>
                                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                               </div>
                             </div>
                           </div>
-                        </LiquidGlass>
+                        </div>
                       </motion.button>
                     ))}
                   </div>
@@ -343,11 +343,11 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                 >
                   <button
                     onClick={handleExploreClick}
-                    className="group inline-flex items-center gap-3 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-blue-500/30 rounded-xl transition-all"
+                    className="group inline-flex items-center gap-3 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 rounded transition-all"
                   >
-                    <Eye className="w-4 h-4 text-white/40 group-hover:text-blue-400 transition-colors" />
+                    <Eye className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
                     <span className="text-sm font-mono text-white/60 group-hover:text-white transition-colors">Explore All {participants.length} Participants</span>
-                    <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-white group-hover:translate-x-1 transition-all" />
                   </button>
                 </motion.div>
               </div>
@@ -368,7 +368,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
             <div className="px-8 pt-8 pb-6 border-b border-white/5 bg-black/20 backdrop-blur-md z-10 space-y-4">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                  <h2 className="text-2xl font-bold font-sans tracking-tight text-blue-500">Network Participants</h2>
+                  <h2 className="text-2xl font-bold font-sans tracking-tight text-white">Network Participants</h2>
                   <p className="text-white/40 text-xs font-mono">
                     {currentViewState === 'filtered' 
                       ? `Showing ${filteredParticipants.length} of ${participants.length} participants`
@@ -385,14 +385,14 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                       value={filter}
                       onChange={handleSearchChange}
                       placeholder="Search participants..."
-                      className="w-64 bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-blue-500/50 transition-all font-mono"
+                      className="w-64 bg-white/5 border border-white/10 rounded py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-white/30 transition-all font-mono"
                     />
                   </div>
 
                   {(filter || selectedRole !== 'ALL') && (
                     <button
                       onClick={clearFilters}
-                      className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-red-500/30 rounded-xl transition-all text-xs font-mono text-white/60 hover:text-white"
+                      className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 rounded transition-all text-xs font-mono text-white/60 hover:text-white"
                     >
                       <X className="w-3 h-3" />
                       Clear
@@ -412,9 +412,9 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                   <button
                     key={role}
                     onClick={() => handleRoleSelect(role)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded text-[10px] font-bold tracking-wide transition-all whitespace-nowrap ${
                       selectedRole === role 
-                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' 
+                        ? 'border border-white/30 bg-black/40 text-white' 
                         : 'bg-white/5 text-white/40 hover:text-white hover:bg-white/10 border border-white/10'
                     }`}
                   >
@@ -437,9 +437,9 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                   className="space-y-4"
                 >
                   <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-bold font-sans tracking-tight text-emerald-500">Community Flows</h3>
-                    <div className="h-px bg-emerald-500/20 flex-1" />
-                    <span className="text-[10px] font-mono text-emerald-500/60 tracking-wide">{communityFlows.length} flows seeking members</span>
+                    <h3 className="text-lg font-bold font-sans tracking-tight text-white/80">Community Flows</h3>
+                    <div className="h-px bg-white/20 flex-1" />
+                    <span className="text-[10px] font-mono text-white/40 tracking-wide">{communityFlows.length} flows seeking members</span>
                   </div>
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -457,7 +457,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
                         >
-                          <LiquidGlass className="p-5 border-emerald-500/10 hover:border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all">
+                          <div className="p-5 border border-white/10 bg-black/30 rounded hover:border-white/30 transition-all">
                             <div className="space-y-4">
                               <div className="flex justify-between items-start">
                                 <div className="flex-1 min-w-0">
@@ -465,8 +465,8 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                                   <p className="text-xs text-white/60 mt-1 line-clamp-2">{flow.description || 'No description available'}</p>
                                 </div>
                                 <div className="ml-3 shrink-0">
-                                  <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-                                    <Users className="w-5 h-5 text-emerald-400" />
+                                  <div className="w-10 h-10 bg-white/10 rounded flex items-center justify-center">
+                                    <Users className="w-5 h-5 text-white/70" />
                                   </div>
                                 </div>
                               </div>
@@ -476,7 +476,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                                   <span className="text-white/40 font-mono">
                                     {filledRoles}/{totalRoles} roles filled
                                   </span>
-                                  <span className="text-emerald-500/80 font-mono">
+                                  <span className="text-white/50 font-mono">
                                     {flow.orgId?.split('::')[0]}
                                   </span>
                                 </div>
@@ -505,7 +505,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                                 <button
                                   onClick={() => handleJoinFlow(flow.id)}
                                   disabled={isJoining || hasJoined}
-                                  className="w-full px-3 py-2 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                  className="w-full px-3 py-2 border border-white/30 text-white rounded text-[10px] font-bold hover:border-white/50 hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                   {hasJoined ? (
                                     <>
@@ -523,7 +523,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                                 </button>
                               </div>
                             </div>
-                          </LiquidGlass>
+                          </div>
                         </motion.div>
                       );
                     })}
@@ -538,7 +538,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                   className="text-center py-8"
                 >
                   <div className="max-w-sm mx-auto space-y-3">
-                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto">
+                    <div className="w-16 h-16 bg-white/5 rounded flex items-center justify-center mx-auto">
                       <Users className="w-8 h-8 text-white/20" />
                     </div>
                     <h3 className="text-sm font-bold text-white/60">No Community Flows Yet</h3>

@@ -6,19 +6,17 @@ import { motion } from 'framer-motion';
 export const LiquidGlass: React.FC<{ children: React.ReactNode; className?: string; hover?: boolean }> = ({ children, className = '', hover = true }) => {
   return (
     <motion.div
-      whileHover={hover ? { scale: 1.02, y: -2 } : {}}
+      whileHover={hover ? { scale: 1.005, y: -1 } : {}}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
-      className={`relative group bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[32px] overflow-hidden ${className}`}
+      className={`relative group bg-black/35 border border-white/[0.12] rounded overflow-hidden ${className}`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
-      <div className="absolute inset-px rounded-[31px] border border-white/[0.05] pointer-events-none" />
       {children}
     </motion.div>
   );
 };
 
 export const LiquidLine: React.FC<{ x1: number; y1: number; x2: number; y2: number; color?: string; active?: boolean }> = ({
-  x1, y1, x2, y2, color = '#3b82f6', active = true
+  x1, y1, x2, y2, color = 'rgba(255,255,255,0.3)', active = true
 }) => {
   return (
     <svg className="absolute top-1/2 left-1/2 pointer-events-none overflow-visible" style={{ zIndex: 0 }}>

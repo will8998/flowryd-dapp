@@ -306,26 +306,26 @@ export const AdminFlowsTab: React.FC = () => {
     switch (status) {
       case 'published':
         return (
-          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-medium px-2 py-1 flex items-center gap-1">
+          <span className="bg-emerald-500/10 text-emerald-400/60 border border-emerald-500/20 rounded-full text-xs font-medium px-2 py-1 flex items-center gap-1">
             <CheckCircle2 className="w-3 h-3" />
             Published
           </span>
         );
       case 'draft':
         return (
-          <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full text-xs font-medium px-2 py-1">
+          <span className="bg-yellow-500/10 text-yellow-400/60 border border-yellow-500/20 rounded-full text-xs font-medium px-2 py-1">
             Draft
           </span>
         );
       case 'archived':
         return (
-          <span className="bg-gray-500/20 text-gray-400 border border-gray-500/30 rounded-full text-xs font-medium px-2 py-1">
+          <span className="bg-gray-500/10 text-gray-400/60 border border-gray-500/20 rounded-full text-xs font-medium px-2 py-1">
             Archived
           </span>
         );
       default:
         return (
-          <span className="bg-white/20 text-white/40 border border-white/30 rounded-full text-xs font-medium px-2 py-1">
+          <span className="bg-white/10 text-white/40 border border-white/20 rounded-full text-xs font-medium px-2 py-1">
             {status}
           </span>
         );
@@ -392,13 +392,13 @@ export const AdminFlowsTab: React.FC = () => {
               placeholder="Search flows..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded text-white placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-500/50 transition-colors"
+            className="px-3 py-2.5 bg-white/5 border border-white/10 rounded text-white focus:outline-none focus:border-white/30 transition-colors"
           >
             <option value="">All statuses</option>
             <option value="draft">Draft</option>
@@ -447,7 +447,7 @@ export const AdminFlowsTab: React.FC = () => {
                             type="text"
                             value={editTitle}
                             onChange={(e) => setEditTitle(e.target.value)}
-                            className="w-full px-2 py-1 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-blue-500/50"
+                            className="w-full px-2 py-1 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-white/30"
                             placeholder="Flow title"
                           />
                         </div>
@@ -473,7 +473,7 @@ export const AdminFlowsTab: React.FC = () => {
                         title={flow.isPublic ? 'Make private' : 'Make public'}
                       >
                         {flow.isPublic ? (
-                          <Eye className="w-4 h-4 text-emerald-400" />
+                          <Eye className="w-4 h-4 text-white/70" />
                         ) : (
                           <EyeOff className="w-4 h-4 text-white/40" />
                         )}
@@ -481,7 +481,7 @@ export const AdminFlowsTab: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       {flow.isTemplate ? (
-                        <FileText className="w-4 h-4 text-blue-400" />
+                        <FileText className="w-4 h-4 text-white/70" />
                       ) : (
                         <span className="text-white/20">—</span>
                       )}
@@ -531,7 +531,7 @@ export const AdminFlowsTab: React.FC = () => {
                           <button
                             onClick={() => publishFlow(flow.id)}
                             disabled={actionLoading === flow.id}
-                            className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-sm font-medium hover:bg-emerald-500/30 transition-colors disabled:opacity-50"
+                            className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
                           >
                             <Play className="w-3 h-3 mr-1" />
                             Publish
@@ -543,14 +543,14 @@ export const AdminFlowsTab: React.FC = () => {
                             <button
                               onClick={() => unpublishFlow(flow.id)}
                               disabled={actionLoading === flow.id}
-                              className="px-3 py-1.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-lg text-sm font-medium hover:bg-yellow-500/30 transition-colors disabled:opacity-50"
+                              className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
                             >
                               Unpublish
                             </button>
                             <button
                               onClick={() => archiveFlow(flow.id)}
                               disabled={actionLoading === flow.id}
-                              className="px-3 py-1.5 bg-gray-500/20 text-gray-400 border border-gray-500/30 rounded-lg text-sm font-medium hover:bg-gray-500/30 transition-colors disabled:opacity-50"
+                              className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
                             >
                               <Archive className="w-3 h-3 mr-1" />
                               Archive
@@ -558,7 +558,7 @@ export const AdminFlowsTab: React.FC = () => {
                             <button
                               onClick={() => publishAsTemplate(flow.id)}
                               disabled={actionLoading === flow.id}
-                              className="px-3 py-1.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-medium hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                              className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
                             >
                               <FileText className="w-3 h-3 mr-1" />
                               Template
@@ -570,7 +570,7 @@ export const AdminFlowsTab: React.FC = () => {
                           <button
                             onClick={() => restoreToDraft(flow.id)}
                             disabled={actionLoading === flow.id}
-                            className="px-3 py-1.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-medium hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                            className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
                           >
                             <RotateCcw className="w-3 h-3 mr-1" />
                             Restore
@@ -601,7 +601,7 @@ export const AdminFlowsTab: React.FC = () => {
                           onChange={(e) => setEditDescription(e.target.value)}
                           placeholder="Flow description (optional)"
                           rows={3}
-                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50 resize-none"
+                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/30 resize-none"
                         />
                       </td>
                     </tr>

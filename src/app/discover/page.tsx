@@ -108,14 +108,14 @@ function LandingView({ onStart }: { onStart: () => void }) {
             <FlowRydHeroAnimation />
           </div>
 
-          <span className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white/10 border border-white/20 text-sm font-mono text-blue-300 tracking-wide backdrop-blur-sm">
+          <span className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white/10 border border-white/20 text-sm font-mono text-white/80 tracking-wide backdrop-blur-sm">
             THE MISSING LINK NO-ONE IS TALKING ABOUT
           </span>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 leading-tight">
             <span className="block text-white">
               The Orchestration Layer
             </span>
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+            <span className="block text-white">
               for Canton Network
             </span>
           </h1>
@@ -137,7 +137,7 @@ function LandingView({ onStart }: { onStart: () => void }) {
            transition={{ delay: 0.45 }}
            className="flex justify-center gap-8 py-4 text-sm font-mono text-white/50"
         >
-          <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500"></span>DISCOVER</span>
+           <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-white/60"></span>DISCOVER</span>
           <span className="flex items-center gap-2">→</span>
           <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-white/20"></span>NAVIGATE</span>
           <span className="flex items-center gap-2">→</span>
@@ -155,9 +155,9 @@ function LandingView({ onStart }: { onStart: () => void }) {
             <p className="text-white/60">From discovery to activation in three simple steps</p>
           </div>
           
-          <div className="rounded-2xl border border-white/10 overflow-hidden bg-black shadow-2xl shadow-blue-900/20">
-             <DemoSequence />
-          </div>
+           <div className="rounded border border-white/10 overflow-hidden bg-black shadow-2xl">
+              <DemoSequence />
+           </div>
         </motion.div>
 
         <motion.div
@@ -166,18 +166,18 @@ function LandingView({ onStart }: { onStart: () => void }) {
           transition={{ delay: 0.5 }}
           className="max-w-4xl mx-auto w-full grid md:grid-cols-2 gap-6"
         >
-          <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-2xl border border-blue-500/30 p-8 text-left relative overflow-hidden group hover:border-blue-500/50 transition-colors">
-            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20" />
-            
-            <div className="relative z-10 flex flex-col h-full">
-              <div className="flex justify-between items-start mb-4">
-                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/50">
-                   <Image src="/flow.svg" alt="Flowryd" width={24} height={24} className="w-6 h-6 text-white" />
-                </div>
-                <div className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-full border border-blue-500/20">
-                  AVAILABLE NOW
-                </div>
-              </div>
+           <div className="bg-white/5 rounded border border-white/10 p-8 text-left relative overflow-hidden group hover:border-white/30 transition-colors">
+             <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20" />
+             
+             <div className="relative z-10 flex flex-col h-full">
+               <div className="flex justify-between items-start mb-4">
+                 <div className="w-10 h-10 bg-white/60 rounded flex items-center justify-center shadow-lg">
+                    <Image src="/flow.svg" alt="Flowryd" width={24} height={24} className="w-6 h-6 text-black" />
+                 </div>
+                 <div className="px-3 py-1 bg-white/20 text-white text-xs font-bold rounded-full border border-white/20">
+                   AVAILABLE NOW
+                 </div>
+               </div>
 
               <h2 className="text-2xl font-bold mb-1">DISCOVER</h2>
               <div className="text-3xl font-bold text-white mb-4">$100<span className="text-lg text-white/50 font-normal">/month</span></div>
@@ -186,19 +186,19 @@ function LandingView({ onStart }: { onStart: () => void }) {
                 Visualize connection opportunities, calculate collateral efficiency, and simulate network effects.
               </p>
 
-              <ul className="text-sm text-white/80 space-y-3 mb-8">
-                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-blue-400 rounded-full"/> Network grid builder</li>
-                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-blue-400 rounded-full"/> VP badges (C7 Identity)</li>
-                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-blue-400 rounded-full"/> Connection intelligence</li>
-              </ul>
+               <ul className="text-sm text-white/80 space-y-3 mb-8">
+                 <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-white/60 rounded-full"/> Network grid builder</li>
+                 <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-white/60 rounded-full"/> VP badges (C7 Identity)</li>
+                 <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-white/60 rounded-full"/> Connection intelligence</li>
+               </ul>
 
               <div className="mt-auto">
-                <button 
-                  onClick={() => window.open('https://flowryd.typeform.com/to/gESTfumm', '_blank')}
-                  className="w-full py-4 bg-white text-black rounded-xl font-bold text-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-2 group-hover:scale-[1.02]"
-                >
-                  Join as Provider <ArrowRight className="w-5 h-5" />
-                </button>
+                 <button 
+                   onClick={() => window.open('https://flowryd.typeform.com/to/gESTfumm', '_blank')}
+                   className="w-full py-4 border border-white/30 text-white rounded hover:border-white/50 font-bold text-lg transition-all flex items-center justify-center gap-2 group-hover:scale-[1.02]"
+                 >
+                   Join as Provider <ArrowRight className="w-5 h-5" />
+                 </button>
                 <div className="text-center mt-3 text-xs text-white/40">
                   Public Launch Pricing until April 30, 2026
                 </div>
@@ -206,7 +206,7 @@ function LandingView({ onStart }: { onStart: () => void }) {
             </div>
           </div>
 
-          <div className="bg-white/5 rounded-2xl border border-white/10 p-8 text-left relative overflow-hidden flex flex-col">
+           <div className="bg-white/5 rounded border border-white/10 p-8 text-left relative overflow-hidden flex flex-col">
             <div className="absolute top-0 right-0 p-4 opacity-50">
                <Workflow className="w-24 h-24 text-white/5" />
             </div>
@@ -232,25 +232,25 @@ function LandingView({ onStart }: { onStart: () => void }) {
                 </div>
               </div>
 
-              <div className="mt-8 flex flex-col gap-4">
-                 <button
-                    onClick={handleLaunchClick}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-900/30"
-                  >
-                    Launch App Demo
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+               <div className="mt-8 flex flex-col gap-4">
+                  <button
+                     onClick={handleLaunchClick}
+                     className="flex items-center justify-center gap-2 w-full py-3 border border-white/30 text-white font-semibold rounded hover:border-white/50 transition-all"
+                   >
+                     Launch App Demo
+                     <ArrowRight className="w-4 h-4" />
+                   </button>
 
-                 <a
-                    href="https://flowryd.typeform.com/to/UkJLqGuB"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl transition-all border border-white/10"
-                  >
-                    Join Waitlist
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-              </div>
+                  <a
+                     href="https://flowryd.typeform.com/to/UkJLqGuB"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="flex items-center justify-center gap-2 w-full py-3 bg-white/5 hover:bg-white/10 text-white font-semibold rounded transition-all border border-white/10"
+                   >
+                     Join Waitlist
+                     <ArrowRight className="w-4 h-4" />
+                   </a>
+               </div>
             </div>
           </div>
         </motion.div>
@@ -471,22 +471,22 @@ function AppView() {
         </Link>
           </div>
 
-      {/* Navigation Tabs - Global */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-xl border border-white/10 p-1 rounded-full">
-        <button 
-          onClick={() => setShowTeaser(false)}
-          className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wide transition-all ${!showTeaser ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
-        >
-          DISCOVER
-        </button>
-        <div className="w-px h-3 bg-white/10 mx-1" />
-        <button 
-          onClick={() => readinessScore >= 40 && setShowTeaser(true)}
-          disabled={readinessScore < 40}
-          className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wide transition-all ${showTeaser ? 'bg-blue-500 text-white shadow-lg shadow-blue-900/20' : (readinessScore >= 40 ? 'text-white/40 hover:text-white hover:bg-white/5' : 'text-white/20 cursor-not-allowed')}`}
-        >
-          NAVIGATE
-        </button>
+       {/* Navigation Tabs - Global */}
+       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-xl border border-white/10 p-1 rounded-full">
+         <button 
+           onClick={() => setShowTeaser(false)}
+           className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wide transition-all ${!showTeaser ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+         >
+           DISCOVER
+         </button>
+         <div className="w-px h-3 bg-white/10 mx-1" />
+         <button 
+           onClick={() => readinessScore >= 40 && setShowTeaser(true)}
+           disabled={readinessScore < 40}
+           className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wide transition-all ${showTeaser ? 'border border-white/30 bg-black/40 text-white' : (readinessScore >= 40 ? 'text-white/40 hover:text-white hover:bg-white/5' : 'text-white/20 cursor-not-allowed')}`}
+         >
+           NAVIGATE
+         </button>
         <div className="w-px h-3 bg-white/10 mx-1" />
               <button
           disabled
@@ -506,17 +506,17 @@ function AppView() {
            }} 
       />
 
-      {/* Workflow Selector */}
-      <div className="absolute top-24 left-4 z-30">
-        <div className="bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col gap-2 shadow-2xl min-w-[200px]">
+       {/* Workflow Selector */}
+       <div className="absolute top-24 left-4 z-30">
+         <div className="bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded p-4 flex flex-col gap-2 shadow-2xl min-w-[200px]">
            <h3 className="text-xs font-bold text-white/40 tracking-wide mb-1">Select Workflow</h3>
           {selectedWorkflow ? (
             <div className="space-y-2">
-               <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                   <Workflow className="w-4 h-4 text-blue-400" />
-                   <span className="text-sm font-bold text-white">{selectedWorkflow.name}</span>
-                </div>
+               <div className="px-4 py-2 bg-black/30 border border-white/10 rounded flex items-center justify-between gap-2">
+                 <div className="flex items-center gap-2">
+                    <Workflow className="w-4 h-4 text-white/60" />
+                    <span className="text-sm font-bold text-white">{selectedWorkflow.name}</span>
+                 </div>
                 <button
                   onClick={() => { setSelectedWorkflow(null); setNetwork(network.filter(n => n.isUser)); }}
                   className="p-1 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-colors"
@@ -534,7 +534,7 @@ function AppView() {
                 <button
                   key={wf.id}
                   onClick={() => setSelectedWorkflow(wf)}
-                  className="text-left px-3 py-2 hover:bg-white/10 rounded-lg text-sm text-white/70 hover:text-white transition-colors"
+                   className="text-left px-3 py-2 hover:bg-white/10 rounded text-sm text-white/70 hover:text-white transition-colors"
                 >
                   {wf.name}
                 </button>
@@ -669,11 +669,11 @@ function AppView() {
                 }
               }}
               disabled={!selectedWorkflow}
-              className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold shadow-lg transition-all hover:scale-105 ${
-                selectedWorkflow 
-                  ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/30' 
-                  : 'bg-white/10 text-white/40 cursor-not-allowed border border-white/10'
-              }`}
+               className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold shadow-lg transition-all hover:scale-105 ${
+                 selectedWorkflow 
+                   ? 'border border-white/30 text-white rounded hover:border-white/50' 
+                   : 'bg-white/10 text-white/40 cursor-not-allowed border border-white/10'
+               }`}
             >
               <Plus className="w-5 h-5" />
               Add Participant
@@ -689,9 +689,9 @@ function AppView() {
         </div>
       </div>
 
-      {/* Power Bar */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
-        <div className="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-2 flex items-center gap-4 shadow-2xl">
+       {/* Power Bar */}
+       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
+         <div className="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded p-2 flex items-center gap-4 shadow-2xl">
           <div className="flex gap-6 px-4 border-r border-white/10">
            <div className="text-center">
               <div className="text-[10px] text-white/40 tracking-wide flex items-center gap-1 justify-center">
@@ -703,10 +703,10 @@ function AppView() {
               <div className="text-[10px] text-white/40 tracking-wide">Validators</div>
               <div className="text-sm font-mono font-bold text-white">{totalValidators}</div>
               </div>
-            <div className="text-center">
-              <div className="text-[10px] text-white/40 tracking-wide">Centrality</div>
-              <div className="text-sm font-mono font-bold text-blue-400">{centralityScore}</div>
-              </div>
+             <div className="text-center">
+               <div className="text-[10px] text-white/40 tracking-wide">Centrality</div>
+               <div className="text-sm font-mono font-bold text-white">{centralityScore}</div>
+               </div>
            </div>
 
           {selectedWorkflow && (
@@ -716,21 +716,21 @@ function AppView() {
                   <span className="text-[10px] text-white/60">Readiness</span>
                   <span className="text-[10px] text-white font-bold">{readinessScore}%</span>
               </div>
-                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-gradient-to-r from-blue-500 to-green-400"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${readinessScore}%` }}
-                  />
-                </div>
+                 <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                   <motion.div 
+                     className="h-full bg-gradient-to-r from-white/60 to-white/80"
+                     initial={{ width: 0 }}
+                     animate={{ width: `${readinessScore}%` }}
+                   />
+                 </div>
               </div>
-              <button
-                onClick={() => setShowTeaser(true)}
-                disabled={readinessScore < 40}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-bold text-xs transition-colors"
-              >
-                Deploy Flow <ArrowRight className="w-3 h-3" />
-              </button>
+               <button
+                 onClick={() => setShowTeaser(true)}
+                 disabled={readinessScore < 40}
+                 className="flex items-center gap-2 px-4 py-2 border border-white/30 text-white hover:border-white/50 disabled:opacity-50 disabled:cursor-not-allowed rounded font-bold text-xs transition-colors"
+               >
+                 Deploy Flow <ArrowRight className="w-3 h-3" />
+               </button>
            </div>
           )}
         </div>

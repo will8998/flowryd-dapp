@@ -213,7 +213,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
   );
 
   return (
-    <div className="h-full flex flex-col bg-[#020202] relative overflow-hidden">
+    <div className="h-full flex flex-col bg-background relative overflow-hidden">
       {/* Unified Toolbar */}
       <div className="flex items-center gap-3 px-4 py-2.5 border-b border-white/5 bg-black/40 backdrop-blur-md z-20 shrink-0">
         {/* Flow Selector */}
@@ -222,7 +222,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
             onClick={() => setShowFlowSelector(!showFlowSelector)}
             className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors min-w-[160px]"
           >
-            <Layers className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+            <Layers className="w-3.5 h-3.5 text-white/70 shrink-0" />
             <span className="text-xs font-mono text-white/80 truncate">
               {activeFlow?.title || 'Select a flow...'}
             </span>
@@ -246,7 +246,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                         key={f.id}
                         onClick={() => selectFlow(f.id)}
                         className={`w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-colors ${
-                          f.id === activeFlowId ? 'bg-blue-500/10 text-blue-400' : 'text-white/60 hover:bg-white/5 hover:text-white'
+                          f.id === activeFlowId ? 'bg-white/10 text-white/60' : 'text-white/60 hover:bg-white/5 hover:text-white'
                         }`}
                       >
                         {f.title}
@@ -257,7 +257,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                 <div className="border-t border-white/5 p-2">
                   <button
                     onClick={handleNewFlow}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/10 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-white/60 hover:bg-white/10 transition-colors"
                   >
                     <Plus className="w-3 h-3" /> New Flow
                   </button>
@@ -269,7 +269,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
 
         <button
           onClick={handleNewFlow}
-          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-500 transition-colors flex items-center gap-1.5 tracking-wide"
+          className="px-3 py-1.5 border border-white/20 text-white rounded-lg text-[10px] font-bold hover:border-white/40 transition-colors flex items-center gap-1.5 tracking-wide"
         >
           <Plus className="w-3 h-3" /> New
         </button>
@@ -282,9 +282,9 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
             <span className="text-[9px] font-mono text-white/30">
               {nodes.length} node{nodes.length !== 1 ? 's' : ''} · {edges.length} edge{edges.length !== 1 ? 's' : ''}
             </span>
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-md">
-              <ShieldCheck className="w-3 h-3 text-emerald-500" />
-              <span className="text-[9px] font-bold text-emerald-500 font-mono">99.9%</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 border border-white/10 rounded-md">
+              <ShieldCheck className="w-3 h-3 text-white/70" />
+              <span className="text-[9px] font-bold text-white/70 font-mono">99.9%</span>
             </div>
           </div>
         )}
@@ -307,7 +307,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
             <button
               onClick={handlePublish}
               disabled={isPublishing}
-              className="px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              className="px-3 py-1.5 border border-white/30 text-white rounded-lg text-[10px] font-bold hover:border-white/50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
             >
               <Globe className="w-3 h-3" />
               {publishSuccess ? 'Published!' : isPublishing ? 'Publishing...' : 'Publish'}
@@ -337,9 +337,9 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                 }
               }}
               disabled={isCreatingDeal}
-              className="px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold hover:bg-emerald-400 transition-colors flex items-center gap-1.5 tracking-wide disabled:opacity-50"
+              className="px-3 py-1.5 border border-white/30 text-white rounded-lg text-[10px] font-bold hover:border-white/50 transition-colors flex items-center gap-1.5 tracking-wide disabled:opacity-50"
             >
-              <Play className="w-3 h-3 fill-black" /> {isCreatingDeal ? 'Creating...' : 'Deal Room'}
+              <Play className="w-3 h-3 fill-white" /> {isCreatingDeal ? 'Creating...' : 'Deal Room'}
             </button>
           )}
         </div>

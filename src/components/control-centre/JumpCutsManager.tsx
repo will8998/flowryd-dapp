@@ -78,13 +78,13 @@ export const JumpCutsManager: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#020202] text-white">
+    <div className="h-full flex flex-col bg-background text-white">
       <div className="flex-none">
         <div className="p-8 border-b border-white/5">
           <div className="flex items-center justify-between mb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <Workflow className="w-6 h-6 text-blue-500" />
+                <Workflow className="w-6 h-6 text-white/70" />
                 <h1 className="text-2xl font-bold text-white">Jump Cuts</h1>
               </div>
               <p className="text-white/60 text-sm">Manage workflow templates</p>
@@ -93,7 +93,7 @@ export const JumpCutsManager: React.FC = () => {
               onClick={handleCreateNew}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-white/40 rounded text-white text-sm font-medium transition-colors"
             >
               <Plus className="w-4 h-4" />
               Create New Jump Cut
@@ -257,7 +257,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
   return (
     <motion.div
       layout
-      className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden"
+      className="bg-black/30 border border-white/10 rounded overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
@@ -271,13 +271,13 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                   type="text"
                   value={localWorkflow.name}
                   onChange={(e) => updateLocalWorkflow({ name: e.target.value })}
-                  className="text-lg font-semibold text-white bg-white/5 border border-white/10 rounded-lg px-3 py-1 focus:outline-none focus:border-blue-500/50"
+                  className="text-lg font-semibold text-white bg-white/5 border border-white/10 rounded px-3 py-1 focus:outline-none focus:border-white/30"
                 />
               ) : (
                 <h3 className="text-lg font-semibold text-white">{workflow.name}</h3>
               )}
               {workflow.isCustom && (
-                <span className="px-2 py-1 bg-emerald-500/20 text-emerald-500 rounded text-xs font-medium">
+                <span className="px-2 py-1 bg-white/10 text-white/60 rounded text-xs font-medium">
                   Custom
                 </span>
               )}
@@ -291,7 +291,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
               <textarea
                 value={localWorkflow.description}
                 onChange={(e) => updateLocalWorkflow({ description: e.target.value })}
-                className="w-full text-white/60 text-sm bg-white/5 border border-white/10 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-blue-500/50"
+                className="w-full text-white/60 text-sm bg-white/5 border border-white/10 rounded px-3 py-2 resize-none focus:outline-none focus:border-white/30"
                 rows={2}
               />
             ) : (
@@ -311,9 +311,9 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={onToggleEdit}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-2 rounded transition-colors ${
                 isEditing 
-                  ? 'bg-blue-600 text-white' 
+                  ? 'bg-white/20 text-white' 
                   : 'text-white/40 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -321,7 +321,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
             </button>
             <button
               onClick={onToggleExpand}
-              className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded transition-colors"
             >
               {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </button>
@@ -345,7 +345,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                   {isEditing && (
                     <button
                       onClick={addStage}
-                      className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium mx-auto"
+                      className="mt-4 flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-white/40 rounded text-white text-sm font-medium mx-auto"
                     >
                       <Plus className="w-4 h-4" />
                       Add First Stage
@@ -362,7 +362,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                     {isEditing && (
                       <button
                         onClick={addStage}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg text-xs font-medium transition-colors"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white/10 hover:bg-white/15 text-white/60 rounded text-xs font-medium transition-colors"
                       >
                         <Plus className="w-3 h-3" />
                         Add Stage
@@ -370,9 +370,9 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                     )}
                   </div>
                   {localWorkflow.stages.map((stage, stageIndex) => (
-                    <div key={stage.id} className="bg-white/5 rounded-lg p-4">
+                    <div key={stage.id} className="bg-white/5 rounded p-4">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-mono">
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 text-white/80 text-xs font-mono">
                           {stageIndex + 1}
                         </div>
                         {isEditing ? (
@@ -381,7 +381,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                               type="text"
                               value={stage.name}
                               onChange={(e) => updateStage(stage.id, { name: e.target.value })}
-                              className="flex-1 font-medium text-white bg-white/10 border border-white/20 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500/50"
+                              className="flex-1 font-medium text-white bg-white/10 border border-white/20 rounded px-2 py-1 text-sm focus:outline-none focus:border-white/30"
                             />
                             <button
                               onClick={() => removeStage(stage.id)}
@@ -406,7 +406,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                                 }
                                 e.target.value = '';
                               }}
-                              className="ml-2 bg-white/10 border border-white/20 rounded px-2 py-0.5 text-xs focus:outline-none focus:border-blue-500/50"
+                              className="ml-2 bg-white/10 border border-white/20 rounded px-2 py-0.5 text-xs focus:outline-none focus:border-white/30"
                             >
                               <option value="">Add role...</option>
                               {availableRoles
@@ -469,13 +469,13 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
               {(isEditing || (localWorkflow.featuredApps && localWorkflow.featuredApps.length > 0)) && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-amber-500 flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-white/70 flex items-center gap-2">
                       <Workflow className="w-4 h-4" />
                       App Stack {localWorkflow.featuredApps && localWorkflow.featuredApps.length > 0 && `(${localWorkflow.featuredApps.length})`}
                     </h4>
                   </div>
 
-                  <div className="bg-white/5 rounded-lg p-4 space-y-4">
+                  <div className="bg-white/5 rounded p-4 space-y-4">
                     {isEditing && (
                       <>
                         {/* Stack Category */}
@@ -484,7 +484,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                           <select
                             value={localWorkflow.stackCategory || 'custom'}
                             onChange={(e) => updateLocalWorkflow({ stackCategory: e.target.value as 'defi' | 'custody' | 'compliance' | 'issuance' | 'custom' })}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500/50"
+                            className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
                           >
                             <option value="defi">DeFi</option>
                             <option value="custody">Custody</option>
@@ -505,7 +505,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                             max="25"
                             value={localWorkflow.orchestrationFee ?? 0}
                             onChange={(e) => updateLocalWorkflow({ orchestrationFee: parseInt(e.target.value) })}
-                            className="w-full h-2 bg-white/10 rounded-lg appearance-none slider-thumb:appearance-none slider-thumb:w-4 slider-thumb:h-4 slider-thumb:rounded-full slider-thumb:bg-amber-500 slider-thumb:cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                            className="w-full h-2 bg-white/10 rounded appearance-none slider-thumb:appearance-none slider-thumb:w-4 slider-thumb:h-4 slider-thumb:rounded-full slider-thumb:bg-white/40 slider-thumb:cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/20"
                           />
                           <div className="flex justify-between text-xs text-white/40">
                             <span>0%</span>
@@ -536,7 +536,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                                 e.target.value = '';
                               }
                             }}
-                            className="bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                            className="bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-white/30"
                           >
                             <option value="">Add App...</option>
                             {participants
@@ -555,15 +555,15 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                           {localWorkflow.featuredApps.map((app, index) => {
                             const participant = participants.find(p => p.id === app.participantId);
                             return (
-                              <div key={app.participantId} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                              <div key={app.participantId} className="flex items-center justify-between p-3 bg-white/5 rounded">
                                 <div className="flex items-center gap-3">
                                   <span className="text-white font-medium text-sm">
                                     {participant?.name || app.participantId}
                                   </span>
                                   {!isEditing && (
-                                    <span className="px-2 py-1 bg-amber-500/20 text-amber-400 rounded text-xs font-mono">
-                                      {app.revenueSharePct}%
-                                    </span>
+                                     <span className="px-2 py-1 bg-white/10 text-white/50 rounded text-xs font-mono">
+                                       {app.revenueSharePct}%
+                                     </span>
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -580,7 +580,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                                           );
                                           updateLocalWorkflow({ featuredApps: updatedApps });
                                         }}
-                                        className="w-16 text-center bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-amber-500/50"
+                                         className="w-16 text-center bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-white/30"
                                       />
                                       <span className="text-white/60 text-sm">%</span>
                                       <button
@@ -610,18 +610,12 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                     {!isEditing && (
                       <div className="flex flex-wrap gap-2">
                         {localWorkflow.stackCategory && (
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            localWorkflow.stackCategory === 'defi' ? 'bg-blue-500/20 text-blue-400' :
-                            localWorkflow.stackCategory === 'custody' ? 'bg-emerald-500/20 text-emerald-400' :
-                            localWorkflow.stackCategory === 'compliance' ? 'bg-amber-500/20 text-amber-400' :
-                            localWorkflow.stackCategory === 'issuance' ? 'bg-purple-500/20 text-purple-400' :
-                            'bg-white/20 text-white/60'
-                          }`}>
+                          <span className="px-2 py-1 bg-white/10 text-white/60 rounded text-xs font-medium">
                             {localWorkflow.stackCategory.toUpperCase()}
                           </span>
                         )}
                         {(localWorkflow.orchestrationFee ?? 0) > 0 && (
-                          <span className="px-2 py-1 bg-amber-500/20 text-amber-400 rounded text-xs font-medium">
+                          <span className="px-2 py-1 bg-white/10 text-white/50 rounded text-xs font-medium">
                             {localWorkflow.orchestrationFee}% Fee
                           </span>
                         )}
@@ -641,7 +635,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                     {localWorkflow.roles.map(role => (
                       <span
                         key={role}
-                        className="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-sm font-medium border border-blue-600/20"
+                        className="px-3 py-1.5 bg-white/10 text-white/60 rounded text-sm font-medium border border-white/10"
                       >
                         {role.replace('_', ' ')}
                       </span>
@@ -656,9 +650,9 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                     <button
                       onClick={() => onSave(localWorkflow)}
                       disabled={!hasUnsavedChanges}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-colors ${
                         hasUnsavedChanges
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          ? 'border border-white/30 text-white hover:border-white/50'
                           : 'bg-white/5 text-white/40 cursor-not-allowed'
                       }`}
                     >
@@ -668,7 +662,7 @@ const WorkflowCard: React.FC<WorkflowCardProps> = ({
                     {workflow.isCustom && (
                       <button
                         onClick={() => onDelete(workflow.id)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-sm font-medium transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded text-sm font-medium transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete

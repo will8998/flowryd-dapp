@@ -18,7 +18,7 @@ import { useCantonAuth } from '@/lib/auth-context';
 import { useProviders } from '@/hooks/use-providers';
 import { PROVIDER_CATEGORIES } from '@/lib/providers-data';
 import { participants } from '@/lib/canton-data';
-import { LiquidGlass } from './LiquidPrimitives';
+
 
 interface PublicFlow {
   id: string;
@@ -99,9 +99,9 @@ export const CollectiveHub: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col p-10 space-y-10 overflow-y-auto custom-scrollbar bg-[#020202]">
-      <div className="flex justify-between items-end bg-black/20 backdrop-blur-md p-8 border border-white/5 rounded-[40px]">
+      <div className="flex justify-between items-end bg-black/20 backdrop-blur-md p-8 border border-white/5 rounded">
         <div className="space-y-1">
-          <h2 className="text-4xl font-bold tracking-tight text-emerald-500">Marketplace</h2>
+          <h2 className="text-4xl font-bold tracking-tight text-white">Marketplace</h2>
           <p className="text-white/40 text-sm lowercase tracking-tight">Public workflows available to join</p>
         </div>
         <div className="flex items-center gap-3">
@@ -112,14 +112,14 @@ export const CollectiveHub: React.FC = () => {
               placeholder="Search flows..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/5 border border-white/10 rounded-2xl py-3 pl-9 pr-4 text-[10px] w-48 focus:outline-none focus:border-emerald-500/50 transition-all"
+              className="bg-white/5 border border-white/10 rounded py-3 pl-9 pr-4 text-[10px] w-48 focus:outline-none focus:border-white/30 transition-all"
             />
           </div>
           {workflowTypes.length > 0 && (
-            <div className="flex gap-2 p-1 bg-white/5 border border-white/10 rounded-2xl">
+            <div className="flex gap-2 p-1 bg-white/5 border border-white/10 rounded">
               <button
                 onClick={() => setSelectedType(null)}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-bold tracking-wide transition-all ${!selectedType ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40' : 'text-white/40 hover:text-white'}`}
+                className={`px-6 py-2.5 rounded text-[10px] font-bold tracking-wide transition-all ${!selectedType ? 'border border-white/30 bg-black/40 text-white' : 'text-white/40 hover:text-white'}`}
               >
                 All
               </button>
@@ -127,7 +127,7 @@ export const CollectiveHub: React.FC = () => {
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
-                  className={`px-6 py-2.5 rounded-xl text-[10px] font-bold tracking-wide transition-all ${selectedType === type ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40' : 'text-white/40 hover:text-white'}`}
+                  className={`px-6 py-2.5 rounded text-[10px] font-bold tracking-wide transition-all ${selectedType === type ? 'border border-white/30 bg-black/40 text-white' : 'text-white/40 hover:text-white'}`}
                 >
                   {type}
                 </button>
@@ -139,9 +139,9 @@ export const CollectiveHub: React.FC = () => {
         <div className="flex gap-2 mt-6">
           <button
             onClick={() => setActiveTab('flows')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-all ${
               activeTab === 'flows' 
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                ? 'border border-white/30 bg-black/40 text-white' 
                 : 'text-white/40 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -150,9 +150,9 @@ export const CollectiveHub: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('service')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-all ${
               activeTab === 'service' 
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                ? 'border border-white/30 bg-black/40 text-white' 
                 : 'text-white/40 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -161,9 +161,9 @@ export const CollectiveHub: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('appStack')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-all ${
               activeTab === 'appStack' 
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                ? 'border border-white/30 bg-black/40 text-white' 
                 : 'text-white/40 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -177,7 +177,7 @@ export const CollectiveHub: React.FC = () => {
         <>
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
+              <Loader2 className="w-6 h-6 text-white/40 animate-spin" />
             </div>
           ) : filteredFlows.length === 0 ? (
             <div className="text-center py-20">
@@ -195,18 +195,18 @@ export const CollectiveHub: React.FC = () => {
                   transition={{ delay: i * 0.05 }}
                   className="group"
                 >
-                  <LiquidGlass className="p-10 space-y-8 hover:border-emerald-500/30 transition-all relative overflow-hidden">
+                  <div className="border border-white/10 bg-black/30 rounded hover:border-white/30 transition-all relative overflow-hidden p-10 space-y-8">
                   <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
                     <Workflow className="w-16 h-16" />
                   </div>
                   
                   <div className="space-y-4 relative z-10">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-500/10 rounded-lg">
-                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                      <div className="p-2 bg-white/10 rounded-lg">
+                        <ShieldCheck className="w-4 h-4 text-white/70" />
                       </div>
                       {flow.workflowType && (
-                        <span className="text-[10px] font-bold text-emerald-500/60 tracking-wide">{flow.workflowType}</span>
+                        <span className="text-[10px] font-bold text-white/40 tracking-wide">{flow.workflowType}</span>
                       )}
                     </div>
                     <h3 className="text-2xl font-bold tracking-tight leading-tight">{flow.title}</h3>
@@ -226,18 +226,18 @@ export const CollectiveHub: React.FC = () => {
                     </div>
                     
                     {isOwnFlow(flow) ? (
-                      <div className="w-full py-4 bg-white/5 text-white/30 rounded-2xl font-bold text-xs tracking-wide text-center">
+                      <div className="w-full py-4 bg-white/5 text-white/30 rounded font-bold text-xs tracking-wide text-center">
                         Your Flow
                       </div>
                     ) : joinedIds.has(flow.id) ? (
-                      <div className="w-full py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-2xl font-bold text-xs tracking-wide flex items-center justify-center gap-2">
+                      <div className="w-full py-4 bg-white/10 border border-white/20 text-white/60 rounded font-bold text-xs tracking-wide flex items-center justify-center gap-2">
                         <CheckCircle2 className="w-4 h-4" /> Request Sent
                       </div>
                     ) : (
                       <button
                         onClick={() => handleJoin(flow.id)}
                         disabled={joiningId === flow.id}
-                        className="w-full py-4 bg-white text-black rounded-2xl font-bold text-xs tracking-wide hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 group/btn disabled:opacity-50"
+                        className="w-full py-4 border border-white/30 text-white rounded font-bold text-xs tracking-wide hover:border-white/50 hover:bg-white/5 transition-all flex items-center justify-center gap-2 group/btn disabled:opacity-50"
                       >
                         {joiningId === flow.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -249,16 +249,16 @@ export const CollectiveHub: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  </LiquidGlass>
+                  </div>
                 </motion.div>
               ))}
 
-              <div className="bg-emerald-600 rounded-[40px] p-10 flex flex-col justify-center items-center text-center space-y-6 relative overflow-hidden group cursor-pointer shadow-xl shadow-emerald-900/40">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full" />
+              <div className="border border-dashed border-white/20 bg-black/30 rounded p-10 flex flex-col justify-center items-center text-center space-y-6 relative overflow-hidden group cursor-pointer">
+
                 <Plus className="w-12 h-12 text-white group-hover:rotate-90 transition-transform duration-500" />
                 <div className="space-y-2">
                   <h3 className="text-2xl font-bold tracking-tight">Publish a Flow</h3>
-                  <p className="text-emerald-100/60 text-xs">Make your workflow public and invite participants.</p>
+                  <p className="text-white/40 text-xs">Make your workflow public and invite participants.</p>
                 </div>
               </div>
             </div>
@@ -271,9 +271,9 @@ export const CollectiveHub: React.FC = () => {
           <div className="flex gap-2 mb-6">
             <button
               onClick={() => setProviderCategory(null)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded text-sm font-medium transition-all ${
                 !providerCategory 
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40' 
+                  ? 'border border-white/30 bg-black/40 text-white' 
                   : 'text-white/40 hover:text-white'
               }`}
             >
@@ -285,9 +285,9 @@ export const CollectiveHub: React.FC = () => {
                 <button
                   key={key}
                   onClick={() => setProviderCategory(key)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded text-sm font-medium transition-all ${
                     providerCategory === key 
-                      ? `bg-${category.color}-500/20 text-${category.color}-400 border border-${category.color}-500/30`
+                      ? 'border border-white/30 bg-black/40 text-white'
                       : 'text-white/40 hover:text-white'
                   }`}
                 >
@@ -299,7 +299,7 @@ export const CollectiveHub: React.FC = () => {
 
           {providersLoading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
+              <Loader2 className="w-6 h-6 text-white/40 animate-spin" />
             </div>
           ) : serviceProviders.length === 0 ? (
             <div className="text-center py-20">
@@ -318,14 +318,10 @@ export const CollectiveHub: React.FC = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.05 }}
                   >
-                    <LiquidGlass className="p-6 space-y-4">
+                    <div className="border border-white/10 bg-black/30 rounded hover:border-white/30 transition-all p-6 space-y-4">
                       <div className="flex items-start justify-between">
                         <h3 className="text-lg font-bold">{provider.name}</h3>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          provider.category === 'strategy' ? 'bg-blue-500/20 text-blue-400' :
-                          provider.category === 'development' ? 'bg-emerald-500/20 text-emerald-400' :
-                          'bg-purple-500/20 text-purple-400'
-                        }`}>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/60">
                           {PROVIDER_CATEGORIES[provider.category as keyof typeof PROVIDER_CATEGORIES]?.label || provider.category}
                         </span>
                       </div>
@@ -335,18 +331,18 @@ export const CollectiveHub: React.FC = () => {
                           href={provider.website || '#'} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-xs text-blue-400 hover:text-blue-300 transition-colors block"
+                          className="text-xs text-white/50 hover:text-white/70 transition-colors block"
                         >
                           {provider.website || 'No website'}
                         </a>
                         <button
                           onClick={() => console.log('Apply to provider:', provider.id)}
-                          className="w-full bg-white text-black rounded-2xl font-bold text-xs py-3 px-6 hover:bg-emerald-50 transition-all"
+                          className="w-full border border-white/30 text-white rounded font-bold text-xs py-3 px-6 hover:border-white/50 hover:bg-white/5 transition-all"
                         >
                           Apply
                         </button>
                       </div>
-                    </LiquidGlass>
+                  </div>
                   </motion.div>
                 ))}
           </div>
@@ -381,10 +377,10 @@ export const CollectiveHub: React.FC = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: i * 0.02 }}
                     >
-                      <LiquidGlass className="p-4 space-y-3">
+                      <div className="border border-white/10 bg-black/30 rounded hover:border-white/30 transition-all p-4 space-y-3">
                         <div className="flex items-start justify-between">
                           <h4 className="text-lg font-bold">{participant.name}</h4>
-                          <span className="text-xs bg-blue-500/20 text-blue-400 rounded-full px-2 py-0.5">
+                          <span className="text-xs bg-white/10 text-white/60 rounded px-2 py-0.5">
                             {participant.cantonRole}
                           </span>
                         </div>
@@ -400,16 +396,16 @@ export const CollectiveHub: React.FC = () => {
                         )}
                         <div className="flex gap-4 text-xs">
                           {participant.holdings && (
-                            <span className="text-emerald-400">{participant.holdings}</span>
+                            <span className="text-white/50">{participant.holdings}</span>
                           )}
                           {participant.validatorNodes && participant.validatorNodes > 0 && (
-                            <span className="text-amber-400">{participant.validatorNodes} nodes</span>
+                            <span className="text-white/50">{participant.validatorNodes} nodes</span>
                           )}
                           {participant.superValidator && (
-                            <span className="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded">SuperValidator</span>
+                            <span className="bg-white/10 text-white/50 px-2 py-0.5 rounded">SuperValidator</span>
                           )}
                         </div>
-                      </LiquidGlass>
+                  </div>
                     </motion.div>
                   ))}
                 </div>

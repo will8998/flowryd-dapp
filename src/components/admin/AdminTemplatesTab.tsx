@@ -58,13 +58,13 @@ export const AdminTemplatesTab: React.FC = () => {
   const getStatusBadgeClasses = (status: string) => {
     switch (status) {
       case 'published':
-        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+        return 'bg-emerald-500/10 text-emerald-400/60 border-emerald-500/20';
       case 'draft':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+        return 'bg-yellow-500/10 text-yellow-400/60 border-yellow-500/20';
       case 'archived':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
+        return 'bg-red-500/10 text-red-400/60 border-red-500/20';
       default:
-        return 'bg-white/20 text-white/60 border-white/30';
+        return 'bg-white/10 text-white/60 border-white/20';
     }
   };
 
@@ -87,17 +87,17 @@ export const AdminTemplatesTab: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`mb-4 p-3 rounded-lg border text-sm ${
+          className={`mb-4 p-3 rounded border text-sm ${
             banner.type === 'success'
-              ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
-              : 'bg-red-500/20 border border-red-500/30 text-red-400'
+              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/60'
+              : 'bg-red-500/10 border border-red-500/20 text-red-400/60'
           }`}
         >
           {banner.message}
         </motion.div>
       )}
 
-      <div className="bg-black/20 border border-white/5 rounded-2xl flex-1 flex flex-col overflow-hidden">
+      <div className="bg-black/20 border border-white/5 rounded flex-1 flex flex-col overflow-hidden">
         <div className="p-6 border-b border-white/5">
           <h2 className="text-lg font-bold text-white">Flow Templates</h2>
           <p className="text-sm text-white/40 mt-1">Browse and manage reusable workflow templates</p>
@@ -121,7 +121,7 @@ export const AdminTemplatesTab: React.FC = () => {
                   key={template.id}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white/5 border border-white/5 rounded-2xl p-6 hover:bg-white/10 hover:border-white/10 transition-all"
+                  className="bg-white/5 border border-white/5 rounded p-6 hover:bg-white/10 hover:border-white/10 transition-all"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -133,18 +133,18 @@ export const AdminTemplatesTab: React.FC = () => {
                     <div className="flex items-center gap-2 ml-4">
                       {template.isPublic && (
                         <div
-                          className="p-1.5 bg-blue-500/20 border border-blue-500/30 rounded-lg"
+                          className="p-1.5 bg-white/10 border border-white/20 rounded"
                           title="Public template"
                         >
-                          <Globe className="w-4 h-4 text-blue-400" />
+                          <Globe className="w-4 h-4 text-white/70" />
                         </div>
                       )}
                       {template.isPublic === false && (
                         <div
-                          className="p-1.5 bg-red-500/20 border border-red-500/30 rounded-lg"
+                          className="p-1.5 bg-white/10 border border-white/20 rounded"
                           title="Private template"
                         >
-                          <Lock className="w-4 h-4 text-red-400" />
+                          <Lock className="w-4 h-4 text-white/70" />
                         </div>
                       )}
                     </div>

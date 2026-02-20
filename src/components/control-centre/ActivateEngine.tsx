@@ -17,10 +17,10 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string; border: string;
 
 const DOT_COLORS: Record<string, string> = {
   draft: 'bg-white/40',
-  open: 'bg-blue-500',
-  negotiating: 'bg-yellow-500',
-  locked: 'bg-orange-500',
-  committed: 'bg-emerald-500',
+  open: 'bg-blue-500/60',
+  negotiating: 'bg-yellow-500/60',
+  locked: 'bg-orange-500/60',
+  committed: 'bg-emerald-500/60',
 };
 
 const timeAgo = (dateStr: string) => {
@@ -66,7 +66,7 @@ export const ActivateEngine: React.FC = () => {
   }, [refetch]);
 
   return (
-    <div className="h-full flex flex-col bg-[#020202]">
+    <div className="h-full flex flex-col bg-background">
       <div className="px-6 pt-5 pb-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -75,7 +75,7 @@ export const ActivateEngine: React.FC = () => {
           </div>
           <button
             onClick={handleNewDeal}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold tracking-wide hover:bg-emerald-400 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-white/30 text-white rounded text-[10px] font-bold tracking-wide hover:border-white/50 hover:bg-white/5 transition-colors"
           >
             <Plus className="w-3 h-3" /> New Deal
           </button>
@@ -124,7 +124,7 @@ export const ActivateEngine: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-6 pb-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-white/40 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredDeals.length === 0 ? (
           <motion.div
@@ -132,7 +132,7 @@ export const ActivateEngine: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-20"
           >
-            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-dashed border-white/10 flex items-center justify-center mb-4">
+            <div className="w-14 h-14 rounded bg-white/5 border border-dashed border-white/10 flex items-center justify-center mb-4">
               <Briefcase className="w-6 h-6 text-white/15" />
             </div>
             <p className="text-sm font-semibold text-white/30">
@@ -145,10 +145,10 @@ export const ActivateEngine: React.FC = () => {
               }
             </p>
             {!activeFilter && (
-              <button
-                onClick={handleNewDeal}
-                className="mt-4 flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-white/50 hover:bg-white/10 hover:text-white/70 transition-all"
-              >
+                <button
+                  onClick={handleNewDeal}
+                  className="mt-4 flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-white/50 hover:bg-white/10 hover:text-white/70 transition-all"
+                >
                 <Plus className="w-3 h-3" /> Create your first deal
               </button>
             )}
@@ -168,7 +168,7 @@ export const ActivateEngine: React.FC = () => {
                     exit={{ opacity: 0, scale: 0.98 }}
                     transition={{ delay: i * 0.03 }}
                     onClick={() => window.location.href = `/deals/${deal.id}`}
-                    className="flex items-center gap-4 px-4 py-3 bg-[#0a0a0a] border border-white/[0.06] rounded-xl hover:border-white/15 hover:bg-[#0d0d0d] transition-all cursor-pointer group"
+                    className="flex items-center gap-4 px-4 py-3 bg-black/30 border border-white/10 rounded hover:border-white/20 hover:bg-white/[0.02] transition-all cursor-pointer group"
                   >
                     <span className={`w-2 h-2 rounded-full shrink-0 ${DOT_COLORS[status]}`} />
 

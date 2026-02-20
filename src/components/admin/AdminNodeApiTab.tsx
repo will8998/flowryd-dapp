@@ -128,10 +128,10 @@ export const AdminNodeApiTab: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`p-4 rounded-lg border ${
+            className={`p-4 rounded border ${
               banner.type === 'success' 
-                ? 'bg-green-500/20 border-green-500/30 text-green-400' 
-                : 'bg-red-500/20 border-red-500/30 text-red-400'
+                ? 'bg-green-500/10 border-green-500/20 text-green-400/60' 
+                : 'bg-red-500/10 border-red-500/20 text-red-400/60'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -148,8 +148,8 @@ export const AdminNodeApiTab: React.FC = () => {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-            <Server className="w-6 h-6 text-blue-400" />
+          <div className="p-3 bg-white/10 border border-white/20 rounded">
+            <Server className="w-6 h-6 text-white/70" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-white">Canton Node API Endpoints</h2>
@@ -158,7 +158,7 @@ export const AdminNodeApiTab: React.FC = () => {
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-white/40 text-white rounded transition-colors"
         >
           {showForm ? (
             <>
@@ -193,7 +193,7 @@ export const AdminNodeApiTab: React.FC = () => {
                   value={formEndpoint}
                   onChange={(e) => setFormEndpoint(e.target.value)}
                   placeholder="https://canton-node.example.com/api"
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-white/40 focus:outline-none focus:border-white/30"
                   required
                 />
               </div>
@@ -207,7 +207,7 @@ export const AdminNodeApiTab: React.FC = () => {
                   value={formLabel}
                   onChange={(e) => setFormLabel(e.target.value)}
                   placeholder="Production Node"
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-white/40 focus:outline-none focus:border-white/30"
                 />
               </div>
               
@@ -220,7 +220,7 @@ export const AdminNodeApiTab: React.FC = () => {
                   value={formApiKey}
                   onChange={(e) => setFormApiKey(e.target.value)}
                   placeholder="Enter API key"
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-white/40 focus:outline-none focus:border-white/30"
                 />
               </div>
               
@@ -228,7 +228,7 @@ export const AdminNodeApiTab: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting || !formEndpoint.trim()}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-white/40 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
                     <>
@@ -245,7 +245,7 @@ export const AdminNodeApiTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 text-white/60 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
+                  className="px-4 py-2 text-white/60 hover:text-white border border-white/10 rounded hover:bg-white/5 transition-colors"
                 >
                   Cancel
                 </button>
@@ -257,7 +257,7 @@ export const AdminNodeApiTab: React.FC = () => {
 
       {loading && (
         <div className="bg-black/20 backdrop-blur-xl border border-white/5 rounded-lg p-8 text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-blue-400" />
+          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-white/40" />
           <p className="text-white/60">Loading node configurations...</p>
         </div>
       )}
@@ -284,7 +284,7 @@ export const AdminNodeApiTab: React.FC = () => {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <Globe className="w-5 h-5 text-blue-400" />
+                    <Globe className="w-5 h-5 text-white/70" />
                     <h3 className="text-lg font-bold text-white">
                       {config.label || 'Unnamed Endpoint'}
                     </h3>
@@ -320,12 +320,12 @@ export const AdminNodeApiTab: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+      <div className="bg-white/10 border border-white/20 rounded p-4">
         <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+          <Info className="w-5 h-5 text-white/70 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-blue-300 text-sm font-medium mb-1">Configuration Notice</p>
-            <p className="text-blue-200/80 text-sm">
+            <p className="text-white/80 text-sm font-medium mb-1">Configuration Notice</p>
+            <p className="text-white/60 text-sm">
               Node API configurations cannot be modified after creation. Contact support to update or remove endpoints.
             </p>
           </div>

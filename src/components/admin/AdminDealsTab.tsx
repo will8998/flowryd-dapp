@@ -238,37 +238,37 @@ export const AdminDealsTab: React.FC = () => {
     switch (status) {
       case 'committed':
         return (
-          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-medium px-2 py-1">
+          <span className="bg-emerald-500/10 text-emerald-400/60 border border-emerald-500/20 rounded-full text-xs font-medium px-2 py-1">
             Committed
           </span>
         );
       case 'locked':
         return (
-          <span className="bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full text-xs font-medium px-2 py-1">
+          <span className="bg-orange-500/10 text-orange-400/60 border border-orange-500/20 rounded-full text-xs font-medium px-2 py-1">
             Locked
           </span>
         );
       case 'negotiating':
         return (
-          <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full text-xs font-medium px-2 py-1">
+          <span className="bg-yellow-500/10 text-yellow-400/60 border border-yellow-500/20 rounded-full text-xs font-medium px-2 py-1">
             Negotiating
           </span>
         );
       case 'open':
         return (
-          <span className="bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full text-xs font-medium px-2 py-1">
+          <span className="bg-white/10 text-white/60 border border-white/20 rounded-full text-xs font-medium px-2 py-1">
             Open
           </span>
         );
       case 'draft':
         return (
-          <span className="bg-gray-500/20 text-gray-400 border border-gray-500/30 rounded-full text-xs font-medium px-2 py-1">
+          <span className="bg-gray-500/10 text-gray-400/60 border border-gray-500/20 rounded-full text-xs font-medium px-2 py-1">
             Draft
           </span>
         );
       default:
         return (
-          <span className="bg-white/20 text-white/40 border border-white/30 rounded-full text-xs font-medium px-2 py-1">
+          <span className="bg-white/10 text-white/40 border border-white/20 rounded-full text-xs font-medium px-2 py-1">
             {status}
           </span>
         );
@@ -335,13 +335,13 @@ export const AdminDealsTab: React.FC = () => {
               placeholder="Search deals..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded text-white placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-500/50 transition-colors"
+            className="px-3 py-2.5 bg-white/5 border border-white/10 rounded text-white focus:outline-none focus:border-white/30 transition-colors"
           >
             <option value="">All statuses</option>
             <option value="draft">Draft</option>
@@ -413,7 +413,7 @@ export const AdminDealsTab: React.FC = () => {
                             value={deal.status}
                             onChange={(e) => updateDealStatus(deal.id, e.target.value)}
                             disabled={actionLoading === deal.id}
-                            className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-blue-500/50 disabled:opacity-50"
+                            className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-white/30 disabled:opacity-50"
                           >
                             <option value={deal.status}>{deal.status}</option>
                             {getValidTransitions(deal.status).map(status => (
@@ -443,13 +443,13 @@ export const AdminDealsTab: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => toggleExpanded(deal.id)}
-                          className="px-3 py-1.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-medium hover:bg-blue-500/30 transition-colors"
+                          className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors"
                         >
                           Manage
                         </button>
                         <Link
                           href={`/deals/${deal.id}`}
-                          className="px-3 py-1.5 bg-white/5 text-white/60 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors inline-flex items-center gap-1"
+                          className="px-3 py-1.5 bg-white/5 text-white/60 border border-white/10 rounded text-sm font-medium hover:bg-white/10 transition-colors inline-flex items-center gap-1"
                         >
                           View <ExternalLink className="w-3 h-3" />
                         </Link>
@@ -479,11 +479,11 @@ export const AdminDealsTab: React.FC = () => {
                               <div className="bg-white/5 rounded-lg p-4">
                                 <div className="space-y-2 max-h-48 overflow-y-auto">
                                   {participants[deal.id]?.map((participant) => (
-                                    <div key={participant.id} className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-lg">
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                                          <User className="w-4 h-4 text-blue-400" />
-                                        </div>
+                                     <div key={participant.id} className="flex items-center justify-between py-2 px-3 bg-white/5 rounded">
+                                       <div className="flex items-center gap-3">
+                                         <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                           <User className="w-4 h-4 text-white/60" />
+                                         </div>
                                         <div>
                                           <div className="text-sm font-medium text-white">
                                             {participant.displayName || participant.partyId || 'Unknown'}
@@ -523,30 +523,30 @@ export const AdminDealsTab: React.FC = () => {
                               <div className="bg-white/5 rounded-lg p-4">
                                 <h5 className="text-sm font-medium text-white mb-3">Add Participant</h5>
                                 <div className="flex items-center gap-3">
-                                  <input
-                                    type="text"
-                                    placeholder="User ID"
-                                    value={addUserId}
-                                    onChange={(e) => setAddUserId(e.target.value)}
-                                    className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50"
-                                  />
-                                  <select
-                                    value={addRole}
-                                    onChange={(e) => setAddRole(e.target.value as 'admin' | 'editor' | 'viewer')}
-                                    className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500/50"
-                                  >
+                                   <input
+                                     type="text"
+                                     placeholder="User ID"
+                                     value={addUserId}
+                                     onChange={(e) => setAddUserId(e.target.value)}
+                                     className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/30"
+                                   />
+                                   <select
+                                     value={addRole}
+                                     onChange={(e) => setAddRole(e.target.value as 'admin' | 'editor' | 'viewer')}
+                                     className="px-3 py-2 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-white/30"
+                                   >
                                     <option value="viewer">Viewer</option>
                                     <option value="editor">Editor</option>
                                     <option value="admin">Admin</option>
                                   </select>
-                                  <button
-                                    onClick={() => addParticipant(deal.id)}
-                                    disabled={!addUserId.trim() || actionLoading === deal.id}
-                                    className="px-4 py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-sm font-medium hover:bg-emerald-500/30 transition-colors disabled:opacity-50 flex items-center gap-2"
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                    Add
-                                  </button>
+                                   <button
+                                     onClick={() => addParticipant(deal.id)}
+                                     disabled={!addUserId.trim() || actionLoading === deal.id}
+                                     className="px-4 py-2 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                                   >
+                                     <Plus className="w-4 h-4" />
+                                     Add
+                                   </button>
                                 </div>
                               </div>
                             </>

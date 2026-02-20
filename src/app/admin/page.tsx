@@ -77,7 +77,7 @@ export default function AdminPage() {
           <p className="text-white/60 mb-6">You need admin privileges to access this page.</p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 border border-white/20 hover:border-white/40 text-white rounded transition-colors"
           >
             <ArrowRight className="w-4 h-4 rotate-180" />
             Back to Home
@@ -93,13 +93,13 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#020202] text-white flex">
       <div className="w-64 bg-black/40 backdrop-blur-xl border-r border-white/5 flex flex-col">
         <div className="p-6 border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-blue-400" />
-            <div>
-              <h1 className="text-xl font-bold">Admin Dashboard</h1>
-              <p className="text-sm text-white/40">System Management</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <Shield className="w-8 h-8 text-white/70" />
+          <div>
+            <h1 className="text-xl font-bold">Admin Dashboard</h1>
+            <p className="text-sm text-white/40">System Management</p>
           </div>
+        </div>
         </div>
 
         <nav className="flex-1 p-4 overflow-y-auto">
@@ -112,9 +112,9 @@ export default function AdminPage() {
                 <button
                   key={item.id}
                   onClick={() => setActiveView(item.id)}
-                  className={`w-full text-left p-3 rounded-lg transition-all ${
+                  className={`w-full text-left p-3 rounded transition-all ${
                     isActive
-                      ? 'bg-blue-500/20 border border-blue-500/30 text-white'
+                      ? 'border border-white/30 bg-black/40 text-white'
                       : 'hover:bg-white/5 text-white/70 hover:text-white border border-transparent'
                   }`}
                 >
@@ -124,7 +124,7 @@ export default function AdminPage() {
                       <div className="font-medium">{item.label}</div>
                       <div className="text-xs text-white/40">{item.description}</div>
                     </div>
-                    {isActive && <div className="w-2 h-2 rounded-full bg-blue-400" />}
+                    {isActive && <div className="w-2 h-2 rounded-full bg-white/60" />}
                   </div>
                 </button>
               );
@@ -134,8 +134,8 @@ export default function AdminPage() {
 
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-              <User className="w-5 h-5 text-blue-400" />
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+              <User className="w-5 h-5 text-white/60" />
             </div>
             <div className="flex-1">
               <div className="font-medium text-sm">{user.displayName}</div>

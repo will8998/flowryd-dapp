@@ -61,14 +61,14 @@ export const RetainerWidget: React.FC = () => {
         {minimized ? (
           <div
             onClick={handleMinimize}
-            className="px-4 py-2 bg-[#0a0a0a] border border-white/10 rounded-full cursor-pointer hover:bg-[#111] transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-[#0a0a0a] border border-white/10 rounded cursor-pointer hover:bg-[#111] transition-colors flex items-center gap-2"
           >
-            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+            <Sparkles className="w-3.5 h-3.5 text-white/60" />
             <span className="text-xs font-bold text-white">Retainer</span>
           </div>
         ) : (
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
-            <div className="h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500" />
+          <div className="bg-black/30 border border-white/10 rounded shadow-2xl shadow-black/50 overflow-hidden">
+            <div className="h-px bg-white/20" />
             
             <div className="p-4 pb-3 flex items-center justify-between">
               <h3 className="text-sm font-bold text-white">Flowryd Retainer</h3>
@@ -95,22 +95,22 @@ export const RetainerWidget: React.FC = () => {
               
               <ul className="space-y-2">
                 <li className="flex items-start gap-2 text-xs text-white/40">
-                  <Check className="w-3 h-3 text-emerald-500 mt-0.5 flex-shrink-0" />
+                  <Check className="w-3 h-3 text-white/40 mt-0.5 flex-shrink-0" />
                   Priority workflow design assistance
                 </li>
                 <li className="flex items-start gap-2 text-xs text-white/40">
-                  <Check className="w-3 h-3 text-emerald-500 mt-0.5 flex-shrink-0" />
+                  <Check className="w-3 h-3 text-white/40 mt-0.5 flex-shrink-0" />
                   Dedicated integration engineer
                 </li>
                 <li className="flex items-start gap-2 text-xs text-white/40">
-                  <Check className="w-3 h-3 text-emerald-500 mt-0.5 flex-shrink-0" />
+                  <Check className="w-3 h-3 text-white/40 mt-0.5 flex-shrink-0" />
                   Custom app stack development
                 </li>
               </ul>
               
               <button
                 onClick={handleBookCall}
-                className="w-full py-3 bg-white text-black rounded-xl font-bold text-xs tracking-wide hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 border border-white/30 text-white rounded font-bold text-xs tracking-wide hover:border-white/50 transition-all flex items-center justify-center gap-2"
               >
                 Book a Call
                 <ArrowUpRight className="w-3.5 h-3.5" />
