@@ -174,12 +174,9 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
   const { startDate, endDate } = getDateRange(period);
   const truncFormat = getDateTruncFormat(granularity);
 
-  // Use raw SQL alias approach to ensure SELECT and GROUP BY expressions match exactly
-  const dateExpr = sql<string>`date_trunc(${truncFormat}, ${users.createdAt})`;
-
   const userGrowthData = await db
     .select({
-      date: sql<string>`${dateExpr}::date`,
+      date: sql<string>`date_trunc('${sql.raw(truncFormat)}', "users"."created_at")::date`,
       count: count()
     })
     .from(users)
@@ -189,13 +186,12 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(users.createdAt, endDate)
       )
     )
-    .groupBy(dateExpr)
-    .orderBy(dateExpr);
+    .groupBy(sql`date_trunc('${sql.raw(truncFormat)}', "users"."created_at")`)
+    .orderBy(sql`date_trunc('${sql.raw(truncFormat)}', "users"."created_at")`);
 
-  const flowDateExpr = sql<string>`date_trunc(${truncFormat}, ${flows.createdAt})`;
   const flowCreatedData = await db
     .select({
-      date: sql<string>`${flowDateExpr}::date`,
+      date: sql<string>`date_trunc('${sql.raw(truncFormat)}', "flows"."created_at")::date`,
       created: count()
     })
     .from(flows)
@@ -205,13 +201,12 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(flows.createdAt, endDate)
       )
     )
-    .groupBy(flowDateExpr)
-    .orderBy(flowDateExpr);
+    .groupBy(sql`date_trunc('${sql.raw(truncFormat)}', "flows"."created_at")`)
+    .orderBy(sql`date_trunc('${sql.raw(truncFormat)}', "flows"."created_at")`);
 
-  const auditDateExpr = sql<string>`date_trunc(${truncFormat}, ${auditLog.createdAt})`;
   const flowPublishedData = await db
     .select({
-      date: sql<string>`${auditDateExpr}::date`,
+      date: sql<string>`date_trunc('${sql.raw(truncFormat)}', "audit_log"."created_at")::date`,
       published: count()
     })
     .from(auditLog)
@@ -222,13 +217,12 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(auditLog.createdAt, endDate)
       )
     )
-    .groupBy(auditDateExpr)
-    .orderBy(auditDateExpr);
+    .groupBy(sql`date_trunc('${sql.raw(truncFormat)}', "audit_log"."created_at")`)
+    .orderBy(sql`date_trunc('${sql.raw(truncFormat)}', "audit_log"."created_at")`);
 
-  const dealDateExpr = sql<string>`date_trunc(${truncFormat}, ${deals.createdAt})`;
   const dealCreatedData = await db
     .select({
-      date: sql<string>`${dealDateExpr}::date`,
+      date: sql<string>`date_trunc('${sql.raw(truncFormat)}', "deals"."created_at")::date`,
       created: count()
     })
     .from(deals)
@@ -238,13 +232,12 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(deals.createdAt, endDate)
       )
     )
-    .groupBy(dealDateExpr)
-    .orderBy(dealDateExpr);
+    .groupBy(sql`date_trunc('${sql.raw(truncFormat)}', "deals"."created_at")`)
+    .orderBy(sql`date_trunc('${sql.raw(truncFormat)}', "deals"."created_at")`);
 
-  const dealUpdatedExpr = sql<string>`date_trunc(${truncFormat}, ${deals.updatedAt})`;
   const dealCommittedData = await db
     .select({
-      date: sql<string>`${dealUpdatedExpr}::date`,
+      date: sql<string>`date_trunc('${sql.raw(truncFormat)}', "deals"."updated_at")::date`,
       committed: count()
     })
     .from(deals)
@@ -255,13 +248,12 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(deals.updatedAt, endDate)
       )
     )
-    .groupBy(dealUpdatedExpr)
-    .orderBy(dealUpdatedExpr);
+    .groupBy(sql`date_trunc('${sql.raw(truncFormat)}', "deals"."updated_at")`)
+    .orderBy(sql`date_trunc('${sql.raw(truncFormat)}', "deals"."updated_at")`);
 
-  const invoiceDateExpr = sql<string>`date_trunc(${truncFormat}, ${invoices.paidAt})`;
   const revenueData = await db
     .select({
-      date: sql<string>`${invoiceDateExpr}::date`,
+      date: sql<string>`date_trunc('${sql.raw(truncFormat)}', "invoices"."paid_at")::date`,
       amount: sum(invoices.amountDue).mapWith(Number)
     })
     .from(invoices)
@@ -272,8 +264,8 @@ async function getTimeSeriesData(period: Period, granularity: Granularity) {
         lte(invoices.paidAt, endDate)
       )
     )
-    .groupBy(invoiceDateExpr)
-    .orderBy(invoiceDateExpr);
+    .groupBy(sql`date_trunc('${sql.raw(truncFormat)}', "invoices"."paid_at")`)
+    .orderBy(sql`date_trunc('${sql.raw(truncFormat)}', "invoices"."paid_at")`);
 
   const flowActivityMap = new Map<string, { created: number; published: number }>();
   
