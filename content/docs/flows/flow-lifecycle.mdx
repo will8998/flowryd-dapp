@@ -1,0 +1,158 @@
+---
+title: "Flow Lifecycle"
+description: "Flows in Flowryd progress through distinct states with versioning support and comprehensive audit trails."
+---
+
+# Flow Lifecycle
+
+Flows in Flowryd progress through distinct states with versioning support and comprehensive audit trails.
+
+## Flow States
+
+| State | Description | Allowed Transitions |
+|-------|-------------|-------------------|
+| `draft` | Flow is being designed and configured | → published, → archived |
+| `published` | Flow is active and can be used for deals | → archived |
+| `archived` | Flow is inactive but preserved for history | → published (admin only) |
+
+## Version Management
+
+Flows use append-only versioning with JSONB snapshots:
+
+```typescript filename="Flow Version Schema"
+// Flow version structure
+interface FlowVersion {
+  id: string;
+  flowId: string;
+  version: number;        // Auto-incrementing version number
+  nodes: unknown[];       // ReactFlow nodes (JSONB)
+  edges: unknown[];       // ReactFlow edges (JSONB)
+  viewport: {             // Canvas viewport state
+    x: number;
+    y: number;
+    zoom: number;
+  } | null;
+  snapshotName?: string;  // Optional user-defined name
+  createdBy: string;      // User who created this version
+  createdAt: Date;        // Timestamp
+}
+
+// Creating a new version
+const [newVersion] = await db
+  .insert(flowVersions)
+  .values({
+    flowId: flow.id,
+    version: currentVersion + 1,
+    nodes: updatedNodes,
+    edges: updatedEdges,
+    viewport: canvasViewport,
+    createdBy: user.id,
+  })
+  .returning();
+```
+
+## Flow Creation Process
+
+```typescript filename="Flow Creation"
+// 1. Create flow record
+const [flow] = await db
+  .insert(flows)
+  .values({
+    orgId: user.orgId,
+    title: 'New Flow',
+    description: 'Flow description',
+    workflowType: 'custom',
+    status: 'draft',
+    createdBy: user.id,
+    updatedBy: user.id,
+  })
+  .returning();
+
+// 2. Create initial version (v1)
+await db.insert(flowVersions).values({
+  flowId: flow.id,
+  version: 1,
+  nodes: [],           // Empty canvas
+  edges: [],
+  createdBy: user.id,
+});
+
+// 3. Log audit trail
+logAudit({
+  userId: user.id,
+  orgId: user.orgId,
+  action: 'flow.create',
+  resourceType: 'flow',
+  resourceId: flow.id,
+});
+```
+
+## Publishing Flows
+
+Publishing makes flows available for deal creation:
+
+```typescript filename="Flow Publishing"
+// Publish flow endpoint
+POST /api/flows/{flowId}/publish
+
+// Implementation
+export const POST = withMiddleware(
+  requireAuth(),
+  async (req: NextRequest, ctx: ApiContext) => {
+    requirePermission(ctx.user!.role, 'flow.publish');
+    
+    const { flowId } = ctx.params;
+    
+    // Update flow status
+    const [updatedFlow] = await db
+      .update(flows)
+      .set({ 
+        status: 'published',
+        updatedBy: ctx.user!.sub,
+        updatedAt: new Date()
+      })
+      .where(eq(flows.id, flowId))
+      .returning();
+    
+    // Audit log
+    logAudit({
+      userId: ctx.user!.sub,
+      orgId: ctx.user!.orgId,
+      action: 'flow.publish',
+      resourceType: 'flow',
+      resourceId: flowId,
+    });
+    
+    return successResponse({ flow: updatedFlow });
+  }
+);
+```
+
+## Template System
+
+Flows can be converted to templates for reuse:
+
+```typescript filename="Template System"
+// Convert flow to template (admin only)
+await db
+  .update(flows)
+  .set({ 
+    isTemplate: true,
+    isPublic: true,  // Templates can be public
+    status: 'published'
+  })
+  .where(eq(flows.id, flowId));
+
+// Template metadata
+interface FlowTemplate {
+  id: string;
+  title: string;
+  description: string;
+  workflowType: string;
+  isTemplate: true;
+  isPublic: boolean;
+  isFeatured?: boolean;
+  featuredHeadline?: string;
+  featuredSource?: string;
+}
+```

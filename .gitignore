@@ -52,3 +52,6 @@ next-env.d.ts
 
 # server logs
 server.log
+
+# pagefind search index
+public/_pagefind/

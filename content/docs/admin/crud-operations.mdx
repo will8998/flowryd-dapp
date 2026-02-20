@@ -1,0 +1,274 @@
+---
+title: "Admin CRUD Operations"
+description: "Each admin management tab uses the DataTable component for comprehensive CRUD operations with search, filtering, sorting, and pagination capabilities."
+---
+
+# Admin CRUD Operations
+
+Each admin management tab uses the DataTable component for comprehensive CRUD operations with search, filtering, sorting, and pagination capabilities.
+
+## DataTable Component
+
+The DataTable component provides a consistent interface for all admin CRUD operations:
+
+```typescript filename="DataTable.tsx"
+// DataTable component structure
+interface DataTableProps<T> {
+  data: T[];
+  columns: ColumnDef<T>[];
+  searchPlaceholder?: string;
+  onRowAction?: (action: string, row: T) => void;
+  loading?: boolean;
+  pagination?: {
+    pageSize: number;
+    pageIndex: number;
+    pageCount: number;
+    onPageChange: (page: number) => void;
+  };
+}
+
+// Column definition with actions
+const userColumns: ColumnDef<User>[] = [
+  {
+    accessorKey: "displayName",
+    header: "Name",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <Avatar src={row.original.avatarUrl} />
+        <span>{row.getValue("displayName")}</span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+  },
+  {
+    accessorKey: "role",
+    header: "Role",
+    cell: ({ row }) => (
+      <Badge variant={getRoleVariant(row.getValue("role"))}>
+        {row.getValue("role")}
+      </Badge>
+    ),
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={() => onEdit(row.original)}>
+            Edit User
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onDelete(row.original)}>
+            Delete User
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  },
+];
+```
+
+## Admin Management Tabs
+
+Each admin tab implements CRUD operations using the DataTable:
+
+| Tab Component | Entity | Key Features | Special Actions |
+|---------------|--------|--------------|-----------------|
+| `AdminUsersTab` | Users | Role management, status toggle | Impersonate, reset password |
+| `AdminFlowsTab` | Flows | Status changes, template toggle | Publish, archive, duplicate |
+| `AdminDealsTab` | Deals | Status monitoring, participant view | Force status change, export |
+| `AdminTemplatesTab` | Templates | Approval workflow, visibility | Approve, feature, hide |
+| `AdminJoinRequestsTab` | Join Requests | Approval/rejection, bulk actions | Approve all, reject with reason |
+
+## Search & Filter
+
+DataTable includes comprehensive search and filtering capabilities:
+
+```typescript filename="DataTableToolbar.tsx"
+// Search and filter implementation
+const DataTableToolbar = ({ table }: { table: Table<any> }) => {
+  const [globalFilter, setGlobalFilter] = useState("");
+  
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex flex-1 items-center space-x-2">
+        <Input
+          placeholder="Search..."
+          value={globalFilter}
+          onChange={(e) => {
+            setGlobalFilter(e.target.value);
+            table.setGlobalFilter(e.target.value);
+          }}
+          className="h-8 w-[150px] lg:w-[250px]"
+        />
+        <DataTableFacetedFilter
+          column={table.getColumn("role")}
+          title="Role"
+          options={roleOptions}
+        />
+        <DataTableFacetedFilter
+          column={table.getColumn("status")}
+          title="Status"
+          options={statusOptions}
+        />
+      </div>
+      <DataTableViewOptions table={table} />
+    </div>
+  );
+};
+
+// Faceted filter for specific columns
+const DataTableFacetedFilter = ({ column, title, options }) => {
+  const facets = column?.getFacetedUniqueValues();
+  const selectedValues = new Set(column?.getFilterValue() as string[]);
+  
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 border-dashed">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          {title}
+          {selectedValues?.size > 0 && (
+            <Badge className="ml-2">{selectedValues.size}</Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          <CommandInput placeholder={title} />
+          <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => (
+                <CommandItem key={option.value}>
+                  <Checkbox
+                    checked={selectedValues.has(option.value)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        selectedValues.add(option.value);
+                      } else {
+                        selectedValues.delete(option.value);
+                      }
+                      column?.setFilterValue(
+                        selectedValues.size ? Array.from(selectedValues) : undefined
+                      );
+                    }}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
+```
+
+## Create/Edit Modals
+
+CRUD operations use modal dialogs for create and edit actions:
+
+```typescript filename="UserModal.tsx"
+// User create/edit modal
+const UserModal = ({ user, isOpen, onClose, onSave }) => {
+  const [formData, setFormData] = useState({
+    displayName: user?.displayName || '',
+    email: user?.email || '',
+    role: user?.role || 'viewer',
+    isActive: user?.isActive ?? true,
+  });
+  
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      if (user) {
+        await updateUser(user.id, formData);
+      } else {
+        await createUser(formData);
+      }
+      onSave();
+      onClose();
+    } catch (error) {
+      toast.error('Failed to save user');
+    }
+  };
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {user ? 'Edit User' : 'Create User'}
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="displayName" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="displayName"
+                value={formData.displayName}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  displayName: e.target.value
+                }))}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="role" className="text-right">
+                Role
+              </Label>
+              <Select
+                value={formData.role}
+                onValueChange={(value) => setFormData(prev => ({
+                  ...prev,
+                  role: value as UserRole
+                }))}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              {user ? 'Update' : 'Create'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+```
+
+## Delete Confirmation
+
+Delete operations require confirmation dialogs to prevent accidental deletions:
+
+- **Confirmation Dialog** - Clear warning about deletion consequences
+- **Entity Details** - Show what will be deleted (name, ID, etc.)
+- **Cascade Warnings** - Alert about related data that will be affected
+- **Soft Delete Option** - Archive instead of permanent deletion where applicable
+- **Bulk Delete** - Confirm multiple selections with count

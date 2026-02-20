@@ -1,0 +1,171 @@
+---
+title: "Providers API"
+description: "Provider endpoints for managing service providers, applications, and approvals"
+---
+
+# Providers API
+
+Provider endpoints manage service providers, applications, and approvals. All endpoints require admin role.
+
+## GET /api/admin/providers
+
+List all service providers.
+
+```typescript filename="list-providers.ts"
+// Request
+fetch('/api/admin/providers?category=strategy');
+
+// Response
+{
+  "data": [
+    {
+      "id": "provider-uuid-123",
+      "name": "QuantStrat Solutions",
+      "category": "strategy",
+      "description": "Advanced algorithmic trading strategies",
+      "website": "https://quantstrat.com",
+      "contactEmail": "partnerships@quantstrat.com",
+      "isApproved": true,
+      "applicationCount": 5,
+      "createdAt": "2024-01-10T10:00:00Z"
+    },
+    {
+      "id": "provider-uuid-456",
+      "name": "DevFlow Technologies",
+      "category": "development",
+      "description": "Custom workflow development services",
+      "website": "https://devflow.tech",
+      "contactEmail": "hello@devflow.tech",
+      "isApproved": true,
+      "applicationCount": 12
+    }
+  ]
+}
+```
+
+## POST /api/admin/providers
+
+Create new service provider.
+
+```typescript filename="create-provider.ts"
+// Request
+fetch('/api/admin/providers', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    name: 'Creative Assets Inc',
+    category: 'creative',
+    description: 'Professional design and branding services',
+    website: 'https://creativeassets.com',
+    contactEmail: 'contact@creativeassets.com'
+  })
+});
+
+// Response
+{
+  "data": {
+    "provider": {
+      "id": "new-provider-uuid",
+      "name": "Creative Assets Inc",
+      "category": "creative",
+      "description": "Professional design and branding services",
+      "website": "https://creativeassets.com",
+      "contactEmail": "contact@creativeassets.com",
+      "isApproved": false,
+      "applicationCount": 0,
+      "createdAt": "2024-01-25T20:00:00Z"
+    }
+  }
+}
+```
+
+## PATCH /api/admin/providers/[providerId]
+
+Update provider information.
+
+```typescript filename="update-provider.ts"
+// Request
+fetch('/api/admin/providers/provider-uuid-123', {
+  method: 'PATCH',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    name: 'QuantStrat Solutions Pro',
+    description: 'Advanced algorithmic trading and risk management',
+    website: 'https://quantstratpro.com',
+    isApproved: true
+  })
+});
+
+// Response
+{
+  "data": {
+    "provider": {
+      "id": "provider-uuid-123",
+      "name": "QuantStrat Solutions Pro",
+      "description": "Advanced algorithmic trading and risk management",
+      "website": "https://quantstratpro.com",
+      "isApproved": true,
+      "updatedAt": "2024-01-25T20:15:00Z"
+    }
+  }
+}
+```
+
+## POST /api/admin/providers/[providerId]/applications
+
+Apply to work with a provider. Requires provider.apply permission.
+
+```typescript filename="apply-provider.ts"
+// Request
+fetch('/api/admin/providers/provider-uuid-123/applications', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    orgId: 'org-uuid-456',
+    message: 'We are interested in implementing advanced trading strategies for our repo platform'
+  })
+});
+
+// Response
+{
+  "data": {
+    "application": {
+      "id": "app-uuid-789",
+      "providerId": "provider-uuid-123",
+      "orgId": "org-uuid-456",
+      "status": "pending",
+      "message": "We are interested in implementing advanced trading strategies for our repo platform",
+      "createdAt": "2024-01-25T20:30:00Z"
+    }
+  }
+}
+```
+
+## PATCH /api/admin/providers/[providerId]/applications/[appId]
+
+Review and approve/reject provider application.
+
+```typescript filename="review-application.ts"
+// Request
+fetch('/api/admin/providers/provider-uuid-123/applications/app-uuid-789', {
+  method: 'PATCH',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    status: 'approved'
+  })
+});
+
+// Response
+{
+  "data": {
+    "application": {
+      "id": "app-uuid-789",
+      "providerId": "provider-uuid-123",
+      "orgId": "org-uuid-456",
+      "status": "approved",
+      "reviewedAt": "2024-01-25T20:45:00Z",
+      "updatedAt": "2024-01-25T20:45:00Z"
+    }
+  }
+}
+```

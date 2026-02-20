@@ -1,0 +1,340 @@
+---
+title: "API Reference"
+description: "Complete reference for all Flowryd API endpoints with consistent JSON responses and proper error handling"
+---
+
+# API Reference
+
+Complete reference for all Flowryd API endpoints. All endpoints use Next.js API routes and return consistent JSON responses with proper error handling.
+
+## Base URL
+
+```text filename="Base URL (Next.js API Routes)"
+/api
+```
+
+## Response Format
+
+All API responses follow a consistent envelope pattern:
+
+### Success Responses
+
+```json filename="Success Response Format"
+// Standard success response
+{
+  "data": {
+    // Response payload here
+  }
+}
+
+// Paginated response
+{
+  "data": [...],
+  "pagination": {
+    "cursor": "eyJpZCI6InV1aWQifQ==",
+    "hasMore": true
+  }
+}
+```
+
+### Error Responses
+
+```json filename="Error Response Format"
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request parameters",
+    "details": {
+      "field": "partyId",
+      "issue": "Required field missing"
+    }
+  }
+}
+```
+
+## Error Codes
+
+| Code | HTTP Status | Description |
+|------|-------------|-------------|
+| `VALIDATION_ERROR` | 422 | Request validation failed |
+| `NOT_FOUND` | 404 | Resource not found |
+| `UNAUTHORIZED` | 401 | Authentication required |
+| `FORBIDDEN` | 403 | Insufficient permissions |
+| `CONFLICT` | 409 | Resource conflict |
+| `INTERNAL_ERROR` | 500 | Server error |
+
+## Authentication Endpoints
+
+### POST /api/auth/login
+
+Authenticate user with Canton Network Party-ID and set httpOnly cookies.
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `partyId` | string | Yes | Canton Party-ID (max 195 chars, format: orgname::identifier) |
+
+#### Response
+
+```json filename="Login Response"
+// Success (200)
+{
+  "data": {
+    "user": {
+      "id": "uuid",
+      "partyId": "mybank::trader001",
+      "displayName": "John Trader",
+      "email": "john@mybank.com",
+      "role": "editor",
+      "orgId": "org-uuid"
+    }
+  }
+}
+
+// Sets httpOnly cookies:
+// - flowryd-access-token (15min expiry)
+// - flowryd-refresh-token (7 days expiry)
+```
+
+#### Error Responses
+
+| Status | Code | Description |
+|--------|------|-------------|
+| 401 | USER_NOT_FOUND | User not found, includes redirect: '/register' |
+| 401 | ACCOUNT_DEACTIVATED | User account is deactivated |
+
+### POST /api/auth/register
+
+Register new user and organization. First user in org becomes admin.
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `partyId` | string | Yes | Canton Party-ID (max 195 chars) |
+| `displayName` | string | Yes | User display name (max 255 chars) |
+| `orgName` | string | Yes | Organization name (max 255 chars) |
+| `email` | string | No | Valid email address |
+
+#### Response
+
+```json filename="Registration Response"
+// Success (201)
+{
+  "data": {
+    "user": {
+      "id": "uuid",
+      "partyId": "mybank::trader001",
+      "displayName": "John Trader", 
+      "email": "john@mybank.com",
+      "role": "admin", // First user gets admin, others get viewer
+      "orgId": "org-uuid"
+    }
+  }
+}
+```
+
+### POST /api/auth/refresh
+
+Refresh access token using refresh token rotation strategy.
+
+#### Headers
+
+| Header | Value | Description |
+|--------|-------|-------------|
+| `Cookie` | flowryd-refresh-token=... | httpOnly refresh token cookie |
+
+#### Response
+
+```json filename="Refresh Response"
+// Success (200)
+{
+  "data": {
+    "success": true
+  }
+}
+
+// Sets new httpOnly cookies with rotated tokens
+// Old refresh token is immediately revoked
+```
+
+### POST /api/auth/logout
+
+Logout user and revoke all refresh tokens.
+
+#### Response
+
+```json filename="Logout Response"
+// Success (200)
+{
+  "data": {
+    "success": true
+  }
+}
+
+// Clears httpOnly cookies
+// Revokes all refresh tokens for user
+```
+
+### GET /api/auth/me
+
+Get current authenticated user information.
+
+#### Headers
+
+| Header | Value | Description |
+|--------|-------|-------------|
+| `Cookie` | flowryd-access-token=... | httpOnly access token cookie |
+
+#### Response
+
+```json filename="Current User Response"
+// Success (200)
+{
+  "data": {
+    "user": {
+      "id": "uuid",
+      "partyId": "mybank::trader001",
+      "displayName": "John Trader",
+      "email": "john@mybank.com", 
+      "role": "editor",
+      "orgId": "org-uuid"
+    }
+  }
+}
+```
+
+## Flow Endpoints
+
+### GET /api/flows
+
+List flows for authenticated user's organization with pagination.
+
+#### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `limit` | number | No | Results per page (default: 20, max: 50) |
+| `cursor` | string | No | Pagination cursor |
+| `status` | enum | No | Filter by status: draft, published, archived |
+
+#### Response
+
+```json filename="List Flows Response"
+// Success (200)
+{
+  "data": [
+    {
+      "id": "flow-uuid",
+      "title": "Token Issuance Flow",
+      "description": "Automated bond issuance workflow",
+      "workflowType": "token-issuance",
+      "status": "published",
+      "isTemplate": false,
+      "isPublic": false,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T14:20:00Z"
+    }
+  ],
+  "pagination": {
+    "cursor": "eyJpZCI6InV1aWQifQ==",
+    "hasMore": true
+  }
+}
+```
+
+### POST /api/flows
+
+Create a new flow. Requires `flow.create` permission.
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | Flow title (max 255 chars) |
+| `description` | string | No | Flow description (max 5000 chars) |
+| `workflowType` | string | No | Workflow type identifier (max 64 chars) |
+
+#### Response
+
+```json filename="Create Flow Response"
+// Success (201)
+{
+  "data": {
+    "flow": {
+      "id": "flow-uuid",
+      "title": "My New Flow",
+      "description": "Flow description",
+      "workflowType": "custom",
+      "status": "draft",
+      "isTemplate": false,
+      "isPublic": false,
+      "orgId": "org-uuid",
+      "createdBy": "user-uuid",
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  }
+}
+
+// Auto-creates version 1 with empty nodes/edges
+```
+
+## Deal Endpoints
+
+### GET /api/deals
+
+List deals for authenticated user's organization with filtering.
+
+#### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `status` | enum | No | Filter by status: draft, open, negotiating, locked, committed |
+| `limit` | number | No | Results per page (default: 20, max: 50) |
+| `cursor` | string | No | Pagination cursor |
+
+### POST /api/deals
+
+Create a new deal. Requires `deal.create` permission.
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | Deal title (max 255 chars) |
+| `description` | string | No | Deal description (max 5000 chars) |
+| `flowId` | string | No | UUID of associated flow |
+| `volume` | string | No | Deal volume as string (max 64 chars) |
+| `metadata` | object | No | Additional deal metadata (JSON) |
+
+#### Response
+
+```json filename="Create Deal Response"
+// Success (201)
+{
+  "data": {
+    "deal": {
+      "id": "deal-uuid",
+      "title": "Bond Purchase Deal",
+      "description": "Corporate bond purchase",
+      "status": "draft",
+      "volume": "10000000",
+      "flowId": "flow-uuid",
+      "orgId": "org-uuid",
+      "createdBy": "user-uuid",
+      "createdAt": "2024-01-15T10:30:00Z",
+      "metadata": {
+        "bondType": "corporate",
+        "maturity": "2025-12-31"
+      }
+    }
+  }
+}
+
+// Auto-adds creator as participant with role='admin'
+```
+
+> **Authentication**
+> 
+> All endpoints except registration and login require authentication via httpOnly cookies. The middleware automatically validates JWT tokens and adds user context to request headers.

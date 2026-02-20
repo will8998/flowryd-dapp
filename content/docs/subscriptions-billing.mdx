@@ -1,0 +1,329 @@
+---
+title: "Subscriptions & Billing"
+description: "Flowryd offers three subscription tiers with Canton Coin ($CC) payments, comprehensive billing management, and retainer upsell options."
+---
+
+# Subscriptions & Billing
+
+Flowryd offers three subscription tiers with Canton Coin ($CC) payments, comprehensive billing management, and retainer upsell options.
+
+## Plan Tiers
+
+Three subscription tiers designed for different organizational needs:
+
+| Plan | Price | Target Audience | Key Features |
+|------|-------|----------------|--------------|
+| **DISCOVER** | $100/month | Small teams, startups | Basic flows, 5 users, community support |
+| **NAVIGATE** | $250/month | Growing companies | Advanced flows, 25 users, priority support |
+| **ACTIVATE** | $500/month | Enterprise organizations | Unlimited flows/users, dedicated support |
+
+## Plan Structure
+
+Plans are stored with pricing in cents and Canton Coin currency:
+
+```typescript filename="plans.ts"
+// Plan configuration
+interface Plan {
+  id: string;
+  name: string;
+  tier: 'discover' | 'navigate' | 'activate';
+  priceAmount: number;      // Price in cents (e.g., 10000 = $100)
+  priceCurrency: string;    // Defaults to '$CC' (Canton Coin)
+  interval: 'monthly' | 'yearly';
+  features: {
+    maxUsers: number | null;        // null = unlimited
+    maxFlows: number | null;        // null = unlimited
+    maxDeals: number | null;        // null = unlimited
+    supportLevel: 'community' | 'priority' | 'dedicated';
+    customBranding: boolean;
+    apiAccess: boolean;
+    advancedAnalytics: boolean;
+    ssoIntegration: boolean;
+  };
+  isActive: boolean;
+}
+
+// Example plan configurations
+const plans: Plan[] = [
+  {
+    id: 'plan-discover',
+    name: 'DISCOVER',
+    tier: 'discover',
+    priceAmount: 10000,     // $100 in cents
+    priceCurrency: '$CC',
+    interval: 'monthly',
+    features: {
+      maxUsers: 5,
+      maxFlows: 10,
+      maxDeals: 25,
+      supportLevel: 'community',
+      customBranding: false,
+      apiAccess: false,
+      advancedAnalytics: false,
+      ssoIntegration: false
+    },
+    isActive: true
+  },
+  {
+    id: 'plan-navigate',
+    name: 'NAVIGATE', 
+    tier: 'navigate',
+    priceAmount: 25000,     // $250 in cents
+    priceCurrency: '$CC',
+    interval: 'monthly',
+    features: {
+      maxUsers: 25,
+      maxFlows: 50,
+      maxDeals: 100,
+      supportLevel: 'priority',
+      customBranding: true,
+      apiAccess: true,
+      advancedAnalytics: false,
+      ssoIntegration: true
+    },
+    isActive: true
+  },
+  {
+    id: 'plan-activate',
+    name: 'ACTIVATE',
+    tier: 'activate', 
+    priceAmount: 50000,     // $500 in cents
+    priceCurrency: '$CC',
+    interval: 'monthly',
+    features: {
+      maxUsers: null,       // Unlimited
+      maxFlows: null,       // Unlimited
+      maxDeals: null,       // Unlimited
+      supportLevel: 'dedicated',
+      customBranding: true,
+      apiAccess: true,
+      advancedAnalytics: true,
+      ssoIntegration: true
+    },
+    isActive: true
+  }
+];
+```
+
+## Subscription Lifecycle
+
+Subscriptions progress through distinct states with automated transitions:
+
+| Status | Description | Next States | Actions Available |
+|--------|-------------|-------------|-------------------|
+| `pending` | Subscription created, awaiting payment | trial, active, cancelled | Complete setup, cancel |
+| `trial` | Free trial period (14 days) | active, expired | Upgrade, extend trial |
+| `active` | Subscription is current and paid | past_due, cancelled | Change plan, cancel |
+| `past_due` | Payment failed, grace period active | active, cancelled, expired | Retry payment, update method |
+| `cancelled` | Cancelled but still active until period end | expired | Reactivate |
+| `expired` | Subscription ended, access revoked | active | Renew subscription |
+
+## Billing System
+
+Comprehensive billing with invoices, line items, and payment tracking:
+
+```typescript filename="billing.ts"
+// Invoice structure
+interface Invoice {
+  id: string;
+  orgId: string;
+  subscriptionId: string;
+  amountDue: number;        // Amount in cents
+  currency: string;         // '$CC' for Canton Coin
+  status: 'pending' | 'paid' | 'overdue' | 'cancelled';
+  lineItems: {
+    description: string;
+    quantity: number;
+    unitPrice: number;      // In cents
+    totalPrice: number;     // In cents
+    period?: {
+      start: Date;
+      end: Date;
+    };
+  }[];
+  dueDate: Date;
+  paidAt?: Date;
+  paymentMethod?: string;   // Payment method ID
+  metadata?: Record<string, any>;
+}
+
+// Generate monthly invoice
+const generateInvoice = async (subscriptionId: string): Promise<Invoice> => {
+  const subscription = await getSubscription(subscriptionId);
+  const plan = await getPlan(subscription.planId);
+  
+  const invoice: Invoice = {
+    id: generateId(),
+    orgId: subscription.orgId,
+    subscriptionId,
+    amountDue: plan.priceAmount,
+    currency: plan.priceCurrency,
+    status: 'pending',
+    lineItems: [
+      {
+        description: `${plan.name} Plan - Monthly Subscription`,
+        quantity: 1,
+        unitPrice: plan.priceAmount,
+        totalPrice: plan.priceAmount,
+        period: {
+          start: subscription.currentPeriodStart,
+          end: subscription.currentPeriodEnd
+        }
+      }
+    ],
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    metadata: {
+      planTier: plan.tier,
+      billingCycle: plan.interval
+    }
+  };
+  
+  return await createInvoice(invoice);
+};
+```
+
+## Canton Coin Payments
+
+All payments processed using Canton Coin ($CC) through wallet integration:
+
+```typescript filename="canton-payments.ts"
+// Payment processing with Canton Coin
+interface PaymentMethod {
+  id: string;
+  orgId: string;
+  type: 'canton_cc';
+  walletAddress: string;    // Canton Coin wallet address
+  isDefault: boolean;
+  metadata: {
+    walletProvider: string;
+    balance?: number;       // Cached balance in $CC
+    lastSyncAt: Date;
+  };
+}
+
+// Process subscription payment
+const processSubscriptionPayment = async (
+  invoiceId: string
+): Promise<PaymentResult> => {
+  const invoice = await getInvoice(invoiceId);
+  const paymentMethod = await getDefaultPaymentMethod(invoice.orgId);
+  
+  if (paymentMethod.type !== 'canton_cc') {
+    throw new Error('Canton Coin payment required');
+  }
+  
+  // Convert cents to $CC (assuming 1:1 ratio for now)
+  const amountCC = invoice.amountDue / 100;
+  
+  try {
+    // Execute Canton Coin transfer
+    const transaction = await cantonNetwork.transfer({
+      from: paymentMethod.walletAddress,
+      to: FLOWRYD_TREASURY_WALLET,
+      amount: amountCC,
+      currency: '$CC',
+      reference: invoiceId,
+      metadata: {
+        subscriptionId: invoice.subscriptionId,
+        orgId: invoice.orgId
+      }
+    });
+    
+    // Update invoice status
+    await updateInvoice(invoiceId, {
+      status: 'paid',
+      paidAt: new Date(),
+      paymentMethod: paymentMethod.id,
+      metadata: {
+        ...invoice.metadata,
+        transactionId: transaction.id,
+        transactionHash: transaction.hash
+      }
+    });
+    
+    // Update subscription status
+    await updateSubscriptionStatus(invoice.subscriptionId, 'active');
+    
+    return {
+      success: true,
+      transactionId: transaction.id,
+      amount: amountCC,
+      currency: '$CC'
+    };
+    
+  } catch (error) {
+    // Handle payment failure
+    await updateInvoice(invoiceId, { status: 'overdue' });
+    await updateSubscriptionStatus(invoice.subscriptionId, 'past_due');
+    
+    throw new Error(`Payment failed: ${error.message}`);
+  }
+};
+```
+
+## Retainer Upsell
+
+Premium retainer services offered as upsell to existing subscribers:
+
+- **Dedicated Account Manager** - Personal point of contact
+- **Custom Workflow Design** - Bespoke flow creation services
+- **Priority Implementation** - Fast-track feature requests
+- **Training & Onboarding** - Comprehensive team training
+- **24/7 Support** - Round-the-clock technical assistance
+- **Compliance Consulting** - Regulatory guidance and setup
+
+```typescript filename="retainer-services.ts"
+// Retainer service configuration
+interface RetainerService {
+  id: string;
+  name: string;
+  description: string;
+  monthlyRate: number;      // In $CC
+  minimumCommitment: number; // Months
+  features: string[];
+  eligiblePlans: ('discover' | 'navigate' | 'activate')[];
+}
+
+const retainerServices: RetainerService[] = [
+  {
+    id: 'retainer-premium',
+    name: 'Premium Support Retainer',
+    description: 'Dedicated account management and priority support',
+    monthlyRate: 2000,      // $2000 in $CC
+    minimumCommitment: 6,   // 6 months minimum
+    features: [
+      'Dedicated account manager',
+      '24/7 priority support',
+      'Monthly strategy calls',
+      'Custom workflow consulting'
+    ],
+    eligiblePlans: ['navigate', 'activate']
+  },
+  {
+    id: 'retainer-enterprise',
+    name: 'Enterprise Implementation Retainer', 
+    description: 'Full-service implementation and ongoing optimization',
+    monthlyRate: 5000,      // $5000 in $CC
+    minimumCommitment: 12,  // 12 months minimum
+    features: [
+      'All Premium Support features',
+      'Custom development hours',
+      'Compliance consulting',
+      'Training and onboarding',
+      'Integration assistance'
+    ],
+    eligiblePlans: ['activate']
+  }
+];
+```
+
+## Billing Administration
+
+Admin tools for subscription and billing management:
+
+- **Subscription Overview** - Real-time status across all organizations
+- **Payment Tracking** - Monitor successful and failed payments
+- **Revenue Analytics** - Monthly recurring revenue (MRR) tracking
+- **Dunning Management** - Automated retry logic for failed payments
+- **Plan Changes** - Prorated upgrades and downgrades
+- **Refund Processing** - Handle refund requests and adjustments
