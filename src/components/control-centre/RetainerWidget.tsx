@@ -67,7 +67,7 @@ export const RetainerWidget: React.FC = () => {
             <span className="text-xs font-bold text-white">Retainer</span>
           </div>
         ) : (
-          <div className="bg-black/30 border border-white/10 rounded shadow-2xl shadow-black/50 overflow-hidden">
+          <div className="bg-[#0a0a0a] border border-white/10 rounded shadow-2xl shadow-black/50 overflow-hidden">
             <div className="h-px bg-white/20" />
             
             <div className="p-4 pb-3 flex items-center justify-between">

@@ -19,6 +19,8 @@ export const subscriptionStatusEnum = pgEnum('subscription_status', ['pending', 
 export const planTierEnum = pgEnum('plan_tier', ['discover', 'navigate', 'activate']);
 export const providerStatusEnum = pgEnum('provider_status', ['pending', 'active', 'inactive']);
 export const providerCategoryEnum = pgEnum('provider_category', ['strategy', 'development', 'creative']);
+export const participantVerificationEnum = pgEnum('participant_verification', ['unclaimed', 'pending', 'approved', 'verified', 'rejected']);
+export const participantCriticalityEnum = pgEnum('participant_criticality', ['critical', 'required', 'optional']);
 
 // Tables
 export const organizations = pgTable('organizations', {
@@ -285,6 +287,50 @@ export const providerApplications = pgTable('provider_applications', {
   uniqueProviderApplicant: uniqueIndex('unique_provider_applicant').on(table.providerId, table.userId)
 }));
 
+// Canton Ecosystem Participants (replaces static canton-data.ts)
+export const participants = pgTable('participants', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  legacyId: varchar('legacy_id', { length: 64 }).unique(), // e.g. "p_fireblocks" — maps to canton-data.ts IDs
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  logoUrl: varchar('logo_url', { length: 512 }),
+  website: varchar('website', { length: 512 }),
+
+  // Canton identity
+  cantonPartyId: varchar('canton_party_id', { length: 195 }).unique(), // real Canton Party ID once claimed
+  roles: jsonb('roles').default('[]'), // string[] — e.g. ["Custody", "Wallet"]
+  capabilities: jsonb('capabilities').default('{}'), // Record<string, number> — matches existing type
+  criticality: participantCriticalityEnum('criticality').default('optional'),
+
+  // Network info
+  holdings: varchar('holdings', { length: 64 }),
+  validatorNodes: integer('validator_nodes').default(0),
+  superValidator: boolean('super_validator').default(false),
+
+  // Verification / claim workflow
+  verificationStatus: participantVerificationEnum('verification_status').default('unclaimed').notNull(),
+  claimedByUserId: uuid('claimed_by_user_id').references(() => users.id),
+  claimedByOrgId: uuid('claimed_by_org_id').references(() => organizations.id),
+  claimedAt: timestamp('claimed_at', { withTimezone: true }),
+  reviewedByUserId: uuid('reviewed_by_user_id').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  rejectionReason: text('rejection_reason'),
+
+  // Contact info (populated during onboarding)
+  contactEmail: varchar('contact_email', { length: 255 }),
+  contactName: varchar('contact_name', { length: 255 }),
+
+  // Metadata
+  metadata: jsonb('metadata'), // flexible store for extra data
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => ({
+  idxParticipantsLegacyId: index('idx_participants_legacy_id').on(table.legacyId),
+  idxParticipantsVerification: index('idx_participants_verification').on(table.verificationStatus),
+  idxParticipantsCantonPartyId: index('idx_participants_canton_party_id').on(table.cantonPartyId),
+  idxParticipantsName: index('idx_participants_name').on(table.name)
+}));
+
 // Type exports
 export type Organization = InferSelectModel<typeof organizations>;
 export type NewOrganization = InferInsertModel<typeof organizations>;
@@ -342,3 +388,6 @@ export type NewProvider = InferInsertModel<typeof providers>;
 
 export type ProviderApplication = InferSelectModel<typeof providerApplications>;
 export type NewProviderApplication = InferInsertModel<typeof providerApplications>;
+
+export type Participant = InferSelectModel<typeof participants>;
+export type NewParticipant = InferInsertModel<typeof participants>;

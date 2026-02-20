@@ -4,7 +4,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { participants, workflows, Participant } from '@/lib/canton-data';
+import { workflows, type Participant } from '@/lib/canton-data';
+import { useParticipants } from '@/hooks/use-participants';
 import { Workflow, ArrowRight, Plus, X, ArrowLeft } from 'lucide-react';
 import { ParticipantNode, ConnectionLine } from '@/components/discover/FlowComponents';
 import { ZapierAddModal } from '@/components/discover/ZapierAddModal';
@@ -269,6 +270,7 @@ function LandingView({ onStart }: { onStart: () => void }) {
 }
 
 function AppView() {
+  const { participants } = useParticipants();
   const [selectedWorkflow, setSelectedWorkflow] = useState<typeof workflows[0] | null>(null);
   const [network, setNetwork] = useState<Participant[]>([
     {

@@ -18,7 +18,8 @@ import {
   invoices,
   paymentMethods,
   providers,
-  providerApplications
+  providerApplications,
+  participants
 } from './schema';
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({
@@ -30,7 +31,8 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   subscriptions: many(subscriptions),
   invoices: many(invoices),
   paymentMethods: many(paymentMethods),
-  providerApplications: many(providerApplications)
+  providerApplications: many(providerApplications),
+  claimedParticipants: many(participants, { relationName: 'participantOrg' })
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -50,7 +52,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   reviewedJoinRequests: many(joinRequests, { relationName: 'joinRequestReviewer' }),
   auditLogs: many(auditLog),
   activeSessions: many(activeSessions),
-  providerApplications: many(providerApplications)
+  providerApplications: many(providerApplications),
+  claimedParticipants: many(participants, { relationName: 'participantClaimedBy' }),
+  reviewedParticipants: many(participants, { relationName: 'participantReviewedBy' })
 }));
 
 export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
@@ -246,4 +250,22 @@ export const providerApplicationsRelations = relations(providerApplications, ({ 
     fields: [providerApplications.userId],
     references: [users.id]
   }),
+}));
+
+export const participantsRelations = relations(participants, ({ one }) => ({
+  claimedByUser: one(users, {
+    fields: [participants.claimedByUserId],
+    references: [users.id],
+    relationName: 'participantClaimedBy'
+  }),
+  claimedByOrg: one(organizations, {
+    fields: [participants.claimedByOrgId],
+    references: [organizations.id],
+    relationName: 'participantOrg'
+  }),
+  reviewedByUser: one(users, {
+    fields: [participants.reviewedByUserId],
+    references: [users.id],
+    relationName: 'participantReviewedBy'
+  })
 }));

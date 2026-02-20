@@ -798,7 +798,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
             )}
           </AnimatePresence>
 
-          {!activeFlowId && flows.length === 0 && !flowsLoading ? (
+          {!activeFlowId && flows.length === 0 && !flowsLoading && nodes.length <= 1 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
               <div className="text-center space-y-3">
                 <Layers className="w-10 h-10 text-white/10 mx-auto" />
@@ -812,7 +812,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                 </button>
               </div>
             </div>
-          ) : !activeFlowId && flows.length > 0 && templates.length > 0 ? (
+          ) : !activeFlowId && flows.length > 0 && templates.length > 0 && nodes.length <= 1 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-8">
               <div className="text-center mb-6">
                 <h3 className="text-sm font-bold text-white/40 mb-1">Start with a template</h3>

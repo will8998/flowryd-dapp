@@ -38,8 +38,9 @@ import { AdminSubscriptionsTab } from '@/components/admin/AdminSubscriptionsTab'
 import { AdminProvidersTab } from '@/components/admin/AdminProvidersTab';
 import { AdminSystemSettingsTab } from '@/components/admin/AdminSystemSettingsTab';
 import { AdminAnalyticsTab } from '@/components/admin/AdminAnalyticsTab';
+import { AdminParticipantsTab } from '@/components/admin/AdminParticipantsTab';
 
-type AdminView = 'overview' | 'users' | 'audit' | 'flows' | 'deals' | 'join-requests' | 'node-api' | 'templates' | 'analytics' | 'organizations' | 'subscriptions' | 'providers' | 'system-settings';
+type AdminView = 'overview' | 'users' | 'audit' | 'flows' | 'deals' | 'join-requests' | 'participants' | 'node-api' | 'templates' | 'analytics' | 'organizations' | 'subscriptions' | 'providers' | 'system-settings';
 
 const CORE_NAV_ITEMS: { id: AdminView; label: string; icon: React.ComponentType<{ className?: string }>; description: string }[] = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, description: 'Dashboard overview' },
@@ -48,6 +49,7 @@ const CORE_NAV_ITEMS: { id: AdminView; label: string; icon: React.ComponentType<
   { id: 'flows', label: 'Flows', icon: Workflow, description: 'All flows across orgs' },
   { id: 'deals', label: 'Deals', icon: Handshake, description: 'Active deals' },
   { id: 'join-requests', label: 'Join Requests', icon: UserPlus, description: 'Pending requests' },
+  { id: 'participants', label: 'Participants', icon: Building2, description: 'Review participant claims' },
   { id: 'node-api', label: 'Node API', icon: Server, description: 'Canton node configs' },
   { id: 'templates', label: 'Templates', icon: LayoutTemplate, description: 'Flow templates' },
 ];
@@ -242,6 +244,7 @@ export default function AdminPage() {
               {activeView === 'flows' && <AdminFlowsTab />}
               {activeView === 'deals' && <AdminDealsTab />}
               {activeView === 'join-requests' && <AdminJoinRequestsTab />}
+              {activeView === 'participants' && <AdminParticipantsTab />}
               {activeView === 'node-api' && <AdminNodeApiTab />}
               {activeView === 'templates' && <AdminTemplatesTab />}
               {activeView === 'analytics' && <AdminAnalyticsTab />}
