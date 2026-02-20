@@ -4,9 +4,9 @@ import { z } from 'zod';
 export const paginationParamsSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(25),
   offset: z.coerce.number().min(0).default(0),
-  search: z.string().optional(),
-  sortBy: z.string().optional(),
-  sortDir: z.enum(['asc', 'desc']).default('desc'),
+  search: z.string().nullish().transform(v => v ?? undefined),
+  sortBy: z.string().nullish().transform(v => v ?? undefined),
+  sortDir: z.enum(['asc', 'desc']).nullish().transform(v => v ?? 'desc'),
 });
 
 export const statusFilterSchema = z.object({
