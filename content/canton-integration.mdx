@@ -1,0 +1,264 @@
+---
+title: "Canton Network Integration"
+description: "Flowryd integrates with Canton Network, an enterprise-grade distributed ledger that provides privacy, scalability, and interoperability for financial workflows."
+---
+
+# Canton Network Integration
+
+Flowryd integrates with Canton Network, an enterprise-grade distributed ledger that provides privacy, scalability, and interoperability for financial workflows.
+
+## Canton Network Overview
+
+Canton Network provides the foundational infrastructure for Flowryd's secure deal processing:
+
+- **Privacy by Design** - Transactions are only visible to relevant parties
+- **Enterprise Grade** - Built for institutional financial workflows
+- **Interoperability** - Seamless integration across different systems
+- **Scalability** - Handles high-volume transaction processing
+- **Compliance** - Built-in regulatory compliance features
+
+## Party ID System
+
+Each institution in the Canton Network has a unique party identifier:
+
+```typescript filename="canton-parties.ts"
+// Party ID structure and examples
+interface CantonParty {
+  partyId: string;        // e.g., "party-goldmansachs-01"
+  displayName: string;    // e.g., "Goldman Sachs"
+  institution: string;    // e.g., "Goldman Sachs & Co."
+  category: 'bank' | 'broker' | 'asset_manager' | 'insurance' | 'other';
+  jurisdiction: string;   // e.g., "US", "UK", "EU"
+  isActive: boolean;
+}
+
+// Example party configurations
+const cantonParties: CantonParty[] = [
+  {
+    partyId: "party-goldmansachs-01",
+    displayName: "Goldman Sachs",
+    institution: "Goldman Sachs & Co.",
+    category: "bank",
+    jurisdiction: "US",
+    isActive: true
+  },
+  {
+    partyId: "party-jpmorgan-01", 
+    displayName: "JPMorgan",
+    institution: "JPMorgan Chase & Co.",
+    category: "bank",
+    jurisdiction: "US",
+    isActive: true
+  },
+  {
+    partyId: "party-blackrock-01",
+    displayName: "BlackRock",
+    institution: "BlackRock Inc.",
+    category: "asset_manager", 
+    jurisdiction: "US",
+    isActive: true
+  }
+];
+```
+
+## Canton Coin ($CC)
+
+Canton Coin serves as the native token for payments and subscriptions within the network:
+
+| Feature | Description | Use Case |
+|---------|-------------|----------|
+| Native Token | Built into Canton Network protocol | Transaction fees, staking |
+| Subscription Payments | All plan tiers priced in $CC | DISCOVER, NAVIGATE, ACTIVATE plans |
+| Deal Settlement | On-chain settlement of deal terms | Automated contract execution |
+| Wallet Integration | Stored in payment methods table | User wallet addresses for $CC |
+
+## Current Implementation
+
+Flowryd currently uses simulated Canton data while preparing for full integration:
+
+```typescript filename="canton-data.ts"
+// src/lib/canton-data.ts - Simulated participant data
+export const cantonParticipants = [
+  {
+    id: "party-goldmansachs-01",
+    name: "Goldman Sachs",
+    type: "bank" as const,
+    jurisdiction: "US",
+    isActive: true,
+    capabilities: ["trading", "custody", "clearing"],
+    contactInfo: {
+      email: "integration@gs.com",
+      phone: "+1-212-902-1000"
+    }
+  },
+  {
+    id: "party-jpmorgan-01", 
+    name: "JPMorgan",
+    type: "bank" as const,
+    jurisdiction: "US", 
+    isActive: true,
+    capabilities: ["trading", "custody", "prime_brokerage"],
+    contactInfo: {
+      email: "canton@jpmorgan.com",
+      phone: "+1-212-270-6000"
+    }
+  },
+  // ... more participants
+];
+
+// Participant filtering and search
+export const getActiveParticipants = () => 
+  cantonParticipants.filter(p => p.isActive);
+
+export const getParticipantsByType = (type: string) =>
+  cantonParticipants.filter(p => p.type === type);
+
+export const searchParticipants = (query: string) =>
+  cantonParticipants.filter(p => 
+    p.name.toLowerCase().includes(query.toLowerCase()) ||
+    p.id.toLowerCase().includes(query.toLowerCase())
+  );
+```
+
+## Integration Roadmap
+
+Full Canton Network integration is planned for future milestones:
+
+### Milestone 3 (M3) - Smart Contracts
+
+- **Daml Smart Contracts** - Deploy deal workflow contracts
+- **Automated Settlement** - On-chain deal execution
+- **Compliance Automation** - Built-in regulatory checks
+- **Multi-party Workflows** - Complex deal orchestration
+
+### Identity Verification
+
+```typescript filename="canton-identity.ts"
+// Future: Real Canton identity verification
+interface CantonIdentity {
+  partyId: string;
+  certificate: string;      // X.509 certificate
+  publicKey: string;        // Cryptographic public key
+  verificationStatus: 'pending' | 'verified' | 'revoked';
+  issuedBy: string;         // Certificate authority
+  expiresAt: Date;
+  permissions: string[];    // Network permissions
+}
+
+// Identity verification workflow
+const verifyCantonIdentity = async (partyId: string): Promise<CantonIdentity> => {
+  // Connect to Canton Network identity service
+  const identity = await cantonNetwork.verifyParty(partyId);
+  
+  // Validate certificate chain
+  const isValid = await validateCertificateChain(identity.certificate);
+  
+  if (!isValid) {
+    throw new Error('Invalid Canton identity certificate');
+  }
+  
+  return identity;
+};
+```
+
+### On-Chain Deal Settlement
+
+```typescript filename="deal-settlement.ts"
+// Future: On-chain deal settlement
+interface DealContract {
+  dealId: string;
+  participants: string[];   // Party IDs
+  terms: {
+    volume: number;
+    currency: string;
+    settlementDate: Date;
+    conditions: string[];
+  };
+  status: 'draft' | 'signed' | 'executed' | 'settled';
+  signatures: {
+    partyId: string;
+    signature: string;
+    timestamp: Date;
+  }[];
+}
+
+// Deploy deal contract to Canton
+const deployDealContract = async (deal: Deal): Promise<string> => {
+  const contract: DealContract = {
+    dealId: deal.id,
+    participants: deal.participants.map(p => p.partyId),
+    terms: {
+      volume: deal.volume,
+      currency: '$CC',
+      settlementDate: deal.settlementDate,
+      conditions: deal.conditions
+    },
+    status: 'draft',
+    signatures: []
+  };
+  
+  // Submit to Canton Network
+  const contractId = await cantonNetwork.deployContract(contract);
+  
+  // Update deal with contract reference
+  await updateDeal(deal.id, { contractId });
+  
+  return contractId;
+};
+```
+
+## Payment Integration
+
+Canton Coin wallet integration for subscription payments:
+
+```typescript filename="canton-payments.ts"
+// Payment method with Canton Coin wallet
+interface CantonPaymentMethod {
+  id: string;
+  orgId: string;
+  type: 'canton_cc';
+  walletAddress: string;    // Canton Coin wallet address
+  balance?: number;         // Available $CC balance
+  isDefault: boolean;
+  metadata: {
+    walletProvider: string; // e.g., "Canton Wallet", "MetaMask"
+    networkId: string;      // Canton Network identifier
+    lastSyncAt: Date;
+  };
+}
+
+// Process subscription payment with $CC
+const processCantonPayment = async (
+  subscriptionId: string, 
+  amount: number
+): Promise<PaymentResult> => {
+  const subscription = await getSubscription(subscriptionId);
+  const paymentMethod = await getDefaultPaymentMethod(subscription.orgId);
+  
+  if (paymentMethod.type !== 'canton_cc') {
+    throw new Error('Canton Coin payment method required');
+  }
+  
+  // Check wallet balance
+  const balance = await cantonNetwork.getWalletBalance(paymentMethod.walletAddress);
+  if (balance < amount) {
+    throw new Error('Insufficient $CC balance');
+  }
+  
+  // Execute payment transaction
+  const transaction = await cantonNetwork.transfer({
+    from: paymentMethod.walletAddress,
+    to: FLOWRYD_TREASURY_ADDRESS,
+    amount,
+    currency: '$CC',
+    reference: subscriptionId
+  });
+  
+  return {
+    transactionId: transaction.id,
+    status: 'completed',
+    amount,
+    currency: '$CC'
+  };
+};
+```

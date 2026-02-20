@@ -1,0 +1,179 @@
+---
+title: "Flow Templates"
+description: "Templates provide pre-built flow configurations for common Canton Network workflows, enabling rapid deployment of proven financial processes."
+---
+
+# Flow Templates
+
+Templates provide pre-built flow configurations for common Canton Network workflows, enabling rapid deployment of proven financial processes.
+
+## Template System
+
+Templates are flows marked with special flags for reuse:
+
+```typescript filename="Template Query"
+// Template flow properties
+interface FlowTemplate extends Flow {
+  isTemplate: true;        // Marks flow as template
+  isPublic: boolean;       // Public templates visible to all orgs
+  isFeatured?: boolean;    // Featured on template gallery
+  featuredHeadline?: string; // Marketing headline
+  featuredSource?: string;   // Source attribution
+}
+
+// Query templates
+const templates = await db
+  .select()
+  .from(flows)
+  .where(
+    and(
+      eq(flows.isTemplate, true),
+      eq(flows.status, 'published'),
+      or(
+        eq(flows.isPublic, true),
+        eq(flows.orgId, user.orgId) // Private org templates
+      )
+    )
+  )
+  .orderBy(desc(flows.isFeatured), desc(flows.createdAt));
+```
+
+## Built-in Templates
+
+| Template | Description | Key Participants |
+|----------|-------------|------------------|
+| Token Issuance | Issue digital bonds or funds with automated lifecycle | Issuer, Registry, Settlement, Custody |
+| Collateral Management | Automate collateral selection and mobility | Collateral Agent, Custody, Registry |
+| Repo Financing | Intraday repo swaps with atomic settlement | Cash Lender, Repo Platform, Custody |
+| Securities Lending | Automated securities lending with EquiLend 1Source | EquiLend, Custody, Collateral Agent |
+| Syndicated Loans | Multi-party loan syndication via Versana | Versana, Registry, Settlement |
+
+## Creating Templates
+
+Admins can convert any published flow into a template:
+
+```typescript filename="Template Creation API"
+// Convert flow to template (admin only)
+export const POST = withMiddleware(
+  requireAuth(),
+  async (req: NextRequest, ctx: ApiContext) => {
+    requirePermission(ctx.user!.role, 'flow.manage_templates');
+    
+    const { flowId } = ctx.params;
+    const { isPublic, featuredHeadline, featuredSource } = ctx.body;
+    
+    const [template] = await db
+      .update(flows)
+      .set({
+        isTemplate: true,
+        isPublic: isPublic || false,
+        isFeatured: !!featuredHeadline,
+        featuredHeadline,
+        featuredSource,
+        updatedBy: ctx.user!.sub,
+        updatedAt: new Date(),
+      })
+      .where(eq(flows.id, flowId))
+      .returning();
+    
+    logAudit({
+      userId: ctx.user!.sub,
+      orgId: ctx.user!.orgId,
+      action: 'flow.template_create',
+      resourceType: 'flow',
+      resourceId: flowId,
+    });
+    
+    return successResponse({ template });
+  }
+);
+```
+
+## Using Templates
+
+Users can create new flows from templates:
+
+```typescript filename="Template Usage"
+// Create flow from template
+const createFromTemplate = async (templateId: string, customization: {
+  title: string;
+  description?: string;
+  workflowType?: string;
+}) => {
+  // 1. Get template flow and latest version
+  const template = await getFlow(templateId);
+  const latestVersion = await getLatestVersion(templateId);
+  
+  // 2. Create new flow
+  const [newFlow] = await db
+    .insert(flows)
+    .values({
+      orgId: user.orgId,
+      title: customization.title,
+      description: customization.description,
+      workflowType: customization.workflowType || template.workflowType,
+      status: 'draft',
+      createdBy: user.id,
+      updatedBy: user.id,
+    })
+    .returning();
+  
+  // 3. Copy template version as initial version
+  await db.insert(flowVersions).values({
+    flowId: newFlow.id,
+    version: 1,
+    nodes: latestVersion.nodes,     // Copy nodes
+    edges: latestVersion.edges,     // Copy edges
+    viewport: latestVersion.viewport,
+    snapshotName: 'From Template',
+    createdBy: user.id,
+  });
+  
+  return newFlow;
+};
+```
+
+## Template Gallery
+
+The template gallery showcases featured templates:
+
+```typescript filename="Template Gallery Component"
+function TemplateGallery() {
+  const { templates, isLoading } = useTemplates();
+  
+  const featuredTemplates = templates.filter(t => t.isFeatured);
+  const regularTemplates = templates.filter(t => !t.isFeatured);
+  
+  return (
+    <div className="template-gallery">
+      {featuredTemplates.length > 0 && (
+        <section className="featured-section">
+          <h2>Featured Templates</h2>
+          <div className="featured-grid">
+            {featuredTemplates.map(template => (
+              <FeaturedTemplateCard 
+                key={template.id} 
+                template={template}
+                onUse={handleUseTemplate}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+      
+      <section className="all-templates">
+        <h2>All Templates</h2>
+        <div className="template-grid">
+          {regularTemplates.map(template => (
+            <TemplateCard 
+              key={template.id} 
+              template={template}
+              onUse={handleUseTemplate}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+```

@@ -1,0 +1,169 @@
+---
+title: "Getting Started"
+description: "Welcome to Flowryd, a Next.js platform for building and managing financial workflows on the Canton Network."
+---
+
+# Getting Started
+
+Welcome to Flowryd, a Next.js platform for building and managing financial workflows on the Canton Network. This guide will help you understand the core concepts and get started with creating flows and processing deals.
+
+## Core Concepts
+
+| Concept | Description | Example |
+|---------|-------------|---------|
+| **Flows** | Visual workflow templates that define business processes | Token issuance, collateral management, repo financing |
+| **Deals** | Instances of flows with specific participants and data | A specific bond issuance deal worth $10M |
+| **Participants** | Canton Network parties involved in workflows | Banks, custodians, registries, settlement systems |
+| **Organizations** | Groups of users sharing flows and deals | Investment banks, asset managers, fintech companies |
+
+## Authentication
+
+Flowryd uses Canton Network Party-IDs for authentication instead of traditional email/password. Party-IDs follow the format `orgname::identifier`.
+
+### Register an Account
+
+```json filename="Registration Request"
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "partyId": "mybank::trader001",
+  "displayName": "John Trader",
+  "orgName": "My Investment Bank",
+  "email": "john@mybank.com"
+}
+```
+
+### Login
+
+```json filename="Login Request"
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "partyId": "mybank::trader001"
+}
+
+// Response sets httpOnly cookies:
+// - flowryd-access-token (15min)
+// - flowryd-refresh-token (7 days)
+```
+
+## Creating Your First Flow
+
+Flows are created through the web interface using a visual drag-and-drop builder. Here's how to create a basic flow programmatically:
+
+### 1. Create Flow
+
+```json filename="Create Flow"
+POST /api/flows
+Content-Type: application/json
+Cookie: flowryd-access-token=...
+
+{
+  "title": "My First Deal Flow",
+  "description": "A simple two-party deal workflow",
+  "workflowType": "bilateral-deal"
+}
+```
+
+### 2. Add Flow Version
+
+```json filename="Add Flow Version"
+POST /api/flows/{flowId}/versions
+Content-Type: application/json
+
+{
+  "nodes": [
+    {
+      "id": "buyer-node",
+      "type": "institutional",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "participantId": "buyer-bank",
+        "name": "Buyer Bank",
+        "cantonRole": "buyer"
+      }
+    },
+    {
+      "id": "seller-node", 
+      "type": "institutional",
+      "position": { "x": 400, "y": 100 },
+      "data": {
+        "participantId": "seller-bank",
+        "name": "Seller Bank",
+        "cantonRole": "seller"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "deal-edge",
+      "source": "buyer-node",
+      "target": "seller-node",
+      "type": "liquid"
+    }
+  ]
+}
+```
+
+### 3. Publish Flow
+
+```json filename="Publish Flow"
+POST /api/flows/{flowId}/publish
+Content-Type: application/json
+
+{
+  "isTemplate": false
+}
+```
+
+## Creating a Deal
+
+Once you have a published flow, you can create deals based on that flow:
+
+```json filename="Create Deal"
+POST /api/deals
+Content-Type: application/json
+
+{
+  "title": "Bond Purchase Deal",
+  "description": "Purchase of corporate bonds",
+  "flowId": "flow-uuid-here",
+  "volume": "10000000",
+  "metadata": {
+    "bondType": "corporate",
+    "maturity": "2025-12-31",
+    "coupon": "4.5%"
+  }
+}
+```
+
+## Deal Messaging
+
+Deals support real-time messaging between participants:
+
+```json filename="Deal Messaging"
+// Send a message
+POST /api/deals/{dealId}/messages
+{
+  "content": "Ready to proceed with settlement",
+  "threadId": "settlement-thread"
+}
+
+// Listen for real-time updates
+GET /api/deals/{dealId}/messages/stream
+// Server-Sent Events stream
+```
+
+## Next Steps
+
+- **Architecture** - Learn about the technical architecture and tech stack
+- **Authentication** - Deep dive into JWT flow and RBAC system
+- **Flow Lifecycle** - Understand flow states and version management
+- **Deal Lifecycle** - Learn about deal state transitions
+- **API Reference** - Complete endpoint documentation
+
+> **Development Environment**
+> 
+> This documentation assumes you're running Flowryd locally on `http://localhost:3000`. All API endpoints are relative to this base URL using Next.js API routes at `/api/*`.
