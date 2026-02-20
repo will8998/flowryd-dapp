@@ -41,6 +41,7 @@ export default function MessageInput({ dealId }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [filePreview, setFilePreview] = useState<FilePreview | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -132,7 +133,7 @@ export default function MessageInput({ dealId }: MessageInputProps) {
         xhr.open('POST', `/api/deals/${dealId}/files`);
         xhr.send(formData);
       });
-    } catch (error) {
+    } catch {
       setFilePreview(prev => prev ? { ...prev, error: 'Upload failed', isUploading: false } : null);
       return null;
     }
@@ -142,6 +143,8 @@ export default function MessageInput({ dealId }: MessageInputProps) {
     if (isSending || (!message.trim() && !filePreview) || !canSendMessages) return;
 
     setIsSending(true);
+    setSendError(null);
+    
     try {
       if (filePreview && !filePreview.error) {
         const fileData = await uploadFile(filePreview.file);
@@ -162,14 +165,27 @@ export default function MessageInput({ dealId }: MessageInputProps) {
             setMessage('');
             setFilePreview(null);
             if (fileInputRef.current) fileInputRef.current.value = '';
+          } else {
+            setSendError('Failed to send file message');
+            setTimeout(() => setSendError(null), 3000);
           }
+        } else {
+          setSendError('File upload failed');
+          setTimeout(() => setSendError(null), 3000);
         }
       } else if (message.trim()) {
-        await sendMessage(message.trim());
-        setMessage('');
+        const result = await sendMessage(message.trim());
+        if (result) {
+          setMessage('');
+        } else {
+          setSendError('Failed to send message');
+          setTimeout(() => setSendError(null), 3000);
+        }
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+      setSendError('Failed to send message');
+      setTimeout(() => setSendError(null), 3000);
     } finally {
       setIsSending(false);
     }
@@ -295,6 +311,10 @@ export default function MessageInput({ dealId }: MessageInputProps) {
           )}
         </button>
       </div>
+
+      {sendError && (
+        <p className="text-[9px] text-red-400/60 font-mono px-4 pb-1">{sendError}</p>
+      )}
     </div>
   );
 }

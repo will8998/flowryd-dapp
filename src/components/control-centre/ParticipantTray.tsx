@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { participants, workflows } from '@/lib/canton-data';
+import { useFlowParticipants } from '@/hooks/use-flow-participants';
 import { 
   Search, 
   ChevronDown, 
@@ -55,6 +55,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
   selectedWorkflow = null,
   onSelectWorkflow
 }) => {
+  const { participants, workflows, isLoading } = useFlowParticipants();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(Array.from(new Set(participants.map(p => p.cantonRole))))
@@ -62,7 +63,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
 
   const activeWorkflow = useMemo(() => 
     workflows.find(w => w.id === selectedWorkflow) || null
-  , [selectedWorkflow]);
+  , [selectedWorkflow, workflows]);
 
   const recommendedParticipantIds = useMemo(() => {
     if (!activeWorkflow) return new Set<string>();
@@ -72,7 +73,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
         .filter(p => Object.keys(p.capabilities).some(cap => roleSet.has(cap)))
         .map(p => p.id)
     );
-  }, [activeWorkflow]);
+  }, [activeWorkflow, participants]);
 
   const filteredParticipants = useMemo(() => {
     if (!searchTerm.trim()) return participants;
@@ -82,7 +83,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
       p.name.toLowerCase().includes(term) || 
       p.cantonRole.toLowerCase().includes(term)
     );
-  }, [searchTerm]);
+  }, [searchTerm, participants]);
 
   const groupedParticipants = useMemo(() => {
     const groups: Record<string, typeof participants> = {};
@@ -93,7 +94,6 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
       groups[role].push(participant);
     });
 
-    // Sort groups alphabetically and participants within each group
     const sortedGroups: [string, typeof participants][] = Object.entries(groups)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([role, participants]) => [role, participants.sort((a, b) => a.name.localeCompare(b.name))]);
@@ -220,8 +220,13 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
           )}
 
           <div className="flex-1 overflow-y-auto">
-            <div className="p-2 space-y-1">
-              {groupedParticipants.map(([role, roleParticipants]) => {
+            {isLoading ? (
+              <div className="p-4 text-center">
+                <p className="text-xs text-white/60">Loading...</p>
+              </div>
+            ) : (
+              <div className="p-2 space-y-1">
+                {groupedParticipants.map(([role, roleParticipants]) => {
                 const isExpanded = expandedGroups.has(role);
                 const IconComponent = getRoleIcon(role);
                 
@@ -301,7 +306,8 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
                   </div>
                 );
               })}
-            </div>
+              </div>
+            )}
           </div>
         </>
       )}

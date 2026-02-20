@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, CheckCircle2, Zap, BarChart3, Shield, Globe } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Zap, BarChart3, Shield } from 'lucide-react';
 
 interface ActivationScreenProps {
   onBack: () => void;

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, CheckCircle2, Target, Workflow, Zap, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Sparkles, ArrowRight, Target, Workflow, Zap, X } from 'lucide-react';
 
 interface OnboardingWizardProps {
   onComplete: () => void;

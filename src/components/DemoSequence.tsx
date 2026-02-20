@@ -10,11 +10,9 @@ import {
   Building2,
   CheckCircle2, 
   ArrowRight,
-  Zap,
   Layers,
   MessageSquare,
   Lock,
-  Shield,
   ShieldCheck,
   Send
 } from 'lucide-react';

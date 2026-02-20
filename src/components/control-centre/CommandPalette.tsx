@@ -21,7 +21,7 @@ interface Command {
   shortcut?: string;
 }
 
-export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, activeTier, onTierChange, userRole }) => {
+export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, activeTier: _activeTier, onTierChange, userRole }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);

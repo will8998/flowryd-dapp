@@ -1,30 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Users, 
-  UserPlus, 
-  CheckCircle2, 
-  XCircle,
-  Clock,
-  AlertCircle,
-  Loader2,
-  FileText
-} from 'lucide-react';
-
-interface Flow {
-  id: string;
-  title: string;
-  description: string | null;
-  status: string;
-  isPublic: boolean | null;
-  createdAt: string;
-}
+import { motion } from 'framer-motion';
+import { DataTable, Badge, useToast, EmptyState } from '@/components/ui';
 
 interface JoinRequest {
   id: string;
   flowId: string;
+  flowTitle: string;
   requesterId: string;
   message: string | null;
   status: 'pending' | 'approved' | 'rejected';
@@ -33,77 +16,61 @@ interface JoinRequest {
   createdAt: string;
 }
 
-interface ConfirmAction {
-  requestId: string;
-  flowId: string;
-  action: 'approved' | 'rejected';
-}
-
-interface Banner {
-  type: 'success' | 'error';
-  message: string;
+interface JoinRequestsResponse {
+  data: {
+    joinRequests: JoinRequest[];
+    total: number;
+  };
 }
 
 export const AdminJoinRequestsTab: React.FC = () => {
-  const [flows, setFlows] = useState<Flow[]>([]);
-  const [joinRequests, setJoinRequests] = useState<Record<string, JoinRequest[]>>({});
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
-  const [banner, setBanner] = useState<Banner | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [confirmAction, setConfirmAction] = useState<{ requestId: string; action: 'approved' | 'rejected' } | null>(null);
+
+  const { toast } = useToast();
 
   const loadData = async () => {
     try {
       setLoading(true);
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: ((page - 1) * pageSize).toString(),
+        search: searchQuery,
+        sortBy,
+        sortDir
+      });
       
-      // 1. Fetch all flows
-      const flowsResponse = await fetch('/api/flows?limit=50');
-      if (!flowsResponse.ok) throw new Error('Failed to fetch flows');
+      if (statusFilter) params.append('status', statusFilter);
       
-      const flowsData = await flowsResponse.json();
-      const allFlows: Flow[] = flowsData.data || [];
-      
-      // 2. Filter to public published flows
-      const publicFlows = allFlows.filter(flow => 
-        flow.isPublic === true && flow.status === 'published'
-      );
-      setFlows(publicFlows);
-      
-      // 3. Fetch join requests for each public flow
-      if (publicFlows.length > 0) {
-        const joinRequestPromises = publicFlows.map(async (flow) => {
-          try {
-            const response = await fetch(`/api/flows/${flow.id}/join`);
-            if (response.ok) {
-              const data = await response.json();
-              return { flowId: flow.id, requests: data.data?.joinRequests || [] };
-            }
-            return { flowId: flow.id, requests: [] };
-          } catch {
-            return { flowId: flow.id, requests: [] };
-          }
-        });
-        
-        const results = await Promise.all(joinRequestPromises);
-        const requestsMap: Record<string, JoinRequest[]> = {};
-        results.forEach(({ flowId, requests }) => {
-          requestsMap[flowId] = requests;
-        });
-        
-        setJoinRequests(requestsMap);
+      const response = await fetch(`/api/admin/join-requests?${params}`);
+      if (response.ok) {
+        const data: JoinRequestsResponse = await response.json();
+        setJoinRequests(data.data.joinRequests || []);
+        setTotalCount(data.data.total);
+      } else {
+        toast('Failed to load join requests', 'error');
       }
     } catch (error) {
       console.error('Failed to load join requests:', error);
-      showBanner('error', 'Failed to load join requests');
+      toast('Failed to load join requests', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAction = async (requestId: string, flowId: string, action: 'approved' | 'rejected') => {
+  const handleAction = async (requestId: string, action: 'approved' | 'rejected') => {
     if (confirmAction?.requestId === requestId && confirmAction?.action === action) {
       // Second click - execute action
       try {
-        const response = await fetch(`/api/flows/${flowId}/join/${requestId}`, {
+        const response = await fetch(`/api/admin/join-requests/${requestId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: action })
@@ -111,32 +78,18 @@ export const AdminJoinRequestsTab: React.FC = () => {
 
         if (!response.ok) throw new Error(`Failed to ${action} request`);
 
-        // Optimistically update local state
-        setJoinRequests(prev => ({
-          ...prev,
-          [flowId]: prev[flowId]?.map(req => 
-            req.id === requestId 
-              ? { ...req, status: action, reviewedAt: new Date().toISOString() }
-              : req
-          ) || []
-        }));
-
-        showBanner('success', `Request ${action} successfully`);
+        toast(`Request ${action} successfully`, 'success');
         setConfirmAction(null);
+        await loadData();
       } catch (error) {
         console.error(`Failed to ${action} request:`, error);
-        showBanner('error', `Failed to ${action} request`);
+        toast(`Failed to ${action} request`, 'error');
         setConfirmAction(null);
       }
     } else {
       // First click - show confirmation
-      setConfirmAction({ requestId, flowId, action });
+      setConfirmAction({ requestId, action });
     }
-  };
-
-  const showBanner = (type: 'success' | 'error', message: string) => {
-    setBanner({ type, message });
-    setTimeout(() => setBanner(null), 3000);
   };
 
   const formatDate = (dateString: string) => {
@@ -149,219 +102,183 @@ export const AdminJoinRequestsTab: React.FC = () => {
     });
   };
 
-  const getStatusBadge = (status: 'pending' | 'approved' | 'rejected') => {
-    switch (status) {
-      case 'pending':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-500/10 text-yellow-400/60 border border-yellow-500/20 rounded-full text-xs font-medium">
-            <Clock className="w-3 h-3" />
-            Pending
-          </span>
-        );
-      case 'approved':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/10 text-green-400/60 border border-green-500/20 rounded-full text-xs font-medium">
-            <CheckCircle2 className="w-3 h-3" />
-            Approved
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-500/10 text-red-400/60 border border-red-500/20 rounded-full text-xs font-medium">
-            <XCircle className="w-3 h-3" />
-            Rejected
-          </span>
-        );
+
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    loadData();
+  }, [page, pageSize, searchQuery, sortBy, sortDir, statusFilter]);
+
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDir('asc');
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setPage(1);
+  };
 
-  const totalPending = Object.values(joinRequests).flat().filter(req => req.status === 'pending').length;
-  const totalFlowsWithRequests = Object.keys(joinRequests).filter(flowId => 
-    joinRequests[flowId]?.length > 0
-  ).length;
+  const getStatusBadge = (status: 'pending' | 'approved' | 'rejected') => {
+    const variants: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
+      pending: 'warning',
+      approved: 'success',
+      rejected: 'danger'
+    };
+    return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
+  };
+
+  const columns = [
+    {
+      key: 'requesterId',
+      label: 'Requester',
+      sortable: true,
+      render: (request: JoinRequest) => (
+        <code className="text-xs text-white/80 bg-white/5 px-2 py-1 rounded font-mono">
+          {request.requesterId}
+        </code>
+      ),
+    },
+    {
+      key: 'flowTitle',
+      label: 'Flow',
+      render: (request: JoinRequest) => (
+        <span className="text-sm text-white/80">{request.flowTitle}</span>
+      ),
+    },
+    {
+      key: 'message',
+      label: 'Message',
+      render: (request: JoinRequest) => (
+        <div className="text-sm text-white/70 max-w-xs truncate">
+          {request.message || (
+            <span className="text-white/40 italic">No message</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (request: JoinRequest) => getStatusBadge(request.status),
+    },
+    {
+      key: 'createdAt',
+      label: 'Submitted At',
+      sortable: true,
+      render: (request: JoinRequest) => (
+        <div>
+          <div className="text-sm text-white/60">
+            {formatDate(request.createdAt)}
+          </div>
+          {request.reviewedAt && (
+            <div className="text-xs text-white/40">
+              Reviewed {formatDate(request.reviewedAt)}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (request: JoinRequest) => (
+        request.status === 'pending' ? (
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleAction(request.id, 'approved')}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                confirmAction?.requestId === request.id && confirmAction?.action === 'approved'
+                  ? 'border border-white/40 bg-black/40 text-white' 
+                  : 'border border-white/20 hover:border-white/40 text-white'
+              }`}
+            >
+              {confirmAction?.requestId === request.id && confirmAction?.action === 'approved' 
+                ? 'Confirm?' 
+                : 'Approve'
+              }
+            </button>
+            <button
+              onClick={() => handleAction(request.id, 'rejected')}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                confirmAction?.requestId === request.id && confirmAction?.action === 'rejected'
+                  ? 'border border-white/40 bg-black/40 text-white' 
+                  : 'border border-white/20 hover:border-white/40 text-white'
+              }`}
+            >
+              {confirmAction?.requestId === request.id && confirmAction?.action === 'rejected' 
+                ? 'Confirm?' 
+                : 'Reject'
+              }
+            </button>
+          </div>
+        ) : (
+          <span className="text-white/40 text-sm">—</span>
+        )
+      ),
+    },
+  ];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="space-y-6"
+      className="h-full flex flex-col"
     >
-      <AnimatePresence>
-        {banner && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={`p-4 rounded border ${
-              banner.type === 'success' 
-                ? 'bg-green-500/10 border-green-500/20 text-green-400/60' 
-                : 'bg-red-500/10 border-red-500/20 text-red-400/60'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {banner.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4" />
-              ) : (
-                <AlertCircle className="w-4 h-4" />
-              )}
-              {banner.message}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {!loading && flows.length > 0 && (
-        <div className="bg-black/20 backdrop-blur-xl border border-white/5 rounded-lg p-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/10 border border-white/20 rounded">
-              <UserPlus className="w-6 h-6 text-white/70" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">Join Requests Overview</h2>
-              <p className="text-white/60 text-sm mt-1">
-                {totalPending} pending requests across {totalFlowsWithRequests} flows
-              </p>
-            </div>
+      <div className="p-6 border-b border-white/5">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Join Requests Management</h2>
+            <p className="text-sm text-white/40 mt-1">Review and manage flow join requests</p>
           </div>
         </div>
-      )}
 
-      {loading && (
-        <div className="bg-black/20 backdrop-blur-xl border border-white/5 rounded-lg p-8 text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-white/40" />
-          <p className="text-white/60">Loading join requests...</p>
+        <div className="flex gap-4 mb-4">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2.5 bg-white/5 border border-white/10 rounded text-white focus:outline-none focus:border-white/30 transition-colors"
+          >
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
         </div>
-      )}
+      </div>
 
-      {!loading && flows.length === 0 && (
-        <div className="bg-black/20 backdrop-blur-xl border border-white/5 rounded-lg p-8 text-center">
-          <FileText className="w-12 h-12 mx-auto mb-3 text-white/20" />
-          <h3 className="text-lg font-medium text-white mb-2">No Public Published Flows</h3>
-          <p className="text-white/60">
-            Publish a flow and make it public to receive join requests.
-          </p>
-        </div>
-      )}
-
-      {!loading && flows.length > 0 && (
-        <div className="space-y-6">
-          {flows.map(flow => {
-            const requests = joinRequests[flow.id] || [];
-            const pendingCount = requests.filter(req => req.status === 'pending').length;
-
-            return (
-              <div key={flow.id} className="bg-black/20 backdrop-blur-xl border border-white/5 rounded-lg overflow-hidden">
-                <div className="p-6 border-b border-white/5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-white">{flow.title}</h3>
-                      {flow.description && (
-                        <p className="text-white/60 text-sm mt-1">{flow.description}</p>
-                      )}
-                    </div>
-                    {pendingCount > 0 && (
-                      <div className="px-3 py-1 bg-yellow-500/10 text-yellow-400/60 border border-yellow-500/20 rounded-full text-sm font-medium">
-                        {pendingCount} pending
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {requests.length === 0 ? (
-                  <div className="p-8 text-center">
-                    <Users className="w-8 h-8 mx-auto mb-3 text-white/20" />
-                    <p className="text-white/60">No join requests for this flow.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-white/5 border-b border-white/5">
-                        <tr>
-                          <th className="text-left p-4 text-xs font-bold text-white/40 tracking-wide">REQUESTER ID</th>
-                          <th className="text-left p-4 text-xs font-bold text-white/40 tracking-wide">MESSAGE</th>
-                          <th className="text-left p-4 text-xs font-bold text-white/40 tracking-wide">STATUS</th>
-                          <th className="text-left p-4 text-xs font-bold text-white/40 tracking-wide">REQUESTED AT</th>
-                          <th className="text-left p-4 text-xs font-bold text-white/40 tracking-wide">ACTIONS</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {requests.map(request => (
-                          <tr key={request.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                            <td className="p-4">
-                              <code className="text-xs text-white/80 bg-white/5 px-2 py-1 rounded font-mono">
-                                {request.requesterId}
-                              </code>
-                            </td>
-                            <td className="p-4">
-                              <div className="text-sm text-white/70 max-w-xs truncate">
-                                {request.message || (
-                                  <span className="text-white/40 italic">No message</span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              {getStatusBadge(request.status)}
-                            </td>
-                            <td className="p-4">
-                              <div className="text-sm text-white/60">
-                                {formatDate(request.createdAt)}
-                              </div>
-                              {request.reviewedAt && (
-                                <div className="text-xs text-white/40">
-                                  Reviewed {formatDate(request.reviewedAt)}
-                                </div>
-                              )}
-                            </td>
-                            <td className="p-4">
-                              {request.status === 'pending' ? (
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handleAction(request.id, flow.id, 'approved')}
-                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                      confirmAction?.requestId === request.id && confirmAction?.action === 'approved'
-                                        ? 'border border-white/40 bg-black/40 text-white' 
-                                        : 'border border-white/20 hover:border-white/40 text-white'
-                                    }`}
-                                  >
-                                    {confirmAction?.requestId === request.id && confirmAction?.action === 'approved' 
-                                      ? 'Confirm?' 
-                                      : 'Approve'
-                                    }
-                                  </button>
-                                  <button
-                                    onClick={() => handleAction(request.id, flow.id, 'rejected')}
-                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                      confirmAction?.requestId === request.id && confirmAction?.action === 'rejected'
-                                        ? 'border border-white/40 bg-black/40 text-white' 
-                                        : 'border border-white/20 hover:border-white/40 text-white'
-                                    }`}
-                                  >
-                                    {confirmAction?.requestId === request.id && confirmAction?.action === 'rejected' 
-                                      ? 'Confirm?' 
-                                      : 'Reject'
-                                    }
-                                  </button>
-                                </div>
-                              ) : (
-                                <span className="text-white/40 text-sm">—</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <div className="flex-1 overflow-auto p-6">
+        <DataTable
+          columns={columns}
+          data={joinRequests}
+          totalCount={totalCount}
+          isLoading={loading}
+          searchable
+          searchPlaceholder="Search by requester ID..."
+          onSearch={handleSearch}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSort={handleSort}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          exportable
+          exportFilename="join-requests"
+          getRowId={(request) => request.id}
+          emptyState={
+            <EmptyState
+              title="No join requests found"
+              description="No join requests match your search criteria"
+            />
+          }
+        />
+      </div>
     </motion.div>
   );
 };

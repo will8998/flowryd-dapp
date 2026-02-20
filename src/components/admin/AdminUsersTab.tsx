@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { UserX, UserCheck } from 'lucide-react';
+import { DataTable, Badge, useToast, EmptyState } from '@/components/ui';
 
 interface User {
   id: string;
@@ -22,33 +23,45 @@ interface AdminUsersTabProps {
 interface UsersResponse {
   data: {
     users: User[];
+    total: number;
   };
 }
 
 export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('displayName');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [confirmingToggle, setConfirmingToggle] = useState<string | null>(null);
-
-  const showBanner = (type: 'success' | 'error', message: string) => {
-    setBanner({ type, message });
-    setTimeout(() => setBanner(null), 3000);
-  };
+  
+  const { toast } = useToast();
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/users');
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: ((page - 1) * pageSize).toString(),
+        search: searchQuery,
+        sortBy,
+        sortDir
+      });
+      
+      const response = await fetch(`/api/admin/users?${params}`);
       if (response.ok) {
         const data: UsersResponse = await response.json();
         setUsers(data.data.users);
+        setTotalCount(data.data.total);
       } else {
-        showBanner('error', 'Failed to load users');
+        toast('Failed to load users', 'error');
       }
     } catch (error) {
       console.error('Failed to load users:', error);
-      showBanner('error', 'Failed to load users');
+      toast('Failed to load users', 'error');
     } finally {
       setLoading(false);
     }
@@ -63,15 +76,15 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
       });
       
       if (response.ok) {
-        const data = await response.json();
+        await response.json();
         setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-        showBanner('success', `User role updated to ${newRole}`);
+        toast(`User role updated to ${newRole}`, 'success');
       } else {
-        showBanner('error', 'Failed to update user role');
+        toast('Failed to update user role', 'error');
       }
     } catch (error) {
       console.error('Failed to update user role:', error);
-      showBanner('error', 'Failed to update user role');
+      toast('Failed to update user role', 'error');
     }
   };
 
@@ -90,21 +103,22 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
       
       if (response.ok) {
         setUsers(prev => prev.map(u => u.id === userId ? { ...u, isActive: !isActive } : u));
-        showBanner('success', `User ${!isActive ? 'activated' : 'deactivated'} successfully`);
+        toast(`User ${!isActive ? 'activated' : 'deactivated'} successfully`, 'success');
       } else {
-        showBanner('error', 'Failed to update user status');
+        toast('Failed to update user status', 'error');
       }
     } catch (error) {
       console.error('Failed to toggle user status:', error);
-      showBanner('error', 'Failed to update user status');
+      toast('Failed to update user status', 'error');
     } finally {
       setConfirmingToggle(null);
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [page, pageSize, searchQuery, sortBy, sortDir]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -115,6 +129,134 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
     });
   };
 
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDir('asc');
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setPage(1);
+  };
+
+  const columns = [
+    {
+      key: 'user',
+      label: 'User',
+      sortable: true,
+      render: (user: User) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-sm font-bold">
+            {user.displayName.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div className="font-medium text-white">{user.displayName}</div>
+            {user.id === currentUserId && (
+              <div className="text-xs text-white/70">(You)</div>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'partyId',
+      label: 'Party ID',
+      render: (user: User) => (
+        <code className="text-xs text-white/60 bg-white/5 px-2 py-1 rounded font-mono">
+          {user.partyId}
+        </code>
+      ),
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      sortable: true,
+      render: (user: User) => (
+        <span className="text-sm text-white/80">{user.email}</span>
+      ),
+    },
+    {
+      key: 'role',
+      label: 'Role',
+      render: (user: User) => {
+        const isCurrentUser = user.id === currentUserId;
+        return isCurrentUser ? (
+          <Badge variant="default">
+            {user.role}
+          </Badge>
+        ) : (
+          <select
+            value={user.role}
+            onChange={(e) => updateUserRole(user.id, e.target.value as 'admin' | 'editor' | 'viewer')}
+            className="bg-white/5 border border-white/10 hover:border-white/20 rounded px-2 py-1 text-xs text-white"
+          >
+            <option value="viewer">Viewer</option>
+            <option value="editor">Editor</option>
+            <option value="admin">Admin</option>
+          </select>
+        );
+      },
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (user: User) => (
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500/80' : 'bg-red-500/80'}`} />
+          <span className="text-xs text-white/60">
+            {user.isActive ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'lastLoginAt',
+      label: 'Last Login',
+      sortable: true,
+      render: (user: User) => (
+        <span className="text-sm text-white/60">
+          {user.lastLoginAt ? formatDate(user.lastLoginAt) : 'Never'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (user: User) => {
+        const isCurrentUser = user.id === currentUserId;
+        return !isCurrentUser ? (
+          <button
+            onClick={() => toggleUserActive(user.id, user.isActive)}
+            className="border border-white/20 hover:border-white/40 text-white rounded px-3 py-1.5 text-sm transition-colors"
+            title={user.isActive ? 'Deactivate user' : 'Activate user'}
+          >
+            {confirmingToggle === user.id ? (
+              'Confirm?'
+            ) : (
+              <>
+                {user.isActive ? (
+                  <>
+                    <UserX className="w-4 h-4 inline mr-1" />
+                    Deactivate
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="w-4 h-4 inline mr-1" />
+                    Activate
+                  </>
+                )}
+              </>
+            )}
+          </button>
+        ) : null;
+      },
+    },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -122,140 +264,38 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ currentUserId }) =
       exit={{ opacity: 0, y: -20 }}
       className="h-full flex flex-col"
     >
-      {banner && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`mb-4 p-3 rounded border text-sm ${
-            banner.type === 'success'
-              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/60'
-              : 'bg-red-500/10 border border-red-500/20 text-red-400/60'
-          }`}
-        >
-          {banner.message}
-        </motion.div>
-      )}
-
       <div className="bg-black/20 border border-white/5 rounded flex-1 flex flex-col overflow-hidden">
         <div className="p-6 border-b border-white/5">
           <h2 className="text-lg font-bold text-white">Organization Users</h2>
           <p className="text-sm text-white/40 mt-1">Manage user roles and access</p>
         </div>
         
-        <div className="flex-1 overflow-auto">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-white/40">Loading users...</div>
-            </div>
-          ) : (
-            <table className="w-full">
-              <thead className="sticky top-0 bg-white/5 border-b border-white/5">
-                <tr className="text-left">
-                  <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">User</th>
-                  <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Party ID</th>
-                  <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Email</th>
-                  <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Role</th>
-                  <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Last Login</th>
-                  <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(user => {
-                  const isCurrentUser = user.id === currentUserId;
-                  
-                  return (
-                    <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-sm font-bold">
-                            {user.displayName.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="font-medium text-white">{user.displayName}</div>
-                            {isCurrentUser && (
-                              <div className="text-xs text-white/70">(You)</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <code className="text-xs text-white/60 bg-white/5 px-2 py-1 rounded font-mono">
-                          {user.partyId}
-                        </code>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-white/80">{user.email}</td>
-                      <td className="px-6 py-4">
-                        {isCurrentUser ? (
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                            user.role === 'admin' 
-                              ? 'bg-white/10 text-white/70 border-white/20'
-                              : user.role === 'editor'
-                              ? 'bg-white/10 text-white/70 border-white/20'
-                              : 'bg-white/10 text-white/60 border-white/20'
-                          }`}>
-                            {user.role}
-                          </span>
-                        ) : (
-                          <select
-                            value={user.role}
-                            onChange={(e) => updateUserRole(user.id, e.target.value as 'admin' | 'editor' | 'viewer')}
-                            className="bg-white/5 border border-white/10 hover:border-white/20 rounded px-2 py-1 text-xs text-white"
-                          >
-                            <option value="viewer">Viewer</option>
-                            <option value="editor">Editor</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500/80' : 'bg-red-500/80'}`} />
-                          <span className="text-xs text-white/60">
-                            {user.isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-white/60">
-                        {user.lastLoginAt ? formatDate(user.lastLoginAt) : 'Never'}
-                      </td>
-                      <td className="px-6 py-4">
-                        {!isCurrentUser && (
-                          <button
-                            onClick={() => toggleUserActive(user.id, user.isActive)}
-                            className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                              user.isActive 
-                                ? 'border border-white/20 hover:border-white/40 text-white' 
-                                : 'border border-white/20 hover:border-white/40 text-white'
-                            }`}
-                            title={user.isActive ? 'Deactivate user' : 'Activate user'}
-                          >
-                            {confirmingToggle === user.id ? (
-                              'Confirm?'
-                            ) : (
-                              <>
-                                {user.isActive ? (
-                                  <>
-                                    <UserX className="w-4 h-4 inline mr-1" />
-                                    Deactivate
-                                  </>
-                                ) : (
-                                  <>
-                                    <UserCheck className="w-4 h-4 inline mr-1" />
-                                    Activate
-                                  </>
-                                )}
-                              </>
-                            )}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+        <div className="flex-1 overflow-auto p-6">
+          <DataTable
+            columns={columns}
+            data={users}
+            totalCount={totalCount}
+            isLoading={loading}
+            searchable
+            searchPlaceholder="Search users by name or email..."
+            onSearch={handleSearch}
+            sortBy={sortBy}
+            sortDir={sortDir}
+            onSort={handleSort}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            exportable
+            exportFilename="users"
+            getRowId={(user) => user.id}
+            emptyState={
+              <EmptyState
+                title="No users found"
+                description="No users match your search criteria"
+              />
+            }
+          />
         </div>
       </div>
     </motion.div>

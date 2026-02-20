@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { DataTable, Badge, useToast, EmptyState } from '@/components/ui';
 
 interface AuditEntry {
   id: string;
@@ -17,10 +18,9 @@ interface AuditEntry {
 }
 
 interface AuditResponse {
-  data: AuditEntry[];
-  pagination?: {
-    cursor?: string;
-    hasMore: boolean;
+  data: {
+    audit: AuditEntry[];
+    total: number;
   };
 }
 
@@ -36,56 +36,56 @@ const RESOURCE_TYPES = ['user', 'flow', 'flow_version', 'deal', 'join_request', 
 export const AdminAuditTab: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(false);
-  const [cursor, setCursor] = useState<string>();
-  const [hasMore, setHasMore] = useState(false);
-  const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const [actionFilter, setActionFilter] = useState<string>('');
   const [resourceTypeFilter, setResourceTypeFilter] = useState<string>('');
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
 
-  const showBanner = (type: 'success' | 'error', message: string) => {
-    setBanner({ type, message });
-    setTimeout(() => setBanner(null), 3000);
-  };
+  const { toast } = useToast();
 
-  const loadAuditLogs = async (resetCursor = false) => {
+  const loadAuditLogs = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams();
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: ((page - 1) * pageSize).toString(),
+        search: searchQuery,
+        sortBy,
+        sortDir
+      });
       
       if (actionFilter) params.append('action', actionFilter);
       if (resourceTypeFilter) params.append('resourceType', resourceTypeFilter);
       if (dateFrom) params.append('from', dateFrom);
       if (dateTo) params.append('to', dateTo);
-      if (!resetCursor && cursor) params.append('cursor', cursor);
-      params.append('limit', '50');
 
       const response = await fetch(`/api/admin/audit?${params}`);
       if (response.ok) {
         const data: AuditResponse = await response.json();
-        if (resetCursor) {
-          setAuditLogs(data.data);
-        } else {
-          setAuditLogs(prev => [...prev, ...data.data]);
-        }
-        setCursor(data.pagination?.cursor);
-        setHasMore(data.pagination?.hasMore || false);
+        setAuditLogs(data.data.audit);
+        setTotalCount(data.data.total);
       } else {
-        showBanner('error', 'Failed to load audit logs');
+        toast('Failed to load audit logs', 'error');
       }
     } catch (error) {
       console.error('Failed to load audit logs:', error);
-      showBanner('error', 'Failed to load audit logs');
+      toast('Failed to load audit logs', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    loadAuditLogs(true);
-  }, [actionFilter, resourceTypeFilter, dateFrom, dateTo]);
+    loadAuditLogs();
+  }, [page, pageSize, searchQuery, sortBy, sortDir, actionFilter, resourceTypeFilter, dateFrom, dateTo]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -96,7 +96,7 @@ export const AdminAuditTab: React.FC = () => {
     });
   };
 
-  const getActionColor = (action: string) => {
+  const _getActionColor = (action: string) => {
     if (action.startsWith('user.')) return 'blue';
     if (action.startsWith('flow.')) return 'purple';
     if (action.startsWith('deal.')) return 'emerald';
@@ -106,25 +106,80 @@ export const AdminAuditTab: React.FC = () => {
     return 'white';
   };
 
-  const getActionBadgeClasses = (action: string) => {
-    const color = getActionColor(action);
-    switch (color) {
-      case 'blue':
-        return 'bg-blue-500/10 text-blue-400/60 border-blue-500/20';
-      case 'purple':
-        return 'bg-purple-500/10 text-purple-400/60 border-purple-500/20';
-      case 'emerald':
-        return 'bg-emerald-500/10 text-emerald-400/60 border-emerald-500/20';
-      case 'yellow':
-        return 'bg-yellow-500/10 text-yellow-400/60 border-yellow-500/20';
-      case 'cyan':
-        return 'bg-cyan-500/10 text-cyan-400/60 border-cyan-500/20';
-      case 'orange':
-        return 'bg-orange-500/10 text-orange-400/60 border-orange-500/20';
-      default:
-        return 'bg-white/10 text-white/60 border-white/20';
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDir('asc');
     }
   };
+
+  const _handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setPage(1);
+  };
+
+  const columns = [
+    {
+      key: 'createdAt',
+      label: 'Timestamp',
+      sortable: true,
+      render: (entry: AuditEntry) => (
+        <span className="text-sm text-white/60">
+          {formatDate(entry.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: 'user',
+      label: 'User',
+      render: (entry: AuditEntry) => (
+        <div>
+          <div className="text-sm text-white font-medium">{entry.userDisplayName}</div>
+          <div className="text-xs text-white/40 font-mono">{entry.userPartyId}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'action',
+      label: 'Action',
+      render: (entry: AuditEntry) => (
+        <Badge variant="default">
+          {entry.action}
+        </Badge>
+      ),
+    },
+    {
+      key: 'resourceType',
+      label: 'Resource Type',
+      render: (entry: AuditEntry) => (
+        <span className="text-sm text-white/80">{entry.resourceType}</span>
+      ),
+    },
+    {
+      key: 'resourceId',
+      label: 'Resource ID',
+      render: (entry: AuditEntry) => (
+        entry.resourceId ? (
+          <code className="text-xs text-white/40 font-mono truncate max-w-32 block">
+            {entry.resourceId}
+          </code>
+        ) : (
+          <span className="text-white/20">—</span>
+        )
+      ),
+    },
+    {
+      key: 'ipAddress',
+      label: 'IP Address',
+      render: (entry: AuditEntry) => (
+        <code className="text-sm text-white/60 font-mono">
+          {entry.ipAddress}
+        </code>
+      ),
+    },
+  ];
 
   return (
     <motion.div
@@ -133,20 +188,6 @@ export const AdminAuditTab: React.FC = () => {
       exit={{ opacity: 0, y: -20 }}
       className="h-full flex flex-col"
     >
-      {banner && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`mb-4 p-3 rounded border text-sm ${
-            banner.type === 'success'
-              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/60'
-              : 'bg-red-500/10 border border-red-500/20 text-red-400/60'
-          }`}
-        >
-          {banner.message}
-        </motion.div>
-      )}
-
       <div className="flex gap-4 mb-6">
         <select
           value={actionFilter}
@@ -193,77 +234,29 @@ export const AdminAuditTab: React.FC = () => {
           <p className="text-sm text-white/40 mt-1">Track all system activities and changes</p>
         </div>
         
-        <div className="flex-1 overflow-auto">
-          {loading && auditLogs.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-white/40">Loading audit logs...</div>
-            </div>
-          ) : (
-            <>
-              <table className="w-full">
-                <thead className="sticky top-0 bg-white/5 border-b border-white/5">
-                  <tr className="text-left">
-                    <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Timestamp</th>
-                    <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">User</th>
-                    <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Action</th>
-                    <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Resource</th>
-                    <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Details</th>
-                    <th className="px-6 py-4 text-xs font-bold text-white/40 tracking-wide">IP Address</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {auditLogs.map(entry => (
-                    <tr key={entry.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 text-sm text-white/60">
-                        {formatDate(entry.createdAt)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="text-sm text-white font-medium">{entry.userDisplayName}</div>
-                          <div className="text-xs text-white/40 font-mono">{entry.userPartyId}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 border rounded-full text-xs font-medium ${getActionBadgeClasses(entry.action)}`}>
-                          {entry.action}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="text-sm text-white/80">{entry.resourceType}</div>
-                          {entry.resourceId && (
-                            <div className="text-xs text-white/40 font-mono truncate max-w-32">
-                              {entry.resourceId}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-xs text-white/60 max-w-48 truncate">
-                          {JSON.stringify(entry.metadata)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-white/60 font-mono">
-                        {entry.ipAddress}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {hasMore && (
-                <div className="p-6 border-t border-white/5 text-center">
-                  <button
-                    onClick={() => loadAuditLogs(false)}
-                    disabled={loading}
-                    className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm transition-colors disabled:opacity-50"
-                  >
-                    {loading ? 'Loading...' : 'Load More'}
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+        <div className="flex-1 overflow-auto p-6">
+          <DataTable
+            columns={columns}
+            data={auditLogs}
+            totalCount={totalCount}
+            isLoading={loading}
+            sortBy={sortBy}
+            sortDir={sortDir}
+            onSort={handleSort}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            exportable
+            exportFilename="audit-log"
+            getRowId={(entry) => entry.id}
+            emptyState={
+              <EmptyState
+                title="No audit logs found"
+                description="No audit entries match your search criteria"
+              />
+            }
+          />
         </div>
       </div>
     </motion.div>

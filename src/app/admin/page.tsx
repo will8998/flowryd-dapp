@@ -14,11 +14,18 @@ import {
   UserPlus,
   Server,
   LayoutTemplate,
+  LayoutDashboard,
   AlertCircle,
   ArrowRight,
   Loader2,
   User,
+  Building2,
+  CreditCard,
+  Store,
+  Settings,
+  BarChart3,
 } from 'lucide-react';
+import { AdminOverviewTab } from '@/components/admin/AdminOverviewTab';
 import { AdminUsersTab } from '@/components/admin/AdminUsersTab';
 import { AdminAuditTab } from '@/components/admin/AdminAuditTab';
 import { AdminFlowsTab } from '@/components/admin/AdminFlowsTab';
@@ -26,10 +33,16 @@ import { AdminDealsTab } from '@/components/admin/AdminDealsTab';
 import { AdminJoinRequestsTab } from '@/components/admin/AdminJoinRequestsTab';
 import { AdminNodeApiTab } from '@/components/admin/AdminNodeApiTab';
 import { AdminTemplatesTab } from '@/components/admin/AdminTemplatesTab';
+import { AdminOrganizationsTab } from '@/components/admin/AdminOrganizationsTab';
+import { AdminSubscriptionsTab } from '@/components/admin/AdminSubscriptionsTab';
+import { AdminProvidersTab } from '@/components/admin/AdminProvidersTab';
+import { AdminSystemSettingsTab } from '@/components/admin/AdminSystemSettingsTab';
+import { AdminAnalyticsTab } from '@/components/admin/AdminAnalyticsTab';
 
-type AdminView = 'users' | 'audit' | 'flows' | 'deals' | 'join-requests' | 'node-api' | 'templates';
+type AdminView = 'overview' | 'users' | 'audit' | 'flows' | 'deals' | 'join-requests' | 'node-api' | 'templates' | 'analytics' | 'organizations' | 'subscriptions' | 'providers' | 'system-settings';
 
-const NAV_ITEMS: { id: AdminView; label: string; icon: React.ComponentType<{ className?: string }>; description: string }[] = [
+const CORE_NAV_ITEMS: { id: AdminView; label: string; icon: React.ComponentType<{ className?: string }>; description: string }[] = [
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard, description: 'Dashboard overview' },
   { id: 'users', label: 'Users', icon: Users, description: 'Manage all users' },
   { id: 'audit', label: 'Audit Log', icon: Clock, description: 'Activity history' },
   { id: 'flows', label: 'Flows', icon: Workflow, description: 'All flows across orgs' },
@@ -39,10 +52,20 @@ const NAV_ITEMS: { id: AdminView; label: string; icon: React.ComponentType<{ cla
   { id: 'templates', label: 'Templates', icon: LayoutTemplate, description: 'Flow templates' },
 ];
 
+const MANAGEMENT_NAV_ITEMS: { id: AdminView; label: string; icon: React.ComponentType<{ className?: string }>; description: string }[] = [
+  { id: 'analytics', label: 'Analytics', icon: BarChart3, description: 'Platform metrics & insights' },
+  { id: 'organizations', label: 'Organizations', icon: Building2, description: 'Manage organizations' },
+  { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard, description: 'Billing & subscriptions' },
+  { id: 'providers', label: 'Providers', icon: Store, description: 'Service providers' },
+  { id: 'system-settings', label: 'System Settings', icon: Settings, description: 'Platform configuration' },
+];
+
+const NAV_ITEMS = [...CORE_NAV_ITEMS, ...MANAGEMENT_NAV_ITEMS];
+
 export default function AdminPage() {
   const { user, isLoading } = useCantonAuth();
   const router = useRouter();
-  const [activeView, setActiveView] = useState<AdminView>('users');
+  const [activeView, setActiveView] = useState<AdminView>('overview');
 
   useEffect(() => {
     if (!isLoading) {
@@ -103,32 +126,74 @@ export default function AdminPage() {
         </div>
 
         <nav className="flex-1 p-4 overflow-y-auto">
-          <div className="space-y-1">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeView === item.id;
+          <div className="space-y-4">
+            <div>
+              <div className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2 px-3">
+                Core
+              </div>
+              <div className="space-y-1">
+                {CORE_NAV_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id;
 
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveView(item.id)}
-                  className={`w-full text-left p-3 rounded transition-all ${
-                    isActive
-                      ? 'border border-white/30 bg-black/40 text-white'
-                      : 'hover:bg-white/5 text-white/70 hover:text-white border border-transparent'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-5 h-5" />
-                    <div className="flex-1">
-                      <div className="font-medium">{item.label}</div>
-                      <div className="text-xs text-white/40">{item.description}</div>
-                    </div>
-                    {isActive && <div className="w-2 h-2 rounded-full bg-white/60" />}
-                  </div>
-                </button>
-              );
-            })}
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveView(item.id)}
+                      className={`w-full text-left p-3 rounded transition-all ${
+                        isActive
+                          ? 'border border-white/30 bg-black/40 text-white'
+                          : 'hover:bg-white/5 text-white/70 hover:text-white border border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-5 h-5" />
+                        <div className="flex-1">
+                          <div className="font-medium">{item.label}</div>
+                          <div className="text-xs text-white/40">{item.description}</div>
+                        </div>
+                        {isActive && <div className="w-2 h-2 rounded-full bg-white/60" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="my-3 border-t border-white/5" />
+
+            <div>
+              <div className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2 px-3">
+                Management
+              </div>
+              <div className="space-y-1">
+                {MANAGEMENT_NAV_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id;
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveView(item.id)}
+                      className={`w-full text-left p-3 rounded transition-all ${
+                        isActive
+                          ? 'border border-white/30 bg-black/40 text-white'
+                          : 'hover:bg-white/5 text-white/70 hover:text-white border border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-5 h-5" />
+                        <div className="flex-1">
+                          <div className="font-medium">{item.label}</div>
+                          <div className="text-xs text-white/40">{item.description}</div>
+                        </div>
+                        {isActive && <div className="w-2 h-2 rounded-full bg-white/60" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </nav>
 
@@ -171,6 +236,7 @@ export default function AdminPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
+              {activeView === 'overview' && <AdminOverviewTab onNavigate={setActiveView} />}
               {activeView === 'users' && <AdminUsersTab currentUserId={user.id} />}
               {activeView === 'audit' && <AdminAuditTab />}
               {activeView === 'flows' && <AdminFlowsTab />}
@@ -178,6 +244,11 @@ export default function AdminPage() {
               {activeView === 'join-requests' && <AdminJoinRequestsTab />}
               {activeView === 'node-api' && <AdminNodeApiTab />}
               {activeView === 'templates' && <AdminTemplatesTab />}
+              {activeView === 'analytics' && <AdminAnalyticsTab />}
+              {activeView === 'organizations' && <AdminOrganizationsTab />}
+              {activeView === 'subscriptions' && <AdminSubscriptionsTab />}
+              {activeView === 'providers' && <AdminProvidersTab />}
+              {activeView === 'system-settings' && <AdminSystemSettingsTab />}
             </motion.div>
           </AnimatePresence>
         </main>

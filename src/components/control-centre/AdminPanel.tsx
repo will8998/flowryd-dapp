@@ -197,8 +197,10 @@ export const AdminPanel: React.FC = () => {
     } else {
       loadAuditLogs(true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (activeTab === 'audit') {
       loadAuditLogs(true);
@@ -223,7 +225,7 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
-  const getActionColor = (action: string) => {
+  const _getActionColor = (_action: string) => {
     return 'white';
   };
 
@@ -295,7 +297,7 @@ export const AdminPanel: React.FC = () => {
                   <div className="flex items-center gap-2">
                     {TIERS.map((tier) => {
                       const isActive = currentTier === tier;
-                      const color = TIER_COLORS[tier];
+                      const _color = TIER_COLORS[tier];
                       return (
                         <button
                           key={tier}
@@ -342,7 +344,7 @@ export const AdminPanel: React.FC = () => {
                       <tbody>
                         {users.map(user => {
                           const isCurrentUser = user.id === currentUser?.id;
-                          const roleColor = getRoleColor(user.role);
+                          const _roleColor = getRoleColor(user.role);
                           
                           return (
                             <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
@@ -493,7 +495,7 @@ export const AdminPanel: React.FC = () => {
                         </thead>
                         <tbody>
                           {auditLogs.map(entry => {
-                            const actionColor = getActionColor(entry.action);
+                            const _actionColor = _getActionColor(entry.action);
                             
                             return (
                               <tr key={entry.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">

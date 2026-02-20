@@ -1,13 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Users, PanelLeftClose, PanelLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, PanelLeftClose, PanelLeft, ChevronRight, Settings } from 'lucide-react';
 import { useDeal, useMessages, useSSE } from '@/hooks/use-deals';
 import { useCantonAuth } from '@/lib/auth-context';
 import { hasPermission } from '@/lib/auth/rbac';
 import MessageThread from './MessageThread';
 import MessageInput from './MessageInput';
+import DealSettings from './DealSettings';
+import ParticipantManagement from './ParticipantManagement';
+import FilesSidebar from './FilesSidebar';
+import ActivityTimeline from './ActivityTimeline';
 
 interface DealRoomProps {
   dealId: string;
@@ -38,6 +42,8 @@ export default function DealRoom({ dealId }: DealRoomProps) {
   const [allMessages, setAllMessages] = useState(messages);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<'details' | 'files' | 'activity'>('details');
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (lastMessage) {
@@ -147,6 +153,13 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/10 transition-all"
+            >
+              <Settings className="w-3.5 h-3.5" />
+            </button>
+            
             {canChangeStatus && nextStage && (
               <button
                 onClick={() => handleStatusChange(nextStage.key)}
@@ -166,6 +179,20 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {!isConnected && !dealLoading && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="flex-shrink-0 bg-yellow-500/5 border-b border-yellow-500/10 px-4 py-1.5 flex items-center justify-center gap-2"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-yellow-500/60 animate-pulse" />
+            <span className="text-[10px] text-yellow-500/60 font-mono">Reconnecting to live feed...</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="flex-1 flex min-h-0">
         <motion.div
@@ -201,7 +228,38 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           ) : (
             <>
               <div className="px-4 pt-3 pb-3 flex items-center justify-between border-b border-white/5">
-                <span className="text-[9px] font-bold tracking-wide text-white/30">Details</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setActiveTab('details')}
+                    className={`text-[9px] font-bold tracking-wide px-2 py-1 rounded transition-colors ${
+                      activeTab === 'details' 
+                        ? 'text-white/70 bg-white/5' 
+                        : 'text-white/30 hover:text-white/50'
+                    }`}
+                  >
+                    DETAILS
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('files')}
+                    className={`text-[9px] font-bold tracking-wide px-2 py-1 rounded transition-colors ${
+                      activeTab === 'files' 
+                        ? 'text-white/70 bg-white/5' 
+                        : 'text-white/30 hover:text-white/50'
+                    }`}
+                  >
+                    FILES
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('activity')}
+                    className={`text-[9px] font-bold tracking-wide px-2 py-1 rounded transition-colors ${
+                      activeTab === 'activity' 
+                        ? 'text-white/70 bg-white/5' 
+                        : 'text-white/30 hover:text-white/50'
+                    }`}
+                  >
+                    ACTIVITY
+                  </button>
+                </div>
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-1 text-white/40 hover:text-white/70 hover:bg-white/5 rounded transition-colors"
@@ -210,61 +268,57 @@ export default function DealRoom({ dealId }: DealRoomProps) {
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                <div className="space-y-2.5">
-                  {deal.volume && (
-                    <div>
-                      <p className="text-[8px] text-white/30 tracking-wide mb-0.5">Volume</p>
-                      <p className="text-xs font-bold text-white/80">{deal.volume}</p>
-                    </div>
-                  )}
-                  {deal.description && (
-                    <div>
-                      <p className="text-[8px] text-white/30 tracking-wide mb-0.5">Description</p>
-                      <p className="text-[11px] text-white/60 leading-relaxed">{deal.description}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-[8px] text-white/30 tracking-wide mb-0.5">Created</p>
-                    <p className="text-[11px] text-white/50">{new Date(deal.createdAt).toLocaleDateString()}</p>
-                  </div>
-                </div>
-
-                <div className="h-px bg-white/5" />
-
-                <div>
-                  <div className="flex items-center gap-1.5 mb-2.5">
-                    <Users className="w-3 h-3 text-white/30" />
-                    <span className="text-[9px] font-bold tracking-wide text-white/30">
-                      Participants
-                    </span>
-                    <span className="text-[8px] text-white/20 ml-auto">{participants.length}</span>
-                  </div>
-                  <div className="space-y-1">
-                    {participants.map(participant => (
-                      <div
-                        key={participant.id}
-                        className="flex items-center gap-2.5 py-1.5 px-2 rounded-md hover:bg-white/[0.03] transition-colors"
-                      >
-                        <div className="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
-                          <span className="text-[8px] font-bold text-white/60">
-                            {(participant.displayName || participant.partyId || 'U')[0].toUpperCase()}
-                          </span>
+              <div className="flex-1 overflow-hidden">
+                {activeTab === 'details' && (
+                  <div className="h-full overflow-y-auto p-4 space-y-4">
+                    <div className="space-y-2.5">
+                      {deal.volume && (
+                        <div>
+                          <p className="text-[8px] text-white/30 tracking-wide mb-0.5">VOLUME</p>
+                          <p className="text-xs font-bold text-white/80">{deal.volume}</p>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] font-medium text-white/70 truncate">
-                            {participant.displayName || participant.partyId || 'Unknown'}
-                          </p>
-                          {participant.role && (
-                            <p className="text-[8px] text-white/25 tracking-wide">
-                              {participant.role}
-                            </p>
-                          )}
+                      )}
+                      {deal.description && (
+                        <div>
+                          <p className="text-[8px] text-white/30 tracking-wide mb-0.5">DESCRIPTION</p>
+                          <p className="text-[11px] text-white/60 leading-relaxed">{deal.description}</p>
                         </div>
+                      )}
+                      <div>
+                        <p className="text-[8px] text-white/30 tracking-wide mb-0.5">CREATED</p>
+                        <p className="text-[11px] text-white/50">{new Date(deal.createdAt).toLocaleDateString()}</p>
                       </div>
-                    ))}
+                    </div>
+
+                    <div className="h-px bg-white/5" />
+
+                    <ParticipantManagement 
+                      participants={participants}
+                      dealId={dealId}
+                      onUpdate={refetchDeal}
+                      currentUserRole={participants.find(p => p.userId === user?.id)?.role || null}
+                    />
                   </div>
-                </div>
+                )}
+
+                {activeTab === 'files' && (
+                  <FilesSidebar 
+                    messages={allMessages}
+                    dealId={dealId}
+                    onFileUploaded={() => window.location.reload()}
+                  />
+                )}
+
+                {activeTab === 'activity' && (
+                  <ActivityTimeline 
+                    messages={allMessages}
+                    deal={{
+                      createdAt: deal.createdAt,
+                      status: deal.status || 'draft',
+                      title: deal.title
+                    }}
+                  />
+                )}
               </div>
             </>
           )}
@@ -276,6 +330,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
               messages={allMessages}
               isLoading={messagesLoading}
               dealId={dealId}
+              isConnected={isConnected}
             />
           </div>
           
@@ -284,6 +339,16 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           </div>
         </div>
       </div>
+
+      {deal && (
+        <DealSettings 
+          isOpen={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          deal={deal}
+          onUpdate={refetchDeal}
+          dealId={dealId}
+        />
+      )}
     </div>
   );
 }

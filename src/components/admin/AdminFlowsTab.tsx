@@ -1,23 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
-  Search, 
   Edit3, 
   Check, 
   X, 
   Trash2, 
   Eye, 
   EyeOff, 
-  Play, 
-  Archive, 
-  RotateCcw,
   FileText,
-  ChevronDown,
-  AlertCircle,
-  CheckCircle2
 } from 'lucide-react';
+import { DataTable, Badge, useToast, EmptyState } from '@/components/ui';
 
 interface Flow {
   id: string;
@@ -33,55 +27,64 @@ interface Flow {
   updatedAt: string;
 }
 
-interface Banner {
-  type: 'success' | 'error';
-  message: string;
+interface FlowsResponse {
+  data: {
+    flows: Flow[];
+    total: number;
+  };
 }
 
 export const AdminFlowsTab: React.FC = () => {
   const [flows, setFlows] = useState<Flow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchFilter, setSearchFilter] = useState('');
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('title');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [banner, setBanner] = useState<Banner | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  const { toast } = useToast();
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchFlows();
   }, []);
 
-  // Auto-dismiss banner after 3s
-  useEffect(() => {
-    if (banner) {
-      const timer = setTimeout(() => {
-        setBanner(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [banner]);
 
-  const showBanner = (type: 'success' | 'error', message: string) => {
-    setBanner({ type, message });
-  };
 
   const fetchFlows = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/flows?limit=50');
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: ((page - 1) * pageSize).toString(),
+        search: searchQuery,
+        sortBy,
+        sortDir
+      });
+      
+      if (statusFilter) params.append('status', statusFilter);
+      
+      const response = await fetch(`/api/admin/flows?${params}`);
       if (response.ok) {
-        const data = await response.json();
-        setFlows(data.data || []);
+        const data: FlowsResponse = await response.json();
+        setFlows(data.data.flows || []);
+        setTotalCount(data.data.total);
       } else {
-        showBanner('error', 'Failed to fetch flows');
+        toast('Failed to fetch flows', 'error');
       }
     } catch (error) {
       console.error('Failed to fetch flows:', error);
-      showBanner('error', 'Failed to fetch flows');
+      toast('Failed to fetch flows', 'error');
     } finally {
       setLoading(false);
     }
@@ -114,15 +117,15 @@ export const AdminFlowsTab: React.FC = () => {
       });
 
       if (response.ok) {
-        showBanner('success', 'Flow updated successfully');
+        toast('Flow updated successfully', 'success');
         await fetchFlows();
         cancelEditing();
       } else {
-        showBanner('error', 'Failed to update flow');
+        toast('Failed to update flow', 'error');
       }
     } catch (error) {
       console.error('Failed to update flow:', error);
-      showBanner('error', 'Failed to update flow');
+      toast('Failed to update flow', 'error');
     } finally {
       setActionLoading(null);
     }
@@ -138,129 +141,62 @@ export const AdminFlowsTab: React.FC = () => {
       });
 
       if (response.ok) {
-        showBanner('success', `Flow ${!currentIsPublic ? 'made public' : 'made private'}`);
+        toast(`Flow ${!currentIsPublic ? 'made public' : 'made private'}`, 'success');
         await fetchFlows();
       } else {
-        showBanner('error', 'Failed to update flow visibility');
+        toast('Failed to update flow visibility', 'error');
       }
     } catch (error) {
       console.error('Failed to toggle public status:', error);
-      showBanner('error', 'Failed to update flow visibility');
+      toast('Failed to update flow visibility', 'error');
     } finally {
       setActionLoading(null);
     }
   };
 
-  const publishFlow = async (flowId: string) => {
-    try {
-      setActionLoading(flowId);
-      const response = await fetch(`/api/flows/${flowId}/publish`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      });
 
-      if (response.ok) {
-        showBanner('success', 'Flow published successfully');
-        await fetchFlows();
-      } else {
-        showBanner('error', 'Failed to publish flow');
-      }
-    } catch (error) {
-      console.error('Failed to publish flow:', error);
-      showBanner('error', 'Failed to publish flow');
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
-  const unpublishFlow = async (flowId: string) => {
+  const toggleTemplate = async (flowId: string, currentIsTemplate: boolean | null) => {
     try {
       setActionLoading(flowId);
       const response = await fetch(`/api/flows/${flowId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'draft' })
+        body: JSON.stringify({ isTemplate: !currentIsTemplate })
       });
 
       if (response.ok) {
-        showBanner('success', 'Flow unpublished successfully');
+        toast(`Flow ${!currentIsTemplate ? 'marked as template' : 'unmarked as template'}`, 'success');
         await fetchFlows();
       } else {
-        showBanner('error', 'Failed to unpublish flow');
+        toast('Failed to update template status', 'error');
       }
     } catch (error) {
-      console.error('Failed to unpublish flow:', error);
-      showBanner('error', 'Failed to unpublish flow');
+      console.error('Failed to toggle template status:', error);
+      toast('Failed to update template status', 'error');
     } finally {
       setActionLoading(null);
     }
   };
 
-  const archiveFlow = async (flowId: string) => {
+  const updateStatus = async (flowId: string, newStatus: string) => {
     try {
       setActionLoading(flowId);
       const response = await fetch(`/api/flows/${flowId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'archived' })
+        body: JSON.stringify({ status: newStatus })
       });
 
       if (response.ok) {
-        showBanner('success', 'Flow archived successfully');
+        toast(`Flow status updated to ${newStatus}`, 'success');
         await fetchFlows();
       } else {
-        showBanner('error', 'Failed to archive flow');
+        toast('Failed to update flow status', 'error');
       }
     } catch (error) {
-      console.error('Failed to archive flow:', error);
-      showBanner('error', 'Failed to archive flow');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const restoreToDraft = async (flowId: string) => {
-    try {
-      setActionLoading(flowId);
-      const response = await fetch(`/api/flows/${flowId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'draft' })
-      });
-
-      if (response.ok) {
-        showBanner('success', 'Flow restored to draft');
-        await fetchFlows();
-      } else {
-        showBanner('error', 'Failed to restore flow');
-      }
-    } catch (error) {
-      console.error('Failed to restore flow:', error);
-      showBanner('error', 'Failed to restore flow');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const publishAsTemplate = async (flowId: string) => {
-    try {
-      setActionLoading(flowId);
-      const response = await fetch(`/api/flows/${flowId}/publish`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isTemplate: true })
-      });
-
-      if (response.ok) {
-        showBanner('success', 'Flow published as template');
-        await fetchFlows();
-      } else {
-        showBanner('error', 'Failed to publish as template');
-      }
-    } catch (error) {
-      console.error('Failed to publish as template:', error);
-      showBanner('error', 'Failed to publish as template');
+      console.error('Failed to update flow status:', error);
+      toast('Failed to update flow status', 'error');
     } finally {
       setActionLoading(null);
     }
@@ -274,15 +210,15 @@ export const AdminFlowsTab: React.FC = () => {
       });
 
       if (response.ok) {
-        showBanner('success', 'Flow deleted successfully');
+        toast('Flow deleted successfully', 'success');
         await fetchFlows();
         setConfirmDeleteId(null);
       } else {
-        showBanner('error', 'Failed to delete flow');
+        toast('Failed to delete flow', 'error');
       }
     } catch (error) {
       console.error('Failed to delete flow:', error);
-      showBanner('error', 'Failed to delete flow');
+      toast('Failed to delete flow', 'error');
     } finally {
       setActionLoading(null);
     }
@@ -302,35 +238,7 @@ export const AdminFlowsTab: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'published':
-        return (
-          <span className="bg-emerald-500/10 text-emerald-400/60 border border-emerald-500/20 rounded-full text-xs font-medium px-2 py-1 flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" />
-            Published
-          </span>
-        );
-      case 'draft':
-        return (
-          <span className="bg-yellow-500/10 text-yellow-400/60 border border-yellow-500/20 rounded-full text-xs font-medium px-2 py-1">
-            Draft
-          </span>
-        );
-      case 'archived':
-        return (
-          <span className="bg-gray-500/10 text-gray-400/60 border border-gray-500/20 rounded-full text-xs font-medium px-2 py-1">
-            Archived
-          </span>
-        );
-      default:
-        return (
-          <span className="bg-white/10 text-white/40 border border-white/20 rounded-full text-xs font-medium px-2 py-1">
-            {status}
-          </span>
-        );
-    }
-  };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -340,12 +248,237 @@ export const AdminFlowsTab: React.FC = () => {
     });
   };
 
-  const filteredFlows = flows.filter(flow => {
-    const matchesSearch = flow.title.toLowerCase().includes(searchFilter.toLowerCase()) ||
-                         (flow.description || '').toLowerCase().includes(searchFilter.toLowerCase());
-    const matchesStatus = !statusFilter || flow.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const handleBulkDelete = async (ids: Set<string>) => {
+    try {
+      const deletePromises = Array.from(ids).map(id => 
+        fetch(`/api/flows/${id}`, { method: 'DELETE' })
+      );
+      
+      await Promise.all(deletePromises);
+      toast(`${ids.size} flows deleted successfully`, 'success');
+      setSelectedIds(new Set());
+      await fetchFlows();
+    } catch (error) {
+      console.error('Failed to delete flows:', error);
+      toast('Failed to delete flows', 'error');
+    }
+  };
+
+  const handleBulkArchive = async (ids: Set<string>) => {
+    try {
+      const archivePromises = Array.from(ids).map(id => 
+        fetch(`/api/flows/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'archived' })
+        })
+      );
+      
+      await Promise.all(archivePromises);
+      toast(`${ids.size} flows archived successfully`, 'success');
+      setSelectedIds(new Set());
+      await fetchFlows();
+    } catch (error) {
+      console.error('Failed to archive flows:', error);
+      toast('Failed to archive flows', 'error');
+    }
+  };
+
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDir('asc');
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setPage(1);
+  };
+
+  const columns = [
+    {
+      key: 'title',
+      label: 'Title',
+      sortable: true,
+      render: (flow: Flow) => (
+        editingId === flow.id ? (
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="w-full px-2 py-1 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-white/30"
+              placeholder="Flow title"
+            />
+            <textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              placeholder="Flow description (optional)"
+              rows={2}
+              className="w-full px-2 py-1 bg-white/5 border border-white/10 rounded text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/30 resize-none"
+            />
+          </div>
+        ) : (
+          <div>
+            <div className="font-medium text-white">{flow.title}</div>
+            {flow.description && (
+              <div className="text-sm text-white/60 truncate max-w-xs">
+                {flow.description}
+              </div>
+            )}
+          </div>
+        )
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      render: (flow: Flow) => (
+        <div className="flex items-center gap-2">
+          <Badge variant={flow.status === 'published' ? 'success' : flow.status === 'draft' ? 'warning' : 'default'}>
+            {flow.status}
+          </Badge>
+          <select
+            value={flow.status}
+            onChange={(e) => updateStatus(flow.id, e.target.value)}
+            disabled={actionLoading === flow.id}
+            className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-white/30 disabled:opacity-50"
+          >
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      ),
+    },
+    {
+      key: 'workflowType',
+      label: 'Type',
+      render: (flow: Flow) => (
+        <span className="text-sm text-white/60">
+          {flow.workflowType || 'Standard'}
+        </span>
+      ),
+    },
+    {
+      key: 'isTemplate',
+      label: 'Template',
+      render: (flow: Flow) => (
+        <button
+          onClick={() => toggleTemplate(flow.id, flow.isTemplate)}
+          disabled={actionLoading === flow.id}
+          className="p-1 rounded hover:bg-white/10 transition-colors disabled:opacity-50"
+          title={flow.isTemplate ? 'Remove from templates' : 'Mark as template'}
+        >
+          {flow.isTemplate ? (
+            <FileText className="w-4 h-4 text-white/70" />
+          ) : (
+            <span className="text-white/20">—</span>
+          )}
+        </button>
+      ),
+    },
+    {
+      key: 'isPublic',
+      label: 'Public',
+      render: (flow: Flow) => (
+        <button
+          onClick={() => togglePublic(flow.id, flow.isPublic)}
+          disabled={actionLoading === flow.id}
+          className="p-1 rounded hover:bg-white/10 transition-colors disabled:opacity-50"
+          title={flow.isPublic ? 'Make private' : 'Make public'}
+        >
+          {flow.isPublic ? (
+            <Eye className="w-4 h-4 text-white/70" />
+          ) : (
+            <EyeOff className="w-4 h-4 text-white/40" />
+          )}
+        </button>
+      ),
+    },
+    {
+      key: 'featured',
+      label: 'Featured',
+      render: (_flow: Flow) => (
+        <span className="text-white/20">—</span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      label: 'Created At',
+      sortable: true,
+      render: (flow: Flow) => (
+        <span className="text-sm text-white/60">
+          {formatDate(flow.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (flow: Flow) => (
+        <div className="flex items-center gap-2">
+          {editingId === flow.id ? (
+            <>
+              <button
+                onClick={saveEditing}
+                disabled={actionLoading === flow.id}
+                className="p-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors disabled:opacity-50"
+                title="Save changes"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button
+                onClick={cancelEditing}
+                className="p-1.5 text-white/40 hover:bg-white/10 rounded transition-colors"
+                title="Cancel editing"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => startEditing(flow)}
+              className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded transition-colors"
+              title="Edit flow"
+            >
+              <Edit3 className="w-4 h-4" />
+            </button>
+          )}
+
+          <button
+            onClick={() => handleDeleteClick(flow.id)}
+            disabled={actionLoading === flow.id}
+            className={`p-1.5 rounded transition-colors disabled:opacity-50 ${
+              confirmDeleteId === flow.id
+                ? 'text-red-400 hover:bg-red-500/20'
+                : 'text-white/40 hover:text-red-400 hover:bg-red-500/10'
+            }`}
+            title={confirmDeleteId === flow.id ? 'Click again to delete' : 'Delete flow'}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const bulkActions = [
+    {
+      label: 'Delete Selected',
+      onClick: handleBulkDelete,
+      variant: 'danger' as const,
+    },
+    {
+      label: 'Archive Selected',
+      onClick: handleBulkArchive,
+      variant: 'default' as const,
+    },
+  ];
 
   return (
     <motion.div
@@ -354,28 +487,6 @@ export const AdminFlowsTab: React.FC = () => {
       exit={{ opacity: 0, y: -20 }}
       className="h-full flex flex-col bg-[#020202] text-white"
     >
-      <AnimatePresence>
-        {banner && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className={`px-6 py-3 border-b flex items-center gap-3 ${
-              banner.type === 'success'
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                : 'bg-red-500/10 border-red-500/20 text-red-400'
-            }`}
-          >
-            {banner.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5" />
-            ) : (
-              <AlertCircle className="w-5 h-5" />
-            )}
-            <span className="text-sm font-medium">{banner.message}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="p-6 border-b border-white/5">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -384,17 +495,7 @@ export const AdminFlowsTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-            <input
-              type="text"
-              placeholder="Search flows..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded text-white placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
-            />
-          </div>
+        <div className="flex gap-4 mb-4">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -408,209 +509,36 @@ export const AdminFlowsTab: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-white/40">Loading flows...</div>
-          </div>
-        ) : filteredFlows.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                <Search className="w-6 h-6 text-white/20" />
-              </div>
-              <p className="text-white/40">No flows found</p>
-            </div>
-          </div>
-        ) : (
-          <table className="w-full">
-            <thead className="sticky top-0 bg-white/5 border-b border-white/5">
-              <tr>
-                <th className="text-left px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Title</th>
-                <th className="text-left px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Status</th>
-                <th className="text-left px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Public</th>
-                <th className="text-left px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Template</th>
-                <th className="text-left px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Type</th>
-                <th className="text-left px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Created</th>
-                <th className="text-left px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Updated</th>
-                <th className="text-left px-6 py-4 text-xs font-bold text-white/40 tracking-wide">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFlows.map((flow) => (
-                <React.Fragment key={flow.id}>
-                  <tr className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4">
-                      {editingId === flow.id ? (
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            className="w-full px-2 py-1 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-white/30"
-                            placeholder="Flow title"
-                          />
-                        </div>
-                      ) : (
-                        <div>
-                          <div className="font-medium text-white">{flow.title}</div>
-                          {flow.description && (
-                            <div className="text-sm text-white/60 truncate max-w-xs">
-                              {flow.description}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {getStatusBadge(flow.status)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => togglePublic(flow.id, flow.isPublic)}
-                        disabled={actionLoading === flow.id}
-                        className="p-1 rounded hover:bg-white/10 transition-colors disabled:opacity-50"
-                        title={flow.isPublic ? 'Make private' : 'Make public'}
-                      >
-                        {flow.isPublic ? (
-                          <Eye className="w-4 h-4 text-white/70" />
-                        ) : (
-                          <EyeOff className="w-4 h-4 text-white/40" />
-                        )}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4">
-                      {flow.isTemplate ? (
-                        <FileText className="w-4 h-4 text-white/70" />
-                      ) : (
-                        <span className="text-white/20">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-white/60">
-                        {flow.workflowType || 'Standard'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-white/60">
-                      {formatDate(flow.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-white/60">
-                      {formatDate(flow.updatedAt)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        {editingId === flow.id ? (
-                          <>
-                            <button
-                              onClick={saveEditing}
-                              disabled={actionLoading === flow.id}
-                              className="p-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors disabled:opacity-50"
-                              title="Save changes"
-                            >
-                              <Check className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={cancelEditing}
-                              className="p-1.5 text-white/40 hover:bg-white/10 rounded transition-colors"
-                              title="Cancel editing"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => startEditing(flow)}
-                            className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded transition-colors"
-                            title="Edit flow"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                        )}
-
-                        {flow.status === 'draft' && (
-                          <button
-                            onClick={() => publishFlow(flow.id)}
-                            disabled={actionLoading === flow.id}
-                            className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
-                          >
-                            <Play className="w-3 h-3 mr-1" />
-                            Publish
-                          </button>
-                        )}
-
-                        {flow.status === 'published' && (
-                          <>
-                            <button
-                              onClick={() => unpublishFlow(flow.id)}
-                              disabled={actionLoading === flow.id}
-                              className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
-                            >
-                              Unpublish
-                            </button>
-                            <button
-                              onClick={() => archiveFlow(flow.id)}
-                              disabled={actionLoading === flow.id}
-                              className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
-                            >
-                              <Archive className="w-3 h-3 mr-1" />
-                              Archive
-                            </button>
-                            <button
-                              onClick={() => publishAsTemplate(flow.id)}
-                              disabled={actionLoading === flow.id}
-                              className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
-                            >
-                              <FileText className="w-3 h-3 mr-1" />
-                              Template
-                            </button>
-                          </>
-                        )}
-
-                        {flow.status === 'archived' && (
-                          <button
-                            onClick={() => restoreToDraft(flow.id)}
-                            disabled={actionLoading === flow.id}
-                            className="px-3 py-1.5 border border-white/20 hover:border-white/40 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
-                          >
-                            <RotateCcw className="w-3 h-3 mr-1" />
-                            Restore
-                          </button>
-                        )}
-
-                        <button
-                          onClick={() => handleDeleteClick(flow.id)}
-                          disabled={actionLoading === flow.id}
-                          className={`p-1.5 rounded transition-colors disabled:opacity-50 ${
-                            confirmDeleteId === flow.id
-                              ? 'text-red-400 hover:bg-red-500/20'
-                              : 'text-white/40 hover:text-red-400 hover:bg-red-500/10'
-                          }`}
-                          title={confirmDeleteId === flow.id ? 'Click again to delete' : 'Delete flow'}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-
-                  {editingId === flow.id && (
-                    <tr>
-                      <td colSpan={8} className="px-6 py-2 border-b border-white/5">
-                        <textarea
-                          value={editDescription}
-                          onChange={(e) => setEditDescription(e.target.value)}
-                          placeholder="Flow description (optional)"
-                          rows={3}
-                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/30 resize-none"
-                        />
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        )}
+      <div className="flex-1 overflow-auto p-6">
+        <DataTable
+          columns={columns}
+          data={flows}
+          totalCount={totalCount}
+          isLoading={loading}
+          searchable
+          searchPlaceholder="Search flows by title..."
+          onSearch={handleSearch}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSort={handleSort}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          selectable
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          getRowId={(flow) => flow.id}
+          bulkActions={bulkActions}
+          exportable
+          exportFilename="flows"
+          emptyState={
+            <EmptyState
+              title="No flows found"
+              description="No flows match your search criteria"
+            />
+          }
+        />
       </div>
     </motion.div>
   );

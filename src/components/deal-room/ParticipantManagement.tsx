@@ -1,0 +1,221 @@
+"use client";
+
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, Plus, X, ChevronDown } from 'lucide-react';
+
+interface DealParticipant {
+  id: string;
+  userId: string;
+  role: string | null;
+  joinedAt: string | null;
+  displayName: string | null;
+  partyId: string | null;
+}
+
+interface ParticipantManagementProps {
+  participants: DealParticipant[];
+  dealId: string;
+  onUpdate: () => void;
+  currentUserRole: string | null;
+}
+
+const ROLES = [
+  { value: 'admin', label: 'Admin', color: 'text-red-400' },
+  { value: 'editor', label: 'Editor', color: 'text-yellow-400' },
+  { value: 'viewer', label: 'Viewer', color: 'text-green-400' },
+];
+
+export default function ParticipantManagement({ 
+  participants, 
+  dealId, 
+  onUpdate, 
+  currentUserRole 
+}: ParticipantManagementProps) {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newUserId, setNewUserId] = useState('');
+  const [newUserRole, setNewUserRole] = useState('viewer');
+  const [isAdding, setIsAdding] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  const canManageParticipants = currentUserRole === 'admin';
+
+  const handleAddParticipant = async () => {
+    if (!newUserId.trim() || !canManageParticipants) return;
+
+    setIsAdding(true);
+    try {
+      const res = await fetch(`/api/deals/${dealId}/participants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: newUserId.trim(), role: newUserRole }),
+      });
+
+      if (res.ok) {
+        setNewUserId('');
+        setNewUserRole('viewer');
+        setShowAddForm(false);
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to add participant:', error);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleRemoveParticipant = async (userId: string) => {
+    if (!canManageParticipants) return;
+
+    setRemovingId(userId);
+    try {
+      const res = await fetch(`/api/deals/${dealId}/participants`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (res.ok) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to remove participant:', error);
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  const getRoleColor = (role: string | null) => {
+    const roleConfig = ROLES.find(r => r.value === role);
+    return roleConfig?.color || 'text-white/30';
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 mb-2.5">
+        <Users className="w-3 h-3 text-white/30" />
+        <span className="text-[9px] font-bold tracking-wide text-white/30">
+          PARTICIPANTS
+        </span>
+        <span className="text-[8px] text-white/20 ml-auto">{participants.length}</span>
+        {canManageParticipants && (
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="w-4 h-4 rounded bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/10 transition-all ml-1"
+          >
+            <Plus className="w-2.5 h-2.5" />
+          </button>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {showAddForm && canManageParticipants && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-3 p-2.5 bg-white/[0.02] border border-white/5 rounded"
+          >
+            <div className="space-y-2">
+              <div>
+                <label className="text-[8px] font-mono text-white/30 tracking-wide block mb-1">
+                  USER ID / PARTY ID
+                </label>
+                <input
+                  type="text"
+                  value={newUserId}
+                  onChange={(e) => setNewUserId(e.target.value)}
+                  placeholder="Enter user or party ID"
+                  className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white/70 placeholder:text-white/30 focus:border-white/30 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[8px] font-mono text-white/30 tracking-wide block mb-1">
+                  ROLE
+                </label>
+                <div className="relative">
+                  <select
+                    value={newUserRole}
+                    onChange={(e) => setNewUserRole(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white/70 focus:border-white/30 focus:outline-none appearance-none"
+                  >
+                    {ROLES.map((role) => (
+                      <option key={role.value} value={role.value} className="bg-[#0a0a0a]">
+                        {role.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-white/30 pointer-events-none" />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={handleAddParticipant}
+                  disabled={isAdding || !newUserId.trim()}
+                  className="flex-1 px-2 py-1 text-[9px] font-bold text-white/80 bg-white/10 rounded hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed tracking-wide"
+                >
+                  {isAdding ? 'ADDING...' : 'ADD'}
+                </button>
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="px-2 py-1 text-[9px] font-bold text-white/40 border border-white/10 rounded hover:bg-white/5 transition-colors tracking-wide"
+                >
+                  CANCEL
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="space-y-1">
+        {participants.map((participant) => (
+          <div
+            key={participant.id}
+            className="flex items-center gap-2.5 py-1.5 px-2 rounded-md hover:bg-white/[0.03] transition-colors group"
+          >
+            <div className="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+              <span className="text-[8px] font-bold text-white/60">
+                {(participant.displayName || participant.partyId || participant.userId || 'U')[0].toUpperCase()}
+              </span>
+            </div>
+            
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-medium text-white/70 truncate">
+                {participant.displayName || participant.partyId || participant.userId || 'Unknown'}
+              </p>
+              {participant.role && (
+                <p className={`text-[8px] tracking-wide font-mono ${getRoleColor(participant.role)}`}>
+                  {participant.role.toUpperCase()}
+                </p>
+              )}
+            </div>
+
+            {canManageParticipants && (
+              <button
+                onClick={() => handleRemoveParticipant(participant.userId)}
+                disabled={removingId === participant.userId}
+                className="opacity-0 group-hover:opacity-100 w-4 h-4 rounded bg-white/5 border border-white/10 flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-400/10 hover:border-red-400/20 transition-all shrink-0 disabled:opacity-50"
+              >
+                {removingId === participant.userId ? (
+                  <div className="w-2 h-2 border border-white/20 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <X className="w-2.5 h-2.5" />
+                )}
+              </button>
+            )}
+          </div>
+        ))}
+
+        {participants.length === 0 && (
+          <div className="text-center py-4">
+            <div className="w-8 h-8 rounded bg-white/[0.02] border border-white/5 flex items-center justify-center mx-auto mb-2">
+              <Users className="w-3.5 h-3.5 text-white/20" />
+            </div>
+            <p className="text-[10px] text-white/30">No participants</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

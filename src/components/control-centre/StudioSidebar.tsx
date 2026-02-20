@@ -5,21 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Globe, 
   Layers, 
-  Zap, 
   Users, 
   Terminal, 
   Settings, 
-  Bell, 
-  Search,
-  LayoutDashboard,
   Workflow,
-  Plus,
   Shield,
-  Activity,
   LogOut,
   ChevronRight,
-  Command,
-  HelpCircle,
   MessageSquare
 } from 'lucide-react';
 import { useCantonAuth } from '@/lib/auth-context';

@@ -5,6 +5,7 @@ import {
   ReactFlow, 
   Controls, 
   Background, 
+  MiniMap,
   Node,
   Edge,
   Connection,
@@ -93,19 +94,23 @@ interface NodeData {
   isUserOrg?: boolean;
   orgName?: string;
   isRecommended?: boolean;
+  selected?: boolean;
 }
 
 const InstitutionalNode = ({ data }: { data: NodeData }) => {
   const isUserOrg = data.isUserOrg;
+  const isSelected = data.selected;
   const p = isUserOrg ? null : participants.find(part => part.id === data.participantId);
   
   return (
     <div className="group relative">
       <div className={`absolute -inset-1 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none ${isUserOrg ? 'bg-white/10' : 'bg-white/10'}`} />
       <div className={`w-40 bg-black/30 rounded p-3 shadow-xl backdrop-blur-3xl transition-all ${
-        isUserOrg
-          ? 'border border-white/20 hover:border-white/30'
-          : 'border border-white/10 hover:border-white/30'
+        isSelected 
+          ? 'border border-white/40 ring-1 ring-white/40'
+          : isUserOrg
+            ? 'border border-white/20 hover:border-white/30'
+            : 'border border-white/10 hover:border-white/30'
       }`}>
         <Handle
           type="target"
@@ -165,24 +170,46 @@ const InstitutionalNode = ({ data }: { data: NodeData }) => {
 const nodeTypes = { institutional: InstitutionalNode };
 const edgeTypes = { liquid: LiquidEdge };
 
-export const WorkbenchCanvas: React.FC<{ 
-  nodes: Node[]; 
-  edges: Edge[]; 
-  onNodesChange: (changes: NodeChange[]) => void; 
+interface WorkbenchCanvasProps {
+  nodes: Node[];
+  edges: Edge[];
+  onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection) => void;
   onDrop: (event: React.DragEvent) => void;
   onDragOver: (event: React.DragEvent) => void;
-}> = ({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onDrop, onDragOver }) => {
+  onNodeClick?: (nodeId: string, nodeData: Record<string, unknown>) => void;
+  selectedNodeId?: string | null;
+}
+
+export const WorkbenchCanvas: React.FC<WorkbenchCanvasProps> = ({ 
+  nodes, 
+  edges, 
+  onNodesChange, 
+  onEdgesChange, 
+  onConnect, 
+  onDrop, 
+  onDragOver, 
+  onNodeClick,
+  selectedNodeId 
+}) => {
+  const nodesWithSelection = nodes.map(node => ({
+    ...node,
+    data: {
+      ...node.data,
+      selected: selectedNodeId === node.id
+    }
+  }));
 
   return (
     <div className="w-full h-full bg-[#050505] relative overflow-hidden" onDrop={onDrop} onDragOver={onDragOver}>
       <ReactFlow
-        nodes={nodes}
+        nodes={nodesWithSelection}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onNodeClick={(_, node) => onNodeClick?.(node.id, node.data)}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
@@ -194,6 +221,14 @@ export const WorkbenchCanvas: React.FC<{
       >
         <Background color="#1a1a1a" gap={20} size={1} />
         <Controls className="!bg-black/60 !border-white/10 !fill-white !rounded" />
+        <MiniMap
+          nodeColor={() => 'rgba(255,255,255,0.15)'}
+          maskColor="rgba(0,0,0,0.8)"
+          className="!bg-black/40 !border-white/10 !rounded"
+          style={{ width: 160, height: 100 }}
+          pannable
+          zoomable
+        />
       </ReactFlow>
 
       {nodes.length === 0 && (

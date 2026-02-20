@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { File, Globe, Lock } from 'lucide-react';
+import { Globe, Lock, Star } from 'lucide-react';
+import { DataTable, useToast, EmptyState } from '@/components/ui';
 
-interface Flow {
+interface Template {
   id: string;
   title: string;
   description: string | null;
@@ -16,55 +17,111 @@ interface Flow {
   orgId: string;
   createdAt: string;
   updatedAt: string;
+  featured?: boolean;
 }
 
-interface FlowsResponse {
-  data: Flow[];
+interface TemplatesResponse {
+  data: {
+    templates: Template[];
+    total: number;
+  };
 }
 
 export const AdminTemplatesTab: React.FC = () => {
-  const [templates, setTemplates] = useState<Flow[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
-  const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('title');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
-  const showBanner = (type: 'success' | 'error', message: string) => {
-    setBanner({ type, message });
-    setTimeout(() => setBanner(null), 3000);
-  };
+  const { toast } = useToast();
 
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/flows?limit=50');
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: ((page - 1) * pageSize).toString(),
+        search: searchQuery,
+        sortBy,
+        sortDir
+      });
+      
+      const response = await fetch(`/api/admin/templates?${params}`);
       if (response.ok) {
-        const data: FlowsResponse = await response.json();
-        const templateFlows = data.data.filter(flow => flow.isTemplate === true);
-        setTemplates(templateFlows);
+        const data: TemplatesResponse = await response.json();
+        setTemplates(data.data.templates || []);
+        setTotalCount(data.data.total);
       } else {
-        showBanner('error', 'Failed to load templates');
+        toast('Failed to load templates', 'error');
       }
     } catch (error) {
       console.error('Failed to load templates:', error);
-      showBanner('error', 'Failed to load templates');
+      toast('Failed to load templates', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadTemplates();
-  }, []);
+  }, [page, pageSize, searchQuery, sortBy, sortDir]);
 
-  const getStatusBadgeClasses = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'bg-emerald-500/10 text-emerald-400/60 border-emerald-500/20';
-      case 'draft':
-        return 'bg-yellow-500/10 text-yellow-400/60 border-yellow-500/20';
-      case 'archived':
-        return 'bg-red-500/10 text-red-400/60 border-red-500/20';
-      default:
-        return 'bg-white/10 text-white/60 border-white/20';
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDir('asc');
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setPage(1);
+  };
+
+  const togglePublic = async (templateId: string, currentIsPublic: boolean | null) => {
+    try {
+      const response = await fetch(`/api/admin/templates/${templateId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPublic: !currentIsPublic })
+      });
+
+      if (response.ok) {
+        toast(`Template ${!currentIsPublic ? 'made public' : 'made private'}`, 'success');
+        await loadTemplates();
+      } else {
+        toast('Failed to update template visibility', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to toggle public status:', error);
+      toast('Failed to update template visibility', 'error');
+    }
+  };
+
+  const toggleFeatured = async (templateId: string, currentFeatured: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/templates/${templateId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featured: !currentFeatured })
+      });
+
+      if (response.ok) {
+        toast(`Template ${!currentFeatured ? 'featured' : 'unfeatured'}`, 'success');
+        await loadTemplates();
+      } else {
+        toast('Failed to update template featured status', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to toggle featured status:', error);
+      toast('Failed to update template featured status', 'error');
     }
   };
 
@@ -76,6 +133,88 @@ export const AdminTemplatesTab: React.FC = () => {
     });
   };
 
+  const columns = [
+    {
+      key: 'title',
+      label: 'Title',
+      sortable: true,
+      render: (template: Template) => (
+        <div>
+          <div className="font-medium text-white">{template.title}</div>
+          {template.description && (
+            <div className="text-sm text-white/60 truncate max-w-xs">
+              {template.description}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'description',
+      label: 'Description',
+      render: (template: Template) => (
+        <div className="text-sm text-white/60 max-w-xs truncate">
+          {template.description || (
+            <span className="text-white/40 italic">No description</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'workflowType',
+      label: 'Type',
+      render: (template: Template) => (
+        <span className="text-sm text-white/60">
+          {template.workflowType || 'Standard'}
+        </span>
+      ),
+    },
+    {
+      key: 'isPublic',
+      label: 'Public',
+      render: (template: Template) => (
+        <button
+          onClick={() => togglePublic(template.id, template.isPublic)}
+          className="p-1 rounded hover:bg-white/10 transition-colors"
+          title={template.isPublic ? 'Make private' : 'Make public'}
+        >
+          {template.isPublic ? (
+            <Globe className="w-4 h-4 text-white/70" />
+          ) : (
+            <Lock className="w-4 h-4 text-white/40" />
+          )}
+        </button>
+      ),
+    },
+    {
+      key: 'featured',
+      label: 'Featured',
+      render: (template: Template) => (
+        <button
+          onClick={() => toggleFeatured(template.id, template.featured || false)}
+          className="p-1 rounded hover:bg-white/10 transition-colors"
+          title={template.featured ? 'Remove from featured' : 'Mark as featured'}
+        >
+          {template.featured ? (
+            <Star className="w-4 h-4 text-yellow-400" />
+          ) : (
+            <Star className="w-4 h-4 text-white/40" />
+          )}
+        </button>
+      ),
+    },
+    {
+      key: 'createdAt',
+      label: 'Created At',
+      sortable: true,
+      render: (template: Template) => (
+        <span className="text-sm text-white/60">
+          {formatDate(template.createdAt)}
+        </span>
+      ),
+    },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -83,20 +222,6 @@ export const AdminTemplatesTab: React.FC = () => {
       exit={{ opacity: 0, y: -20 }}
       className="h-full flex flex-col"
     >
-      {banner && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`mb-4 p-3 rounded border text-sm ${
-            banner.type === 'success'
-              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/60'
-              : 'bg-red-500/10 border border-red-500/20 text-red-400/60'
-          }`}
-        >
-          {banner.message}
-        </motion.div>
-      )}
-
       <div className="bg-black/20 border border-white/5 rounded flex-1 flex flex-col overflow-hidden">
         <div className="p-6 border-b border-white/5">
           <h2 className="text-lg font-bold text-white">Flow Templates</h2>
@@ -104,71 +229,31 @@ export const AdminTemplatesTab: React.FC = () => {
         </div>
         
         <div className="flex-1 overflow-auto p-6">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-white/40">Loading templates...</div>
-            </div>
-          ) : templates.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <File className="w-12 h-12 text-white/20 mb-4" />
-              <div className="text-white/40 mb-2">No templates yet</div>
-              <div className="text-white/20 text-sm">Mark a flow as template from the Flows tab.</div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-6">
-              {templates.map(template => (
-                <motion.div
-                  key={template.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white/5 border border-white/5 rounded p-6 hover:bg-white/10 hover:border-white/10 transition-all"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-white font-semibold text-lg mb-2">{template.title}</h3>
-                      {template.description && (
-                        <p className="text-white/60 text-sm line-clamp-2 mb-4">{template.description}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      {template.isPublic && (
-                        <div
-                          className="p-1.5 bg-white/10 border border-white/20 rounded"
-                          title="Public template"
-                        >
-                          <Globe className="w-4 h-4 text-white/70" />
-                        </div>
-                      )}
-                      {template.isPublic === false && (
-                        <div
-                          className="p-1.5 bg-white/10 border border-white/20 rounded"
-                          title="Private template"
-                        >
-                          <Lock className="w-4 h-4 text-white/70" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className={`px-2 py-1 border rounded-full text-xs font-medium ${getStatusBadgeClasses(template.status)}`}>
-                        {template.status}
-                      </span>
-                      {template.workflowType && (
-                        <span className="px-2 py-1 bg-white/10 text-white/60 border border-white/20 rounded-full text-xs font-medium">
-                          {template.workflowType}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-white/40">
-                      {formatDate(template.updatedAt)}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
+          <DataTable
+            columns={columns}
+            data={templates}
+            totalCount={totalCount}
+            isLoading={loading}
+            searchable
+            searchPlaceholder="Search templates by title..."
+            onSearch={handleSearch}
+            sortBy={sortBy}
+            sortDir={sortDir}
+            onSort={handleSort}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            exportable
+            exportFilename="templates"
+            getRowId={(template) => template.id}
+            emptyState={
+              <EmptyState
+                title="No templates yet"
+                description="Mark a flow as template from the Flows tab"
+              />
+            }
+          />
         </div>
       </div>
     </motion.div>

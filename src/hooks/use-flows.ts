@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-interface Flow {
+export interface Flow {
   id: string;
   title: string;
   description: string | null;

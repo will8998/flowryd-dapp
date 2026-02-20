@@ -24,6 +24,7 @@ interface MessageThreadProps {
   messages: Message[];
   isLoading: boolean;
   dealId: string;
+  isConnected?: boolean;
 }
 
 interface GroupedMessages {
@@ -72,9 +73,55 @@ const groupMessages = (messages: Message[]): GroupedMessages[] => {
     );
 };
 
+const renderMessageContent = (content: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = content.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 underline decoration-blue-400/30 hover:decoration-blue-300/50 transition-colors"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
+const isImageFile = (fileName: string | null) => {
+  if (!fileName) return false;
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext || '');
+};
+
 const MessageBubble: React.FC<{ message: Message; isReply?: boolean }> = ({ message, isReply = false }) => {
   const avatar = (message.senderDisplayName || message.senderPartyId || 'U')[0].toUpperCase();
-  const isFile = message.contentType === 'file' && message.fileUrl;
+  const isFile = message.contentType === 'file' || message.fileUrl;
+  const isSystem = message.contentType === 'system' || message.content.startsWith('[System]');
+  const isImageFileMessage = isFile && isImageFile(message.fileName);
+
+  if (isSystem) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex justify-center mb-3"
+      >
+        <div className="px-3 py-1 bg-white/[0.02] border border-white/5 rounded-full">
+          <p className="text-[10px] text-white/30 italic text-center">
+            {message.content.replace(/^\[System\]\s*/, '')}
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -97,7 +144,7 @@ const MessageBubble: React.FC<{ message: Message; isReply?: boolean }> = ({ mess
           )}
         </div>
 
-        {isFile ? (
+        {isFile && message.fileUrl && message.fileName ? (
           <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-2.5 max-w-xs mt-1">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-md bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
@@ -105,39 +152,55 @@ const MessageBubble: React.FC<{ message: Message; isReply?: boolean }> = ({ mess
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-medium text-white/80 truncate">
-                  {message.fileName || 'Unknown file'}
+                  {message.fileName}
                 </p>
                 {message.fileSize && (
                   <p className="text-[9px] text-white/30">{formatFileSize(message.fileSize)}</p>
                 )}
               </div>
               <button
-                onClick={() => message.fileUrl && window.open(message.fileUrl, '_blank')}
+                onClick={() => window.open(message.fileUrl!, '_blank')}
                 className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/10 transition-all shrink-0"
               >
                 <Download className="w-3 h-3" />
               </button>
             </div>
+            
+            {isImageFileMessage && (
+              <div className="mt-2">
+                <img
+                  src={message.fileUrl}
+                  alt={message.fileName}
+                  className="max-w-full h-auto max-h-48 rounded border border-white/10 object-cover"
+                  loading="lazy"
+                />
+              </div>
+            )}
+            
             {message.content && message.content.trim() && (
-              <p className="text-[12px] text-white/70 mt-1.5 leading-relaxed">{message.content}</p>
+              <div className="text-[12px] text-white/70 mt-1.5 leading-relaxed">
+                {renderMessageContent(message.content)}
+              </div>
             )}
           </div>
         ) : (
-          <p className="text-[13px] text-white/70 leading-relaxed whitespace-pre-wrap">
-            {message.content}
-          </p>
+          <div className="text-[13px] text-white/70 leading-relaxed whitespace-pre-wrap">
+            {renderMessageContent(message.content)}
+          </div>
         )}
       </div>
     </motion.div>
   );
 };
 
-export default function MessageThread({ messages, isLoading, dealId }: MessageThreadProps) {
+export default function MessageThread({ messages, isLoading, dealId, isConnected }: MessageThreadProps) {
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
+  const [showNewMsgButton, setShowNewMsgButton] = useState(false);
+  const [isNearBottom, setIsNearBottom] = useState(true);
 
   const loadMoreMessages = async () => {
     if (!cursor || loadingMore) return;
@@ -162,14 +225,31 @@ export default function MessageThread({ messages, isLoading, dealId }: MessageTh
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (isNearBottom && scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    } else if (!isNearBottom && messages.length > 0) {
+      setShowNewMsgButton(true);
+    }
+  }, [messages.length, isNearBottom]);
+
   const handleScroll = () => {
     if (scrollAreaRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current;
-      setShouldScrollToBottom(scrollHeight - scrollTop - clientHeight < 100);
+      const nearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setIsNearBottom(nearBottom);
+      setShouldScrollToBottom(nearBottom);
+      
+      if (!nearBottom && !showNewMsgButton) {
+        setShowNewMsgButton(true);
+      } else if (nearBottom && showNewMsgButton) {
+        setShowNewMsgButton(false);
+      }
     }
   };
 
@@ -252,7 +332,36 @@ export default function MessageThread({ messages, isLoading, dealId }: MessageTh
             ))}
           </AnimatePresence>
         )}
+
+        {isConnected && messages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="px-4 py-1 flex items-center justify-center"
+          >
+            <div className="flex items-center gap-1">
+              <div className="w-1 h-1 rounded-full bg-white/20 animate-pulse" />
+              <div className="w-1 h-1 rounded-full bg-white/20 animate-pulse" style={{ animationDelay: '0.2s' }} />
+              <div className="w-1 h-1 rounded-full bg-white/20 animate-pulse" style={{ animationDelay: '0.4s' }} />
+              <span className="text-[8px] text-white/20 font-mono ml-2">Live</span>
+            </div>
+          </motion.div>
+        )}
       </div>
+
+      {showNewMsgButton && !isNearBottom && (
+        <button
+          onClick={() => {
+            if (scrollAreaRef.current) {
+              scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+              setShowNewMsgButton(false);
+            }
+          }}
+          className="absolute bottom-20 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-white/10 border border-white/10 rounded-full text-[10px] text-white/60 font-mono hover:bg-white/15 transition-colors z-20 backdrop-blur-sm"
+        >
+          New messages ↓
+        </button>
+      )}
     </div>
   );
 }

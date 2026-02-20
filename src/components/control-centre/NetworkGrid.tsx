@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, ShieldCheck, Zap, ArrowRight, Building2, Database, Network, Layers, Sparkles, Plus, Users, Eye, X, Star, AlertTriangle } from 'lucide-react';
+import { Search, ArrowRight, Building2, Database, Network, Layers, Plus, Users, Eye, X, Star } from 'lucide-react';
 import { participants } from '@/lib/canton-data';
 
 
@@ -85,6 +85,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
       }
     });
     return counts;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const FEATURED_JUMP_CUTS = [

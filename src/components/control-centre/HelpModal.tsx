@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, X, BookOpen, FileText, Mail, Shield, ArrowUpRight, Command } from 'lucide-react';
+import { HelpCircle, X, BookOpen, FileText, Mail, Shield, ArrowUpRight } from 'lucide-react';
 
 interface HelpModalProps {
   isOpen: boolean;
