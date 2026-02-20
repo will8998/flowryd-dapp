@@ -122,7 +122,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
     <motion.div
       animate={{ width: isCollapsed ? 56 : 240 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
-      className="h-full bg-[#0a0a0a] border-r border-white/5 flex flex-col"
+      className="h-full bg-[#0a0a0a] border-r border-white/5 flex flex-col overflow-hidden"
     >
       {/* Header - Collapsed */}
       {isCollapsed && (
@@ -219,7 +219,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0">
             {isLoading ? (
               <div className="p-4 text-center">
                 <p className="text-xs text-white/60">Loading...</p>
