@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/lib/auth-context";
+import { ToastProvider } from "@/components/ui";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -9,9 +10,11 @@ export default function MainLayout({
 }>) {
   return (
     <AuthProvider>
-      <SiteHeader />
-      {children}
-      <SiteFooter />
+      <ToastProvider>
+        <SiteHeader />
+        {children}
+        <SiteFooter />
+      </ToastProvider>
     </AuthProvider>
   );
 }
