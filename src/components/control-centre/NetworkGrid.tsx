@@ -197,9 +197,9 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
   const renderParticipantCard = (p: typeof participants[0], index: number) => (
     <motion.div
       key={p.id}
-      initial={{ opacity: 0, y: 20 }}
+      initial={index < 12 ? { opacity: 0, y: 20 } : false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+      transition={index < 12 ? { delay: index * 0.03, duration: 0.2 } : { duration: 0 }}
       className={`bg-black/30 border rounded p-5 hover:border-white/30 hover:bg-white/[0.01] transition-all group relative overflow-hidden cursor-pointer ${
         p.criticality === 'CRITICAL' ? 'border-white/20 border-l-white/40 border-l-2' : 'border-white/10'
       }`}
@@ -563,9 +563,9 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                     {groupedParticipants.map(([role, roleParticipants], groupIndex) => (
                       <motion.div
                         key={role}
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={groupIndex < 4 ? { opacity: 0, y: 20 } : false}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: groupIndex * 0.1 }}
+                        transition={groupIndex < 4 ? { delay: groupIndex * 0.08, duration: 0.2 } : { duration: 0 }}
                         className="space-y-4"
                       >
                         <div className="flex items-center gap-3">
