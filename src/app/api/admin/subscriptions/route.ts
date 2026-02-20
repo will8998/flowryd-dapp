@@ -81,16 +81,25 @@ export const GET = withMiddleware(
         .then(result => result[0].count)
     ]);
 
-    const hasMore = offset + limit < totalCount;
+    const enriched = subscriptionsData.map(s => ({
+      id: s.id,
+      orgId: s.orgId,
+      planId: s.planId,
+      status: s.status,
+      currentPeriodStart: s.currentPeriodStart,
+      currentPeriodEnd: s.currentPeriodEnd,
+      cancelledAt: s.cancelledAt,
+      trialEndsAt: s.trialEndsAt,
+      metadata: s.metadata,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+      organization: { id: s.orgId, name: s.orgName },
+      plan: { id: s.planId, name: s.planName, tier: s.planTier },
+    }));
 
     return successResponse({
-      data: subscriptionsData,
-      pagination: {
-        total: totalCount,
-        limit,
-        offset,
-        hasMore,
-      },
+      subscriptions: enriched,
+      total: totalCount,
     });
   },
 );

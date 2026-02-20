@@ -76,13 +76,8 @@ export const GET = withMiddleware(
     const hasMore = offset + limit < totalCount;
 
     return successResponse({
-      data: dealsData,
-      pagination: {
-        total: totalCount,
-        limit,
-        offset,
-        hasMore,
-      },
+      deals: dealsData,
+      total: totalCount,
     });
   },
 );

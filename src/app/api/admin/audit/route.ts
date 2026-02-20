@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server';
-import { desc, eq, and, gte, lte, lt } from 'drizzle-orm';
+import { desc, eq, and, gte, lte, count } from 'drizzle-orm';
 import { db } from '@/db';
 import { auditLog, users } from '@/db/schema';
 import { withMiddleware, requireAuth, requireRole } from '@/lib/api/middleware-chain';
 import type { ApiContext } from '@/lib/api/middleware-chain';
-import { paginatedResponse } from '@/lib/api/response';
+import { successResponse } from '@/lib/api/response';
 
 export const GET = withMiddleware(
   requireAuth(),
@@ -36,33 +36,39 @@ export const GET = withMiddleware(
     if (to) {
       conditions.push(lte(auditLog.createdAt, new Date(to)));
     }
-    if (cursor) {
-      conditions.push(lt(auditLog.id, cursor));
-    }
+    const offset = Number(url.searchParams.get('offset') ?? 0);
 
-    const rows = await db
-      .select({
-        id: auditLog.id,
-        userId: auditLog.userId,
-        action: auditLog.action,
-        resourceType: auditLog.resourceType,
-        resourceId: auditLog.resourceId,
-        metadata: auditLog.metadata,
-        ipAddress: auditLog.ipAddress,
-        createdAt: auditLog.createdAt,
-        userDisplayName: users.displayName,
-        userPartyId: users.partyId,
-      })
-      .from(auditLog)
-      .leftJoin(users, eq(auditLog.userId, users.id))
-      .where(and(...conditions))
-      .orderBy(desc(auditLog.createdAt))
-      .limit(limit + 1);
+    const [rows, totalCount] = await Promise.all([
+      db
+        .select({
+          id: auditLog.id,
+          userId: auditLog.userId,
+          action: auditLog.action,
+          resourceType: auditLog.resourceType,
+          resourceId: auditLog.resourceId,
+          metadata: auditLog.metadata,
+          ipAddress: auditLog.ipAddress,
+          createdAt: auditLog.createdAt,
+          userDisplayName: users.displayName,
+          userPartyId: users.partyId,
+        })
+        .from(auditLog)
+        .leftJoin(users, eq(auditLog.userId, users.id))
+        .where(and(...conditions))
+        .orderBy(desc(auditLog.createdAt))
+        .limit(limit)
+        .offset(offset),
 
-    const hasMore = rows.length > limit;
-    const data = hasMore ? rows.slice(0, limit) : rows;
-    const nextCursor = hasMore ? data[data.length - 1].id : null;
+      db
+        .select({ count: count() })
+        .from(auditLog)
+        .where(and(...conditions))
+        .then(result => result[0].count)
+    ]);
 
-    return paginatedResponse(data, nextCursor, hasMore);
+    return successResponse({
+      audit: rows,
+      total: totalCount,
+    });
   },
 );

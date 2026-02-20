@@ -76,13 +76,8 @@ export const GET = withMiddleware(
     const hasMore = offset + limit < totalCount;
 
     return successResponse({
-      data: providersData,
-      pagination: {
-        total: totalCount,
-        limit,
-        offset,
-        hasMore,
-      },
+      providers: providersData,
+      total: totalCount,
     });
   },
 );
