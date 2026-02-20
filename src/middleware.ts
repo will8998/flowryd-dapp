@@ -8,6 +8,10 @@ const PUBLIC_PATHS = [
   '/demo',
   '/onboarding',
   '/media-kit',
+  '/documentation',
+  '/terms',
+  '/privacy',
+  '/cookies',
 ];
 
 const PUBLIC_API_PATHS = [
