@@ -269,7 +269,7 @@ export const AdminPanel: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 p-8 overflow-hidden">
+      <div className="flex-1 p-8 overflow-y-auto custom-scrollbar min-h-0">
         <AnimatePresence mode="wait">
           {activeTab === 'users' && (
             <motion.div

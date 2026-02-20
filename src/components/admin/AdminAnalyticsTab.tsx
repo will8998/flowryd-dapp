@@ -6,29 +6,50 @@ import {
   Users, 
   Workflow, 
   Handshake, 
-  Store, 
+  Building2, 
   CreditCard, 
   DollarSign,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Activity,
+  Clock
 } from 'lucide-react';
 import { StatCard, BarChart, LineChart, PieChart } from '@/components/ui';
 
+// Matches the actual API response shape from /api/admin/analytics
 interface AnalyticsData {
   summary: {
     totalUsers: number;
+    totalOrganizations: number;
     totalFlows: number;
     totalDeals: number;
-    totalProviders: number;
     activeSubscriptions: number;
-    totalRevenue: number;
+    mrr: number;
+    activeSessionsLast24h: number;
+    auditEventsLast24h: number;
   };
-  userGrowth: { date: string; count: number }[];
-  flowActivity: { date: string; created: number; published: number }[];
-  dealVolume: { date: string; count: number; volume: number }[];
-  subscriptionsByPlan: { planName: string; count: number }[];
-  providersByCategory: { category: string; count: number }[];
-  recentActivity: { action: string; count: number }[];
+  timeSeries: {
+    userGrowth: { date: string; count: number }[];
+    flowActivity: { date: string; created: number; published: number }[];
+    dealVolume: { date: string; created: number; committed: number }[];
+    revenue: { date: string; amount: number }[];
+  };
+  distributions: {
+    dealsByStatus: Record<string, number>;
+    flowsByStatus: Record<string, number>;
+    subscriptionsByTier: Record<string, number>;
+    subscriptionsByStatus: Record<string, number>;
+    usersByRole: Record<string, number>;
+    providersByCategory: Record<string, number>;
+  };
+  recentActivity: Array<{
+    id: string;
+    action: string;
+    resourceType: string | null;
+    userId: string | null;
+    userName: string | null;
+    createdAt: string;
+  }>;
 }
 
 interface AnalyticsResponse {
@@ -124,36 +145,41 @@ export const AdminAnalyticsTab: React.FC = () => {
     return null;
   }
 
-  const userGrowthData = data.userGrowth.map(d => ({ 
+  const userGrowthData = (data.timeSeries?.userGrowth || []).map(d => ({ 
     label: formatDate(d.date), 
     value: d.count 
   }));
 
-  const flowActivityData = data.flowActivity.map(d => ({ 
+  const flowActivityData = (data.timeSeries?.flowActivity || []).map(d => ({ 
     label: formatDate(d.date), 
     value: d.created + d.published 
   }));
 
-  const dealVolumeData = data.dealVolume.map(d => ({ 
+  const dealVolumeData = (data.timeSeries?.dealVolume || []).map(d => ({ 
     label: formatDate(d.date), 
-    value: d.volume 
+    value: d.created + d.committed 
   }));
 
-  const subscriptionsPieData = data.subscriptionsByPlan.map((d, index) => ({ 
-    label: d.planName, 
-    value: d.count,
+  const subscriptionsPieData = Object.entries(data.distributions?.subscriptionsByTier || {}).map(([tier, count], index) => ({ 
+    label: tier.charAt(0).toUpperCase() + tier.slice(1), 
+    value: count,
     color: ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0.08)'][index % 4]
   }));
 
-  const providersPieData = data.providersByCategory.map((d, index) => ({ 
-    label: d.category, 
-    value: d.count,
+  const providersPieData = Object.entries(data.distributions?.providersByCategory || {}).map(([category, count], index) => ({ 
+    label: category.charAt(0).toUpperCase() + category.slice(1), 
+    value: count,
     color: ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0.08)'][index % 4]
   }));
 
-  const recentActivityData = data.recentActivity.map(d => ({ 
-    label: d.action, 
-    value: d.count 
+  const activityCounts = (data.recentActivity || []).reduce<Record<string, number>>((acc, item) => {
+    acc[item.action] = (acc[item.action] || 0) + 1;
+    return acc;
+  }, {});
+
+  const recentActivityData = Object.entries(activityCounts).map(([action, count]) => ({ 
+    label: action.split('.').pop() || action, 
+    value: count 
   }));
 
   return (
@@ -177,11 +203,16 @@ export const AdminAnalyticsTab: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Users"
           value={data.summary.totalUsers}
           icon={<Users className="w-5 h-5" />}
+        />
+        <StatCard
+          title="Organizations"
+          value={data.summary.totalOrganizations}
+          icon={<Building2 className="w-5 h-5" />}
         />
         <StatCard
           title="Total Flows"
@@ -194,42 +225,63 @@ export const AdminAnalyticsTab: React.FC = () => {
           icon={<Handshake className="w-5 h-5" />}
         />
         <StatCard
-          title="Total Providers"
-          value={data.summary.totalProviders}
-          icon={<Store className="w-5 h-5" />}
-        />
-        <StatCard
           title="Active Subscriptions"
           value={data.summary.activeSubscriptions}
           icon={<CreditCard className="w-5 h-5" />}
         />
         <StatCard
-          title="Total Revenue"
-          value={formatCurrency(data.summary.totalRevenue)}
+          title="MRR"
+          value={formatCurrency(data.summary.mrr)}
           icon={<DollarSign className="w-5 h-5" />}
+        />
+        <StatCard
+          title="Active Sessions (24h)"
+          value={data.summary.activeSessionsLast24h}
+          icon={<Activity className="w-5 h-5" />}
+        />
+        <StatCard
+          title="Audit Events (24h)"
+          value={data.summary.auditEventsLast24h}
+          icon={<Clock className="w-5 h-5" />}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="border border-white/10 bg-black/30 rounded p-6">
           <h3 className="text-sm font-bold text-white/80 mb-4">User Growth</h3>
-          <LineChart data={userGrowthData} height={250} />
+          {userGrowthData.length > 0 ? (
+            <LineChart data={userGrowthData} height={250} />
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-white/30 text-sm">No data available</div>
+          )}
         </div>
         <div className="border border-white/10 bg-black/30 rounded p-6">
           <h3 className="text-sm font-bold text-white/80 mb-4">Flow Activity</h3>
-          <BarChart data={flowActivityData} height={250} />
+          {flowActivityData.length > 0 ? (
+            <BarChart data={flowActivityData} height={250} />
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-white/30 text-sm">No data available</div>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="border border-white/10 bg-black/30 rounded p-6">
           <h3 className="text-sm font-bold text-white/80 mb-4">Deal Volume</h3>
-          <LineChart data={dealVolumeData} height={250} />
+          {dealVolumeData.length > 0 ? (
+            <LineChart data={dealVolumeData} height={250} />
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-white/30 text-sm">No data available</div>
+          )}
         </div>
         <div className="border border-white/10 bg-black/30 rounded p-6">
-          <h3 className="text-sm font-bold text-white/80 mb-4">Subscriptions by Plan</h3>
+          <h3 className="text-sm font-bold text-white/80 mb-4">Subscriptions by Tier</h3>
           <div className="flex justify-center">
-            <PieChart data={subscriptionsPieData} size={200} />
+            {subscriptionsPieData.length > 0 ? (
+              <PieChart data={subscriptionsPieData} size={200} />
+            ) : (
+              <div className="h-[200px] flex items-center justify-center text-white/30 text-sm">No data available</div>
+            )}
           </div>
         </div>
       </div>
@@ -238,12 +290,20 @@ export const AdminAnalyticsTab: React.FC = () => {
         <div className="border border-white/10 bg-black/30 rounded p-6">
           <h3 className="text-sm font-bold text-white/80 mb-4">Providers by Category</h3>
           <div className="flex justify-center">
-            <PieChart data={providersPieData} size={200} />
+            {providersPieData.length > 0 ? (
+              <PieChart data={providersPieData} size={200} />
+            ) : (
+              <div className="h-[200px] flex items-center justify-center text-white/30 text-sm">No data available</div>
+            )}
           </div>
         </div>
         <div className="border border-white/10 bg-black/30 rounded p-6">
           <h3 className="text-sm font-bold text-white/80 mb-4">Recent Activity</h3>
-          <BarChart data={recentActivityData} height={250} />
+          {recentActivityData.length > 0 ? (
+            <BarChart data={recentActivityData} height={250} />
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-white/30 text-sm">No data available</div>
+          )}
         </div>
       </div>
     </motion.div>

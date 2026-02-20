@@ -29,43 +29,6 @@ interface TimeSeriesPoint {
   amount?: number;
 }
 
-interface AnalyticsResponse {
-  data: {
-    summary: {
-      totalUsers: number;
-      totalOrganizations: number;
-      totalFlows: number;
-      totalDeals: number;
-      activeSubscriptions: number;
-      mrr: number;
-      activeSessionsLast24h: number;
-      auditEventsLast24h: number;
-    };
-    timeSeries: {
-      userGrowth: TimeSeriesPoint[];
-      flowActivity: TimeSeriesPoint[];
-      dealVolume: TimeSeriesPoint[];
-      revenue: TimeSeriesPoint[];
-    };
-    distributions: {
-      dealsByStatus: Record<string, number>;
-      flowsByStatus: Record<string, number>;
-      subscriptionsByTier: Record<string, number>;
-      subscriptionsByStatus: Record<string, number>;
-      usersByRole: Record<string, number>;
-      providersByCategory: Record<string, number>;
-    };
-    recentActivity: Array<{
-      id: string;
-      action: string;
-      resourceType: string | null;
-      userId: string | null;
-      userName: string | null;
-      createdAt: string;
-    }>;
-  };
-}
-
 function getDateRange(period: Period): { startDate: Date; endDate: Date } {
   const endDate = new Date();
   const startDate = new Date();
@@ -441,16 +404,12 @@ export const GET = withMiddleware(
         getRecentActivity()
       ]);
 
-      const response: AnalyticsResponse = {
-        data: {
-          summary,
-          timeSeries,
-          distributions,
-          recentActivity
-        }
-      };
-
-      return successResponse(response);
+      return successResponse({
+        summary,
+        timeSeries,
+        distributions,
+        recentActivity
+      });
     } catch (error) {
       console.error('Analytics query error:', error);
       return NextResponse.json(

@@ -151,8 +151,8 @@ export const FlowsStudio: React.FC = () => {
            </div>
         </header>
 
-        <main className="flex-1 relative overflow-hidden">
-          <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+        <main className="flex-1 relative overflow-hidden min-h-0">
+          <div className="h-full overflow-y-auto custom-scrollbar relative">
             <AnimatePresence mode="wait">
               {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectJumpCut={(jumpCut) => { setPendingJumpCut({ id: jumpCut.id, name: jumpCut.name, nodes: jumpCut.nodes }); handleTierChange('NAVIGATE'); setNavigateView('create'); }} />}
               {activeTier === 'NAVIGATE' && navigateView === 'library' && (

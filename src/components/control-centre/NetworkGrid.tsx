@@ -237,7 +237,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
   );
 
   return (
-    <div className="h-full flex flex-col bg-[#020202] overflow-hidden">
+    <div className="h-full flex flex-col bg-[#020202] overflow-hidden min-h-0">
       <AnimatePresence mode="wait">
         {/* Welcome State - Hero with Featured Jump Cuts */}
         {currentViewState === 'welcome' && (
