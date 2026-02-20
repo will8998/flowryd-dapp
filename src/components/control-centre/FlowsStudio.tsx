@@ -24,9 +24,7 @@ import { CollectiveHub } from './CollectiveHub';
 import { AdminPanel } from './AdminPanel';
 import { JumpCutsManager } from './JumpCutsManager';
 import { RetainerWidget } from './RetainerWidget';
-import { SubscriptionPaywall } from './SubscriptionPaywall';
 import { useCantonAuth } from '@/lib/auth-context';
-import { useSubscription } from '@/hooks/use-subscription';
 
 type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'JUMPCUTS';
 
@@ -36,20 +34,13 @@ interface SelectedJumpCut {
   nodes: Array<{ role: string; participantId: string; position: { x: number; y: number } }>;
 }
 
-const TIER_REQUIREMENTS: Partial<Record<Tier, string>> = {
-  NAVIGATE: 'Navigate',
-  ACTIVATE: 'Activate',
-};
-
 export const FlowsStudio: React.FC = () => {
   const { user } = useCantonAuth();
-  const { subscription } = useSubscription();
   const [activeTier, setActiveTier] = useState<Tier>('DISCOVER');
   const [notifications, setNotifications] = useState(2);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pendingJumpCut, setPendingJumpCut] = useState<SelectedJumpCut | null>(null);
   const [navigateView, setNavigateView] = useState<'library' | 'create'>('library');
-  const [paywallTier, setPaywallTier] = useState<string | null>(null);
 
   useEffect(() => {
     const hasSeen = localStorage.getItem('flowryd_onboarding_seen');
@@ -64,11 +55,6 @@ export const FlowsStudio: React.FC = () => {
   };
 
   const handleTierChange = (tier: Tier) => {
-    const requiredPlan = TIER_REQUIREMENTS[tier];
-    if (requiredPlan && !subscription) {
-      setPaywallTier(requiredPlan);
-      return;
-    }
     setActiveTier(tier);
     if (tier === 'NAVIGATE') {
       setNavigateView('library');
@@ -82,22 +68,6 @@ export const FlowsStudio: React.FC = () => {
           <OnboardingWizard onComplete={handleOnboardingComplete} />
         )}
       </AnimatePresence>
-
-      {paywallTier && (
-        <SubscriptionPaywall
-          requiredTier={paywallTier}
-          onClose={() => setPaywallTier(null)}
-          onSkip={() => {
-            const tierKey = (Object.entries(TIER_REQUIREMENTS) as [Tier, string][])
-              .find(([, v]) => v === paywallTier)?.[0];
-            if (tierKey) {
-              setActiveTier(tierKey);
-              if (tierKey === 'NAVIGATE') setNavigateView('library');
-            }
-            setPaywallTier(null);
-          }}
-        />
-      )}
 
       <StudioSidebar activeTier={activeTier} onTierChange={handleTierChange} />
 
