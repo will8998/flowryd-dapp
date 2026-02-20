@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // Pagination and filtering schemas
 export const paginationParamsSchema = z.object({
-  limit: z.coerce.number().min(1).max(100).default(25),
+  limit: z.coerce.number().min(1).default(25).transform(v => Math.min(v, 1000)),
   offset: z.coerce.number().min(0).default(0),
   search: z.string().nullish().transform(v => v ?? undefined),
   sortBy: z.string().nullish().transform(v => v ?? undefined),
