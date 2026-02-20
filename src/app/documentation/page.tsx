@@ -148,43 +148,219 @@ export default function DocumentationPage() {
           <DocContent sectionId="getting-started">
             <h1 id="getting-started">Getting Started</h1>
             <p>
-              Welcome to the Flowryd documentation. This comprehensive guide covers everything you need 
-              to know about integrating and working with the Flowryd platform - from basic authentication 
-              to advanced flow management and deal processing.
+              Welcome to Flowryd, a Next.js platform for building and managing financial workflows on the Canton Network. 
+              This guide will help you understand the core concepts and get started with creating flows and processing deals.
             </p>
-            <h2 id="quick-start">Quick Start</h2>
+            
+            <h2 id="core-concepts">Core Concepts</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Concept</th>
+                  <th>Description</th>
+                  <th>Example</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Flows</strong></td>
+                  <td>Visual workflow templates that define business processes</td>
+                  <td>Token issuance, collateral management, repo financing</td>
+                </tr>
+                <tr>
+                  <td><strong>Deals</strong></td>
+                  <td>Instances of flows with specific participants and data</td>
+                  <td>A specific bond issuance deal worth $10M</td>
+                </tr>
+                <tr>
+                  <td><strong>Participants</strong></td>
+                  <td>Canton Network parties involved in workflows</td>
+                  <td>Banks, custodians, registries, settlement systems</td>
+                </tr>
+                <tr>
+                  <td><strong>Organizations</strong></td>
+                  <td>Groups of users sharing flows and deals</td>
+                  <td>Investment banks, asset managers, fintech companies</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h2 id="authentication">Authentication</h2>
             <p>
-              Get up and running with Flowryd in minutes. Follow these steps to set up your first flow 
-              and start processing deals.
+              Flowryd uses Canton Network Party-IDs for authentication instead of traditional email/password. 
+              Party-IDs follow the format <code>orgname::identifier</code>.
+            </p>
+            
+            <h3 id="register-account">Register an Account</h3>
+            <CodeBlock
+              code={`POST /api/auth/register
+Content-Type: application/json
+
+{
+  "partyId": "mybank::trader001",
+  "displayName": "John Trader",
+  "orgName": "My Investment Bank",
+  "email": "john@mybank.com"
+}`}
+              language="json"
+              title="Registration Request"
+              copyable={true}
+            />
+
+            <h3 id="login">Login</h3>
+            <CodeBlock
+              code={`POST /api/auth/login
+Content-Type: application/json
+
+{
+  "partyId": "mybank::trader001"
+}
+
+// Response sets httpOnly cookies:
+// - flowryd-access-token (15min)
+// - flowryd-refresh-token (7 days)`}
+              language="json"
+              title="Login Request"
+              copyable={true}
+            />
+
+            <h2 id="your-first-flow">Creating Your First Flow</h2>
+            <p>
+              Flows are created through the web interface using a visual drag-and-drop builder. 
+              Here&apos;s how to create a basic flow programmatically:
+            </p>
+
+            <h3 id="create-flow">1. Create Flow</h3>
+            <CodeBlock
+              code={`POST /api/flows
+Content-Type: application/json
+Cookie: flowryd-access-token=...
+
+{
+  "title": "My First Deal Flow",
+  "description": "A simple two-party deal workflow",
+  "workflowType": "bilateral-deal"
+}`}
+              language="json"
+              title="Create Flow"
+              copyable={true}
+            />
+
+            <h3 id="add-version">2. Add Flow Version</h3>
+            <CodeBlock
+              code={`POST /api/flows/{flowId}/versions
+Content-Type: application/json
+
+{
+  "nodes": [
+    {
+      "id": "buyer-node",
+      "type": "institutional",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "participantId": "buyer-bank",
+        "name": "Buyer Bank",
+        "cantonRole": "buyer"
+      }
+    },
+    {
+      "id": "seller-node", 
+      "type": "institutional",
+      "position": { "x": 400, "y": 100 },
+      "data": {
+        "participantId": "seller-bank",
+        "name": "Seller Bank",
+        "cantonRole": "seller"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "deal-edge",
+      "source": "buyer-node",
+      "target": "seller-node",
+      "type": "liquid"
+    }
+  ]
+}`}
+              language="json"
+              title="Add Flow Version"
+              copyable={true}
+            />
+
+            <h3 id="publish-flow">3. Publish Flow</h3>
+            <CodeBlock
+              code={`POST /api/flows/{flowId}/publish
+Content-Type: application/json
+
+{
+  "isTemplate": false
+}`}
+              language="json"
+              title="Publish Flow"
+              copyable={true}
+            />
+
+            <h2 id="create-deal">Creating a Deal</h2>
+            <p>
+              Once you have a published flow, you can create deals based on that flow:
             </p>
             <CodeBlock
-              code={`// Initialize Flowryd client
-import { FlowrydClient } from '@flowryd/sdk';
+              code={`POST /api/deals
+Content-Type: application/json
 
-const client = new FlowrydClient({
-  apiKey: process.env.FLOWRYD_API_KEY,
-  environment: 'production'
-});
-
-// Create your first flow
-const flow = await client.flows.create({
-  name: 'My First Flow',
-  template: 'basic-deal-flow',
-  participants: [
-    { email: 'buyer@example.com', role: 'buyer' },
-    { email: 'seller@example.com', role: 'seller' }
-  ]
-});
-
-console.log('Flow created:', flow.id);`}
-              language="typescript"
-              title="quickstart.ts"
+{
+  "title": "Bond Purchase Deal",
+  "description": "Purchase of corporate bonds",
+  "flowId": "flow-uuid-here",
+  "volume": "10000000",
+  "metadata": {
+    "bondType": "corporate",
+    "maturity": "2025-12-31",
+    "coupon": "4.5%"
+  }
+}`}
+              language="json"
+              title="Create Deal"
+              copyable={true}
             />
-            <h2 id="next-steps">Next Steps</h2>
+
+            <h2 id="deal-messaging">Deal Messaging</h2>
             <p>
-              Once you have your first flow running, explore the authentication system, learn about 
-              the flow lifecycle, or dive into the comprehensive API reference.
+              Deals support real-time messaging between participants:
             </p>
+            <CodeBlock
+              code={`// Send a message
+POST /api/deals/{dealId}/messages
+{
+  "content": "Ready to proceed with settlement",
+  "threadId": "settlement-thread"
+}
+
+// Listen for real-time updates
+GET /api/deals/{dealId}/messages/stream
+// Server-Sent Events stream`}
+              language="json"
+              title="Deal Messaging"
+              copyable={true}
+            />
+
+            <h2 id="next-steps">Next Steps</h2>
+            <ul>
+              <li><strong>Architecture</strong> - Learn about the technical architecture and tech stack</li>
+              <li><strong>Authentication</strong> - Deep dive into JWT flow and RBAC system</li>
+              <li><strong>Flow Lifecycle</strong> - Understand flow states and version management</li>
+              <li><strong>Deal Lifecycle</strong> - Learn about deal state transitions</li>
+              <li><strong>API Reference</strong> - Complete endpoint documentation</li>
+            </ul>
+
+            <div className="note">
+              <div className="note-title">Development Environment</div>
+              <div className="note-content">
+                This documentation assumes you&apos;re running Flowryd locally on <code>http://localhost:3000</code>. 
+                All API endpoints are relative to this base URL using Next.js API routes at <code>/api/*</code>.
+              </div>
+            </div>
           </DocContent>
         );
 
@@ -193,94 +369,578 @@ console.log('Flow created:', flow.id);`}
           <DocContent sectionId="api-reference">
             <h1 id="api-reference">API Reference</h1>
             <p>
-              Complete reference for all Flowryd API endpoints. All endpoints require authentication 
-              and return JSON responses.
+              Complete reference for all Flowryd API endpoints. All endpoints use Next.js API routes 
+              and return consistent JSON responses with proper error handling.
             </p>
+            
             <h2 id="base-url">Base URL</h2>
             <CodeBlock
-              code="https://api.flowryd.com/v1"
+              code="/api"
               language="text"
-              title="Base URL"
+              title="Base URL (Next.js API Routes)"
+              copyable={true}
             />
-            <h2 id="endpoints">Core Endpoints</h2>
+            
+            <h2 id="response-envelope">Response Format</h2>
+            <p>All API responses follow a consistent envelope pattern:</p>
+            
+            <h3 id="success-responses">Success Responses</h3>
+            <CodeBlock
+              code={`// Standard success response
+{
+  "data": {
+    // Response payload here
+  }
+}
+
+// Paginated response
+{
+  "data": [...],
+  "pagination": {
+    "cursor": "eyJpZCI6InV1aWQifQ==",
+    "hasMore": true
+  }
+}`}
+              language="json"
+              title="Success Response Format"
+              copyable={true}
+            />
+
+            <h3 id="error-responses">Error Responses</h3>
+            <CodeBlock
+              code={`{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request parameters",
+    "details": {
+      "field": "partyId",
+      "issue": "Required field missing"
+    }
+  }
+}`}
+              language="json"
+              title="Error Response Format"
+              copyable={true}
+            />
+
+            <h2 id="error-codes">Error Codes</h2>
             <table>
               <thead>
                 <tr>
-                  <th>Method</th>
-                  <th>Endpoint</th>
+                  <th>Code</th>
+                  <th>HTTP Status</th>
                   <th>Description</th>
-                  <th>Auth Required</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>POST</td>
-                  <td>/auth/login</td>
-                  <td>Authenticate user and get JWT token</td>
-                  <td>No</td>
+                  <td><code>VALIDATION_ERROR</code></td>
+                  <td>422</td>
+                  <td>Request validation failed</td>
                 </tr>
                 <tr>
-                  <td>GET</td>
-                  <td>/flows</td>
-                  <td>List all flows for authenticated user</td>
-                  <td>Yes</td>
+                  <td><code>NOT_FOUND</code></td>
+                  <td>404</td>
+                  <td>Resource not found</td>
                 </tr>
                 <tr>
-                  <td>POST</td>
-                  <td>/flows</td>
-                  <td>Create a new flow</td>
-                  <td>Yes</td>
+                  <td><code>UNAUTHORIZED</code></td>
+                  <td>401</td>
+                  <td>Authentication required</td>
                 </tr>
                 <tr>
-                  <td>GET</td>
-                  <td>/flows/:id</td>
-                  <td>Get specific flow details</td>
-                  <td>Yes</td>
+                  <td><code>FORBIDDEN</code></td>
+                  <td>403</td>
+                  <td>Insufficient permissions</td>
                 </tr>
                 <tr>
-                  <td>PUT</td>
-                  <td>/flows/:id</td>
-                  <td>Update flow configuration</td>
-                  <td>Yes</td>
+                  <td><code>CONFLICT</code></td>
+                  <td>409</td>
+                  <td>Resource conflict</td>
                 </tr>
                 <tr>
-                  <td>GET</td>
-                  <td>/deals</td>
-                  <td>List deals with filtering options</td>
-                  <td>Yes</td>
-                </tr>
-                <tr>
-                  <td>POST</td>
-                  <td>/deals</td>
-                  <td>Create a new deal in a flow</td>
-                  <td>Yes</td>
-                </tr>
-                <tr>
-                  <td>GET</td>
-                  <td>/deals/:id/messages</td>
-                  <td>Get deal message history</td>
-                  <td>Yes</td>
+                  <td><code>INTERNAL_ERROR</code></td>
+                  <td>500</td>
+                  <td>Server error</td>
                 </tr>
               </tbody>
             </table>
-            <h2 id="response-format">Response Format</h2>
-            <p>All API responses follow a consistent format:</p>
+
+            <h2 id="authentication-endpoints">Authentication Endpoints</h2>
+            
+            <h3 id="post-auth-login">POST /api/auth/login</h3>
+            <p>Authenticate user with Canton Network Party-ID and set httpOnly cookies.</p>
+            
+            <h4>Request Body</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>partyId</code></td>
+                  <td>string</td>
+                  <td>Yes</td>
+                  <td>Canton Party-ID (max 195 chars, format: orgname::identifier)</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4>Response</h4>
             <CodeBlock
-              code={`{
-  "success": true,
+              code={`// Success (200)
+{
   "data": {
-    // Response data here
-  },
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 150,
-    "totalPages": 8
+    "user": {
+      "id": "uuid",
+      "partyId": "mybank::trader001",
+      "displayName": "John Trader",
+      "email": "john@mybank.com",
+      "role": "editor",
+      "orgId": "org-uuid"
+    }
+  }
+}
+
+// Sets httpOnly cookies:
+// - flowryd-access-token (15min expiry)
+// - flowryd-refresh-token (7 days expiry)`}
+              language="json"
+              title="Login Response"
+              copyable={true}
+            />
+
+            <h4>Error Responses</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Code</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>401</td>
+                  <td>USER_NOT_FOUND</td>
+                  <td>User not found, includes redirect: &apos;/register&apos;</td>
+                </tr>
+                <tr>
+                  <td>401</td>
+                  <td>ACCOUNT_DEACTIVATED</td>
+                  <td>User account is deactivated</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h3 id="post-auth-register">POST /api/auth/register</h3>
+            <p>Register new user and organization. First user in org becomes admin.</p>
+            
+            <h4>Request Body</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>partyId</code></td>
+                  <td>string</td>
+                  <td>Yes</td>
+                  <td>Canton Party-ID (max 195 chars)</td>
+                </tr>
+                <tr>
+                  <td><code>displayName</code></td>
+                  <td>string</td>
+                  <td>Yes</td>
+                  <td>User display name (max 255 chars)</td>
+                </tr>
+                <tr>
+                  <td><code>orgName</code></td>
+                  <td>string</td>
+                  <td>Yes</td>
+                  <td>Organization name (max 255 chars)</td>
+                </tr>
+                <tr>
+                  <td><code>email</code></td>
+                  <td>string</td>
+                  <td>No</td>
+                  <td>Valid email address</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4>Response</h4>
+            <CodeBlock
+              code={`// Success (201)
+{
+  "data": {
+    "user": {
+      "id": "uuid",
+      "partyId": "mybank::trader001",
+      "displayName": "John Trader", 
+      "email": "john@mybank.com",
+      "role": "admin", // First user gets admin, others get viewer
+      "orgId": "org-uuid"
+    }
   }
 }`}
               language="json"
-              title="Response Format"
+              title="Registration Response"
+              copyable={true}
             />
+
+            <h3 id="post-auth-refresh">POST /api/auth/refresh</h3>
+            <p>Refresh access token using refresh token rotation strategy.</p>
+            
+            <h4>Headers</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Header</th>
+                  <th>Value</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Cookie</code></td>
+                  <td>flowryd-refresh-token=...</td>
+                  <td>httpOnly refresh token cookie</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4>Response</h4>
+            <CodeBlock
+              code={`// Success (200)
+{
+  "data": {
+    "success": true
+  }
+}
+
+// Sets new httpOnly cookies with rotated tokens
+// Old refresh token is immediately revoked`}
+              language="json"
+              title="Refresh Response"
+              copyable={true}
+            />
+
+            <h3 id="post-auth-logout">POST /api/auth/logout</h3>
+            <p>Logout user and revoke all refresh tokens.</p>
+            
+            <h4>Response</h4>
+            <CodeBlock
+              code={`// Success (200)
+{
+  "data": {
+    "success": true
+  }
+}
+
+// Clears httpOnly cookies
+// Revokes all refresh tokens for user`}
+              language="json"
+              title="Logout Response"
+              copyable={true}
+            />
+
+            <h3 id="get-auth-me">GET /api/auth/me</h3>
+            <p>Get current authenticated user information.</p>
+            
+            <h4>Headers</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Header</th>
+                  <th>Value</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Cookie</code></td>
+                  <td>flowryd-access-token=...</td>
+                  <td>httpOnly access token cookie</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4>Response</h4>
+            <CodeBlock
+              code={`// Success (200)
+{
+  "data": {
+    "user": {
+      "id": "uuid",
+      "partyId": "mybank::trader001",
+      "displayName": "John Trader",
+      "email": "john@mybank.com", 
+      "role": "editor",
+      "orgId": "org-uuid"
+    }
+  }
+}`}
+              language="json"
+              title="Current User Response"
+              copyable={true}
+            />
+
+            <h2 id="flow-endpoints">Flow Endpoints</h2>
+            
+            <h3 id="get-flows">GET /api/flows</h3>
+            <p>List flows for authenticated user&apos;s organization with pagination.</p>
+            
+            <h4>Query Parameters</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>limit</code></td>
+                  <td>number</td>
+                  <td>No</td>
+                  <td>Results per page (default: 20, max: 50)</td>
+                </tr>
+                <tr>
+                  <td><code>cursor</code></td>
+                  <td>string</td>
+                  <td>No</td>
+                  <td>Pagination cursor</td>
+                </tr>
+                <tr>
+                  <td><code>status</code></td>
+                  <td>enum</td>
+                  <td>No</td>
+                  <td>Filter by status: draft, published, archived</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4>Response</h4>
+            <CodeBlock
+              code={`// Success (200)
+{
+  "data": [
+    {
+      "id": "flow-uuid",
+      "title": "Token Issuance Flow",
+      "description": "Automated bond issuance workflow",
+      "workflowType": "token-issuance",
+      "status": "published",
+      "isTemplate": false,
+      "isPublic": false,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T14:20:00Z"
+    }
+  ],
+  "pagination": {
+    "cursor": "eyJpZCI6InV1aWQifQ==",
+    "hasMore": true
+  }
+}`}
+              language="json"
+              title="List Flows Response"
+              copyable={true}
+            />
+
+            <h3 id="post-flows">POST /api/flows</h3>
+            <p>Create a new flow. Requires <code>flow.create</code> permission.</p>
+            
+            <h4>Request Body</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>title</code></td>
+                  <td>string</td>
+                  <td>Yes</td>
+                  <td>Flow title (max 255 chars)</td>
+                </tr>
+                <tr>
+                  <td><code>description</code></td>
+                  <td>string</td>
+                  <td>No</td>
+                  <td>Flow description (max 5000 chars)</td>
+                </tr>
+                <tr>
+                  <td><code>workflowType</code></td>
+                  <td>string</td>
+                  <td>No</td>
+                  <td>Workflow type identifier (max 64 chars)</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4>Response</h4>
+            <CodeBlock
+              code={`// Success (201)
+{
+  "data": {
+    "flow": {
+      "id": "flow-uuid",
+      "title": "My New Flow",
+      "description": "Flow description",
+      "workflowType": "custom",
+      "status": "draft",
+      "isTemplate": false,
+      "isPublic": false,
+      "orgId": "org-uuid",
+      "createdBy": "user-uuid",
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  }
+}
+
+// Auto-creates version 1 with empty nodes/edges`}
+              language="json"
+              title="Create Flow Response"
+              copyable={true}
+            />
+
+            <h2 id="deal-endpoints">Deal Endpoints</h2>
+            
+            <h3 id="get-deals">GET /api/deals</h3>
+            <p>List deals for authenticated user&apos;s organization with filtering.</p>
+            
+            <h4>Query Parameters</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>status</code></td>
+                  <td>enum</td>
+                  <td>No</td>
+                  <td>Filter by status: draft, open, negotiating, locked, committed</td>
+                </tr>
+                <tr>
+                  <td><code>limit</code></td>
+                  <td>number</td>
+                  <td>No</td>
+                  <td>Results per page (default: 20, max: 50)</td>
+                </tr>
+                <tr>
+                  <td><code>cursor</code></td>
+                  <td>string</td>
+                  <td>No</td>
+                  <td>Pagination cursor</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h3 id="post-deals">POST /api/deals</h3>
+            <p>Create a new deal. Requires <code>deal.create</code> permission.</p>
+            
+            <h4>Request Body</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>title</code></td>
+                  <td>string</td>
+                  <td>Yes</td>
+                  <td>Deal title (max 255 chars)</td>
+                </tr>
+                <tr>
+                  <td><code>description</code></td>
+                  <td>string</td>
+                  <td>No</td>
+                  <td>Deal description (max 5000 chars)</td>
+                </tr>
+                <tr>
+                  <td><code>flowId</code></td>
+                  <td>string</td>
+                  <td>No</td>
+                  <td>UUID of associated flow</td>
+                </tr>
+                <tr>
+                  <td><code>volume</code></td>
+                  <td>string</td>
+                  <td>No</td>
+                  <td>Deal volume as string (max 64 chars)</td>
+                </tr>
+                <tr>
+                  <td><code>metadata</code></td>
+                  <td>object</td>
+                  <td>No</td>
+                  <td>Additional deal metadata (JSON)</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4>Response</h4>
+            <CodeBlock
+              code={`// Success (201)
+{
+  "data": {
+    "deal": {
+      "id": "deal-uuid",
+      "title": "Bond Purchase Deal",
+      "description": "Corporate bond purchase",
+      "status": "draft",
+      "volume": "10000000",
+      "flowId": "flow-uuid",
+      "orgId": "org-uuid",
+      "createdBy": "user-uuid",
+      "createdAt": "2024-01-15T10:30:00Z",
+      "metadata": {
+        "bondType": "corporate",
+        "maturity": "2025-12-31"
+      }
+    }
+  }
+}
+
+// Auto-adds creator as participant with role='admin'`}
+              language="json"
+              title="Create Deal Response"
+              copyable={true}
+            />
+
+            <div className="note">
+              <div className="note-title">Authentication</div>
+              <div className="note-content">
+                All endpoints except registration and login require authentication via httpOnly cookies. 
+                The middleware automatically validates JWT tokens and adds user context to request headers.
+              </div>
+            </div>
           </DocContent>
         );
 
@@ -289,80 +949,94 @@ console.log('Flow created:', flow.id);`}
           <DocContent sectionId="architecture">
             <h1 id="architecture">Architecture</h1>
             <p>
-              Flowryd is built on a modern, scalable architecture using Next.js 15 with the App Router, 
-              React 19, and TypeScript. The system follows a clean separation of concerns with a robust 
-              authentication layer and comprehensive API design.
+              Flowryd is a Next.js 15 application built for the Canton Network, featuring a modern full-stack 
+              architecture with React 19, PostgreSQL, and comprehensive authentication. The system is designed 
+              for financial workflow management with real-time messaging and file handling capabilities.
             </p>
+            
             <h2 id="tech-stack">Technology Stack</h2>
             <table>
               <thead>
                 <tr>
                   <th>Component</th>
                   <th>Technology</th>
+                  <th>Version</th>
                   <th>Purpose</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>Frontend Framework</td>
-                  <td>Next.js 15 (App Router)</td>
-                  <td>React-based full-stack framework with server-side rendering</td>
+                  <td><strong>Framework</strong></td>
+                  <td>Next.js</td>
+                  <td>15</td>
+                  <td>Full-stack React framework with App Router</td>
                 </tr>
                 <tr>
-                  <td>UI Library</td>
-                  <td>React 19</td>
-                  <td>Component-based user interface with concurrent features</td>
+                  <td><strong>Frontend</strong></td>
+                  <td>React</td>
+                  <td>19</td>
+                  <td>Component-based UI with concurrent features</td>
                 </tr>
                 <tr>
-                  <td>Language</td>
+                  <td><strong>Language</strong></td>
                   <td>TypeScript</td>
-                  <td>Type-safe JavaScript with enhanced developer experience</td>
+                  <td>5.x</td>
+                  <td>Type-safe JavaScript with enhanced DX</td>
                 </tr>
                 <tr>
-                  <td>Database</td>
-                  <td>PostgreSQL (Neon)</td>
-                  <td>Serverless PostgreSQL with connection pooling</td>
+                  <td><strong>Database</strong></td>
+                  <td>PostgreSQL</td>
+                  <td>15+</td>
+                  <td>Relational database with JSONB support</td>
                 </tr>
                 <tr>
-                  <td>ORM</td>
+                  <td><strong>ORM</strong></td>
                   <td>Drizzle ORM</td>
+                  <td>Latest</td>
                   <td>Type-safe database queries and migrations</td>
                 </tr>
                 <tr>
-                  <td>Authentication</td>
-                  <td>JWT (jose library)</td>
-                  <td>Stateless authentication with RS256/HS256 signing</td>
+                  <td><strong>Authentication</strong></td>
+                  <td>JWT (jose)</td>
+                  <td>5.x</td>
+                  <td>Stateless auth with httpOnly cookies</td>
                 </tr>
                 <tr>
-                  <td>Flow Builder</td>
-                  <td>@xyflow/react</td>
-                  <td>Interactive node-based flow canvas</td>
+                  <td><strong>Flow Builder</strong></td>
+                  <td>ReactFlow</td>
+                  <td>12.x</td>
+                  <td>Interactive node-based workflow canvas</td>
                 </tr>
                 <tr>
-                  <td>File Storage</td>
-                  <td>Vercel Blob</td>
-                  <td>Scalable file uploads and storage</td>
-                </tr>
-                <tr>
-                  <td>Styling</td>
+                  <td><strong>Styling</strong></td>
                   <td>Tailwind CSS</td>
+                  <td>4.x</td>
                   <td>Utility-first CSS framework</td>
                 </tr>
                 <tr>
-                  <td>Animation</td>
-                  <td>Framer Motion</td>
-                  <td>Production-ready motion library</td>
+                  <td><strong>File Storage</strong></td>
+                  <td>Vercel Blob</td>
+                  <td>Latest</td>
+                  <td>Scalable file uploads and storage</td>
+                </tr>
+                <tr>
+                  <td><strong>Real-time</strong></td>
+                  <td>Server-Sent Events</td>
+                  <td>Native</td>
+                  <td>Real-time deal messaging</td>
                 </tr>
               </tbody>
             </table>
+
             <h2 id="system-architecture">System Architecture</h2>
-            <p>The application follows a layered architecture pattern:</p>
+            <p>Flowryd follows a layered architecture with clear separation of concerns:</p>
+            
             <CodeBlock
               code={`┌─────────────────────────────────────────────────────────┐
-│                    Frontend Layer                       │
+│                  Presentation Layer                     │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐ │
 │  │   Pages     │ │ Components  │ │      Hooks          │ │
-│  │ (App Router)│ │   (UI)      │ │ (State Management)  │ │
+│  │ (App Router)│ │   (React)   │ │ (State Management)  │ │
 │  └─────────────┘ └─────────────┘ └─────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
                               │
@@ -371,7 +1045,7 @@ console.log('Flow created:', flow.id);`}
 │                 Middleware Layer                        │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐ │
 │  │    Auth     │ │    RBAC     │ │    Validation       │ │
-│  │ Middleware  │ │   System    │ │   & Sanitization    │ │
+│  │ (JWT/jose)  │ │   System    │ │   & Sanitization    │ │
 │  └─────────────┘ └─────────────┘ └─────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
                               │
@@ -386,55 +1060,276 @@ console.log('Flow created:', flow.id);`}
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────┐
-│                 Database Layer                          │
+│                 Data Layer                              │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐ │
-│  │   Drizzle   │ │ PostgreSQL  │ │    13 Tables        │ │
-│  │     ORM     │ │   (Neon)    │ │   with Relations    │ │
+│  │   Drizzle   │ │ PostgreSQL  │ │   Vercel Blob       │ │
+│  │     ORM     │ │ (Database)  │ │  (File Storage)     │ │
 │  └─────────────┘ └─────────────┘ └─────────────────────┘ │
 └─────────────────────────────────────────────────────────┘`}
               language="text"
               title="System Architecture Diagram"
+              copyable={true}
             />
-            <h2 id="data-flow">Data Flow</h2>
-            <p>Request processing follows this pattern:</p>
+
+            <h2 id="middleware-chain">Middleware Chain</h2>
+            <p>Next.js middleware provides a robust request processing pipeline:</p>
+            
+            <CodeBlock
+              code={`// src/middleware.ts
+export async function middleware(request: NextRequest) {
+  // 1. Extract JWT from httpOnly cookie
+  const token = request.cookies.get('flowryd-access-token')?.value;
+  
+  // 2. Verify JWT signature and claims
+  const { payload } = await jwtVerify(token, secret, {
+    issuer: 'flowryd',
+    audience: 'flowryd-api'
+  });
+  
+  // 3. Add user context to request headers
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-user-id', payload.sub as string);
+  requestHeaders.set('x-user-role', payload.role as string);
+  requestHeaders.set('x-user-org-id', payload.orgId as string);
+  requestHeaders.set('x-user-party-id', payload.partyId as string);
+  
+  // 4. Continue to API route with enriched context
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}`}
+              language="typescript"
+              title="Middleware Implementation"
+              copyable={true}
+            />
+
+            <h2 id="api-patterns">API Route Patterns</h2>
+            <p>Consistent patterns across all API endpoints:</p>
+            
+            <CodeBlock
+              code={`// API route with middleware chain
+export const POST = withMiddleware(
+  requireAuth(),           // Authentication check
+  requirePermission('flow.create'), // RBAC authorization
+  validateRequest(schema), // Input validation
+  async (req: NextRequest, ctx: ApiContext) => {
+    try {
+      // Business logic here
+      const result = await businessLogic(ctx.body, ctx.user);
+      
+      // Success response
+      return successResponse(result);
+    } catch (error) {
+      // Error handling
+      return errorResponse(error);
+    }
+  }
+);
+
+// Middleware utilities
+const withMiddleware = (...middlewares) => (handler) => {
+  return async (req, ctx) => {
+    // Execute middleware chain
+    for (const middleware of middlewares) {
+      const result = await middleware(req, ctx);
+      if (result) return result; // Early return on error
+    }
+    return handler(req, ctx);
+  };
+};`}
+              language="typescript"
+              title="API Route Pattern"
+              copyable={true}
+            />
+
+            <h2 id="database-schema">Database Schema</h2>
+            <p>PostgreSQL schema with 13 tables and comprehensive relationships:</p>
+            
+            <table>
+              <thead>
+                <tr>
+                  <th>Table</th>
+                  <th>Purpose</th>
+                  <th>Key Relations</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>organizations</code></td>
+                  <td>Multi-tenant organization data</td>
+                  <td>→ users, flows, deals</td>
+                </tr>
+                <tr>
+                  <td><code>users</code></td>
+                  <td>User accounts with Canton Party-IDs</td>
+                  <td>→ organizations, refresh_tokens</td>
+                </tr>
+                <tr>
+                  <td><code>flows</code></td>
+                  <td>Workflow templates and configurations</td>
+                  <td>→ flow_versions, deals</td>
+                </tr>
+                <tr>
+                  <td><code>flow_versions</code></td>
+                  <td>Versioned flow snapshots (JSONB)</td>
+                  <td>→ flows</td>
+                </tr>
+                <tr>
+                  <td><code>deals</code></td>
+                  <td>Deal instances with state machine</td>
+                  <td>→ flows, deal_participants</td>
+                </tr>
+                <tr>
+                  <td><code>deal_messages</code></td>
+                  <td>Real-time messaging with threading</td>
+                  <td>→ deals, users</td>
+                </tr>
+                <tr>
+                  <td><code>refresh_tokens</code></td>
+                  <td>JWT refresh token rotation</td>
+                  <td>→ users</td>
+                </tr>
+                <tr>
+                  <td><code>active_sessions</code></td>
+                  <td>SSE connection tracking</td>
+                  <td>→ users, deals</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h2 id="data-flow">Request Processing Flow</h2>
             <ol>
-              <li><strong>Client Request</strong> - User interaction triggers API call</li>
-              <li><strong>Middleware</strong> - Authentication and authorization checks</li>
-              <li><strong>API Route</strong> - Business logic and validation</li>
-              <li><strong>Database</strong> - Data persistence via Drizzle ORM</li>
-              <li><strong>Response</strong> - Structured JSON response to client</li>
+              <li><strong>Client Request</strong> - Browser/API client sends HTTP request</li>
+              <li><strong>Next.js Middleware</strong> - JWT validation and user context injection</li>
+              <li><strong>API Route Handler</strong> - Business logic with middleware chain</li>
+              <li><strong>RBAC Check</strong> - Permission validation against user role</li>
+              <li><strong>Input Validation</strong> - Request body/query parameter validation</li>
+              <li><strong>Database Operations</strong> - Drizzle ORM queries with transactions</li>
+              <li><strong>Response Formatting</strong> - Consistent JSON envelope response</li>
+              <li><strong>Error Handling</strong> - Structured error responses with codes</li>
             </ol>
-            <h2 id="key-directories">Key Directories</h2>
+
+            <h2 id="real-time-architecture">Real-time Architecture</h2>
+            <p>Server-Sent Events for real-time deal messaging:</p>
+            
+            <CodeBlock
+              code={`// SSE endpoint structure
+GET /api/deals/{dealId}/messages/stream
+
+// Connection lifecycle:
+1. Client establishes SSE connection
+2. Server creates active_sessions entry
+3. Polling loop checks for new messages every 3s
+4. New messages broadcast to all connected clients
+5. Heartbeat every 15s to maintain connection
+6. 55s timeout with auto-reconnect expected
+
+// Message broadcasting
+const broadcastMessage = async (dealId: string, message: Message) => {
+  const sessions = await getActiveSessions(dealId);
+  
+  sessions.forEach(session => {
+    session.controller.enqueue(
+      \`data: \${JSON.stringify({ type: 'message', data: message })}\\n\\n\`
+    );
+  });
+};`}
+              language="typescript"
+              title="Real-time Messaging Architecture"
+              copyable={true}
+            />
+
+            <h2 id="file-handling">File Upload Architecture</h2>
+            <p>Vercel Blob integration for secure file handling:</p>
+            
+            <CodeBlock
+              code={`// File upload flow
+POST /api/deals/{dealId}/files
+
+1. Multipart form validation (max 10MB)
+2. File type validation (pdf, json, txt, csv, images, docs)
+3. Upload to Vercel Blob storage
+4. Create deal_messages entry with file metadata
+5. Return signed URL for client access
+
+// Supported file types
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'application/json', 
+  'text/plain',
+  'text/csv',
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+];`}
+              language="typescript"
+              title="File Upload Architecture"
+              copyable={true}
+            />
+
+            <h2 id="directory-structure">Directory Structure</h2>
             <table>
               <thead>
                 <tr>
                   <th>Directory</th>
                   <th>Purpose</th>
+                  <th>Key Files</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td><code>src/app/</code></td>
                   <td>Next.js App Router pages and API routes</td>
+                  <td>page.tsx, layout.tsx, api/*/route.ts</td>
                 </tr>
                 <tr>
                   <td><code>src/components/</code></td>
                   <td>Reusable React components</td>
+                  <td>UI components, forms, layouts</td>
                 </tr>
                 <tr>
                   <td><code>src/lib/</code></td>
-                  <td>Shared utilities, auth, and business logic</td>
+                  <td>Shared utilities and business logic</td>
+                  <td>auth/, db/, utils/, types/</td>
                 </tr>
                 <tr>
                   <td><code>src/hooks/</code></td>
-                  <td>Custom React hooks for state management</td>
+                  <td>Custom React hooks</td>
+                  <td>useAuth, useDeals, useFlows</td>
                 </tr>
                 <tr>
                   <td><code>src/db/</code></td>
                   <td>Database schema and configuration</td>
+                  <td>schema.ts, migrate.ts, seed.ts</td>
+                </tr>
+                <tr>
+                  <td><code>src/middleware.ts</code></td>
+                  <td>Next.js middleware for auth</td>
+                  <td>JWT validation, user context</td>
                 </tr>
               </tbody>
             </table>
+
+            <h2 id="deployment-architecture">Deployment Architecture</h2>
+            <p>Production deployment on DigitalOcean with PM2 process management:</p>
+            
+            <ul>
+              <li><strong>Frontend &amp; API</strong> - Next.js 15 on DigitalOcean droplet (Ubuntu)</li>
+              <li><strong>Process Manager</strong> - PM2 with auto-restart and clustering</li>
+              <li><strong>Reverse Proxy</strong> - Nginx (port 3002 &rarr; 3001)</li>
+              <li><strong>Database</strong> - PostgreSQL via Drizzle ORM</li>
+              <li><strong>File Storage</strong> - Vercel Blob for file uploads</li>
+              <li><strong>Runtime</strong> - Node.js 20+, TypeScript</li>
+            </ul>
+
+            <div className="note">
+              <div className="note-title">Canton Network Integration</div>
+              <div className="note-content">
+                While Flowryd is designed for Canton Network workflows, the current implementation 
+                focuses on the application layer. Canton Network integration for actual transaction 
+                processing would be added as an additional service layer.
+              </div>
+            </div>
           </DocContent>
         );
 
@@ -3158,134 +4053,221 @@ const UserModal = ({ user, isOpen, onClose, onSave }) => {
           <DocContent sectionId="database-schema">
             <h1 id="database-schema">Database Schema</h1>
             <p>
-              Flowryd uses 18 PostgreSQL tables managed with Drizzle ORM on Neon. 
-              The schema supports multi-tenancy, versioning, and comprehensive audit trails.
+              Flowryd uses 19 PostgreSQL tables managed with Drizzle ORM.
+              The schema supports multi-tenancy via organizations, append-only versioning for flows,
+              and comprehensive audit trails. All timestamps use <code>withTimezone: true</code>.
             </p>
-            <h2 id="core-tables">Core Tables</h2>
-            <h3 id="organizations">Organizations</h3>
+
+            <h2 id="enums">Enums</h2>
             <CodeBlock
-              code={`// organizations table
-export const organizations = pgTable('organizations', {
+              code={`export const userRoleEnum = pgEnum('user_role', ['admin', 'editor', 'viewer']);
+export const dealStatusEnum = pgEnum('deal_status', ['draft', 'open', 'negotiating', 'locked', 'committed']);
+export const flowStatusEnum = pgEnum('flow_status', ['draft', 'published', 'archived']);
+export const auditActionEnum = pgEnum('audit_action', [
+  'user.register', 'user.login', 'user.logout', 'user.role_change',
+  'flow.create', 'flow.update', 'flow.publish', 'flow.delete', 'flow.version',
+  'deal.create', 'deal.status_change', 'deal.participant_add', 'deal.participant_remove',
+  'room.create', 'room.join', 'room.leave',
+  'message.send', 'file.upload',
+  'subscription.create', 'subscription.cancel', 'subscription.renew',
+  'provider.apply', 'provider.approve', 'provider.reject'
+]);
+export const joinRequestStatusEnum = pgEnum('join_request_status', ['pending', 'approved', 'rejected']);
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['pending', 'trial', 'active', 'past_due', 'cancelled', 'expired']);
+export const planTierEnum = pgEnum('plan_tier', ['discover', 'navigate', 'activate']);
+export const providerStatusEnum = pgEnum('provider_status', ['pending', 'active', 'inactive']);
+export const providerCategoryEnum = pgEnum('provider_category', ['strategy', 'development', 'creative']);`}
+              language="typescript"
+              title="Enum Definitions"
+              copyable={true}
+            />
+
+            <h2 id="core-tables">Core Tables</h2>
+
+            <h3 id="organizations">organizations</h3>
+            <CodeBlock
+              code={`export const organizations = pgTable('organizations', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
-  slug: varchar('slug', { length: 100 }).notNull().unique(),
+  slug: varchar('slug', { length: 255 }).notNull().unique(),
   domain: varchar('domain', { length: 255 }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });`}
               language="typescript"
-              title="organizations.ts"
+              title="organizations"
+              copyable={true}
+            />
+
+            <h3 id="users">users</h3>
+            <CodeBlock
+              code={`export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  partyId: varchar('party_id', { length: 195 }).notNull().unique(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  displayName: varchar('display_name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }),           // nullable, not unique
+  role: userRoleEnum('role').notNull().default('viewer'),
+  avatarUrl: varchar('avatar_url', { length: 512 }),
+  isActive: boolean('is_active').default(true),
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});`}
+              language="typescript"
+              title="users"
+              copyable={true}
             />
             <h3 id="users">Users</h3>
             <CodeBlock
               code={`// users table
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
-  partyId: varchar('party_id', { length: 100 }).unique(),
+  partyId: varchar('party_id', { length: 195 }).notNull().unique(),
   orgId: uuid('org_id').references(() => organizations.id).notNull(),
   displayName: varchar('display_name', { length: 255 }).notNull(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  role: roleEnum('role').default('viewer').notNull(),
+  email: varchar('email', { length: 255 }),
+  role: userRoleEnum('role').default('viewer').notNull(),
   avatarUrl: varchar('avatar_url', { length: 500 }),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const roleEnum = pgEnum('role', ['admin', 'editor', 'viewer']);`}
+export const userRoleEnum = pgEnum('user_role', ['admin', 'editor', 'viewer']);`}
               language="typescript"
               title="users.ts"
             />
-            <h3 id="refresh-tokens">Refresh Tokens</h3>
+            <h3 id="refresh-tokens-schema">refreshTokens</h3>
             <CodeBlock
-              code={`// refreshTokens table
-export const refreshTokens = pgTable('refresh_tokens', {
+              code={`export const refreshTokens = pgTable('refresh_tokens', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id).notNull(),
+  userId: uuid('user_id').notNull().references(() => users.id),
   tokenHash: varchar('token_hash', { length: 255 }).notNull(),
-  tokenFamily: varchar('token_family', { length: 255 }).notNull(),
-  expiresAt: timestamp('expires_at').notNull(),
-  revokedAt: timestamp('revoked_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  tokenFamily: uuid('token_family').notNull(),         // UUID type, not varchar
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });`}
               language="typescript"
-              title="refresh-tokens.ts"
+              title="refreshTokens"
+              copyable={true}
             />
             <h2 id="workflow-tables">Workflow Tables</h2>
-            <h3 id="flows">Flows</h3>
+            <h3 id="flows-schema">flows</h3>
             <CodeBlock
-              code={`// flows table
-export const flows = pgTable('flows', {
+              code={`export const flows = pgTable('flows', {
   id: uuid('id').primaryKey().defaultRandom(),
-  orgId: uuid('org_id').references(() => organizations.id).notNull(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
-  status: flowStatusEnum('status').default('draft').notNull(),
-  isTemplate: boolean('is_template').default(false).notNull(),
-  isPublic: boolean('is_public').default(false).notNull(),
-  workflowType: varchar('workflow_type', { length: 100 }),
-  createdBy: uuid('created_by').references(() => users.id).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const flowStatusEnum = pgEnum('flow_status', ['draft', 'published', 'archived']);`}
+  status: flowStatusEnum('status').default('draft'),
+  isTemplate: boolean('is_template').default(false),
+  isPublic: boolean('is_public').default(false),
+  workflowType: varchar('workflow_type', { length: 64 }),
+  createdBy: uuid('created_by').notNull().references(() => users.id),
+  updatedBy: uuid('updated_by').references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  isFeatured: boolean('is_featured').default(false),
+  featuredHeadline: varchar('featured_headline', { length: 500 }),
+  featuredSource: varchar('featured_source', { length: 500 })
+});`}
               language="typescript"
-              title="flows.ts"
+              title="flows"
+              copyable={true}
             />
-            <h3 id="flow-versions">Flow Versions</h3>
+            <h3 id="flow-versions-schema">flowVersions</h3>
             <CodeBlock
-              code={`// flowVersions table - append-only versioning
-export const flowVersions = pgTable('flow_versions', {
+              code={`export const flowVersions = pgTable('flow_versions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  flowId: uuid('flow_id').references(() => flows.id).notNull(),
-  version: integer('version').notNull(),
-  nodes: jsonb('nodes').notNull(), // ReactFlow nodes
-  edges: jsonb('edges').notNull(), // ReactFlow edges
-  viewport: jsonb('viewport').notNull(), // Canvas viewport state
+  flowId: uuid('flow_id').notNull().references(() => flows.id),
+  version: integer('version').notNull().default(1),
+  nodes: jsonb('nodes').notNull().default('[]'),
+  edges: jsonb('edges').notNull().default('[]'),
+  viewport: jsonb('viewport'),                         // nullable
+  metadata: jsonb('metadata'),
   snapshotName: varchar('snapshot_name', { length: 255 }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});`}
+  createdBy: uuid('created_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+// UNIQUE constraint on (flowId, version)`}
               language="typescript"
-              title="flow-versions.ts"
+              title="flowVersions"
+              copyable={true}
             />
-            <h3 id="flow-participants">Flow Participants</h3>
+            <h3 id="flow-participants-schema">flowParticipants</h3>
             <CodeBlock
-              code={`// flowParticipants table
-export const flowParticipants = pgTable('flow_participants', {
+              code={`export const flowParticipants = pgTable('flow_participants', {
   id: uuid('id').primaryKey().defaultRandom(),
-  flowId: uuid('flow_id').references(() => flows.id).notNull(),
-  participantId: varchar('participant_id', { length: 100 }).notNull(),
-  nodeId: varchar('node_id', { length: 100 }).notNull(),
-  positionX: real('position_x').notNull(),
-  positionY: real('position_y').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});`}
+  flowId: uuid('flow_id').notNull().references(() => flows.id),
+  participantId: varchar('participant_id', { length: 64 }).notNull(),
+  nodeId: varchar('node_id', { length: 128 }),         // nullable
+  positionX: real('position_x'),                       // nullable
+  positionY: real('position_y'),                       // nullable
+  addedBy: uuid('added_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+// UNIQUE constraint on (flowId, participantId)`}
               language="typescript"
-              title="flow-participants.ts"
+              title="flowParticipants"
+              copyable={true}
             />
             <h2 id="deal-tables">Deal Tables</h2>
-            <h3 id="deals">Deals</h3>
+            <h3 id="deals-schema">deals</h3>
             <CodeBlock
-              code={`// deals table
-export const deals = pgTable('deals', {
+              code={`export const deals = pgTable('deals', {
   id: uuid('id').primaryKey().defaultRandom(),
-  flowId: uuid('flow_id').references(() => flows.id).notNull(),
-  orgId: uuid('org_id').references(() => organizations.id).notNull(),
+  flowId: uuid('flow_id').references(() => flows.id),  // nullable
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
-  status: dealStatusEnum('status').default('DRAFT').notNull(),
-  volume: decimal('volume', { precision: 15, scale: 2 }),
+  status: dealStatusEnum('status').default('draft'),
+  volume: varchar('volume', { length: 64 }),            // varchar, not decimal
   metadata: jsonb('metadata'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const dealStatusEnum = pgEnum('deal_status', 
-  ['DRAFT', 'OPEN', 'NEGOTIATING', 'LOCKED', 'COMMITTED']
-);`}
+  createdBy: uuid('created_by').notNull().references(() => users.id),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});`}
               language="typescript"
-              title="deals.ts"
+              title="deals"
+              copyable={true}
+            />
+
+            <h3 id="deal-participants-schema">dealParticipants</h3>
+            <CodeBlock
+              code={`export const dealParticipants = pgTable('deal_participants', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  dealId: uuid('deal_id').notNull().references(() => deals.id),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  role: userRoleEnum('role').default('viewer'),         // uses userRoleEnum, not varchar
+  joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow()
+});
+// UNIQUE constraint on (dealId, userId)`}
+              language="typescript"
+              title="dealParticipants"
+              copyable={true}
+            />
+
+            <h3 id="messages-schema">messages</h3>
+            <CodeBlock
+              code={`export const messages = pgTable('messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  dealId: uuid('deal_id').notNull().references(() => deals.id),
+  threadId: uuid('thread_id'),
+  senderId: uuid('sender_id').notNull().references(() => users.id),
+  content: text('content').notNull(),
+  contentType: varchar('content_type', { length: 32 }).default('text'),
+  fileUrl: varchar('file_url', { length: 512 }),
+  fileName: varchar('file_name', { length: 255 }),
+  fileSize: integer('file_size'),
+  isEdited: boolean('is_edited').default(false),
+  editedAt: timestamp('edited_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});`}
+              language="typescript"
+              title="messages"
+              copyable={true}
             />
             <h3 id="deal-participants">Deal Participants</h3>
             <CodeBlock
@@ -3294,7 +4276,7 @@ export const dealParticipants = pgTable('deal_participants', {
   id: uuid('id').primaryKey().defaultRandom(),
   dealId: uuid('deal_id').references(() => deals.id).notNull(),
   userId: uuid('user_id').references(() => users.id).notNull(),
-  role: varchar('role', { length: 50 }).notNull(),
+  role: userRoleEnum('role').default('viewer'),
   joinedAt: timestamp('joined_at').defaultNow().notNull(),
 });`}
               language="typescript"
@@ -3322,198 +4304,194 @@ export const contentTypeEnum = pgEnum('content_type', ['text', 'file', 'system']
               language="typescript"
               title="messages.ts"
             />
-            <h2 id="admin-tables">Admin Tables</h2>
-            <h3 id="join-requests">Join Requests</h3>
-            <CodeBlock
-              code={`// joinRequests table
-export const joinRequests = pgTable('join_requests', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  flowId: uuid('flow_id').references(() => flows.id).notNull(),
-  requesterId: uuid('requester_id').references(() => users.id).notNull(),
-  message: text('message'),
-  status: requestStatusEnum('status').default('pending').notNull(),
-  reviewedBy: uuid('reviewed_by').references(() => users.id),
-  reviewedAt: timestamp('reviewed_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+            <h2 id="admin-tables">Admin &amp; System Tables</h2>
 
-export const requestStatusEnum = pgEnum('request_status', 
-  ['pending', 'approved', 'rejected']
-);`}
-              language="typescript"
-              title="join-requests.ts"
-            />
-            <h3 id="audit-log">Audit Log</h3>
+            <h3 id="join-requests-schema">joinRequests</h3>
             <CodeBlock
-              code={`// auditLog table
-export const auditLog = pgTable('audit_log', {
+              code={`export const joinRequests = pgTable('join_requests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  flowId: uuid('flow_id').notNull().references(() => flows.id),
+  requesterId: uuid('requester_id').notNull().references(() => users.id),
+  message: text('message'),
+  status: joinRequestStatusEnum('status').default('pending'),
+  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+// UNIQUE constraint on (flowId, requesterId)`}
+              language="typescript"
+              title="joinRequests"
+              copyable={true}
+            />
+
+            <h3 id="audit-log-schema">auditLog</h3>
+            <CodeBlock
+              code={`export const auditLog = pgTable('audit_log', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id),
   orgId: uuid('org_id').references(() => organizations.id),
-  action: varchar('action', { length: 100 }).notNull(),
-  resourceType: varchar('resource_type', { length: 50 }).notNull(),
-  resourceId: varchar('resource_id', { length: 100 }),
+  action: auditActionEnum('action').notNull(),
+  resourceType: varchar('resource_type', { length: 64 }),
+  resourceId: uuid('resource_id'),
   metadata: jsonb('metadata'),
   ipAddress: varchar('ip_address', { length: 45 }),
   userAgent: text('user_agent'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });`}
               language="typescript"
-              title="audit-log.ts"
+              title="auditLog"
+              copyable={true}
             />
-            <h2 id="system-tables">System Tables</h2>
-            <h3 id="active-sessions">Active Sessions</h3>
+
+            <h3 id="active-sessions-schema">activeSessions</h3>
             <CodeBlock
-              code={`// activeSessions table
-export const activeSessions = pgTable('active_sessions', {
+              code={`export const activeSessions = pgTable('active_sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id).notNull(),
+  userId: uuid('user_id').notNull().references(() => users.id),
   dealId: uuid('deal_id').references(() => deals.id),
-  lastSeenAt: timestamp('last_seen_at').defaultNow().notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });`}
               language="typescript"
-              title="active-sessions.ts"
+              title="activeSessions"
+              copyable={true}
             />
-            <h3 id="node-api-configs">Node API Configs</h3>
+
+            <h3 id="node-api-configs-schema">nodeApiConfigs</h3>
             <CodeBlock
-              code={`// nodeApiConfigs table
-export const nodeApiConfigs = pgTable('node_api_configs', {
+              code={`export const nodeApiConfigs = pgTable('node_api_configs', {
   id: uuid('id').primaryKey().defaultRandom(),
-  orgId: uuid('org_id').references(() => organizations.id).notNull(),
-  endpointUrl: varchar('endpoint_url', { length: 500 }).notNull(),
-  apiKeyHash: varchar('api_key_hash', { length: 255 }).notNull(),
-  label: varchar('label', { length: 100 }).notNull(),
-  isActive: boolean('is_active').default(true).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  endpointUrl: varchar('endpoint_url', { length: 512 }).notNull(),
+  apiKeyHash: varchar('api_key_hash', { length: 255 }),
+  label: varchar('label', { length: 255 }),
+  isActive: boolean('is_active').default(true),
+  lastHealthAt: timestamp('last_health_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });`}
               language="typescript"
-              title="node-api-configs.ts"
+              title="nodeApiConfigs"
+              copyable={true}
             />
             <h2 id="billing-tables">Billing Tables</h2>
-            <h3 id="plans">Plans</h3>
+
+            <h3 id="plans-schema">plans</h3>
             <CodeBlock
-              code={`// plans table
-export const plans = pgTable('plans', {
+              code={`export const plans = pgTable('plans', {
   id: uuid('id').primaryKey().defaultRandom(),
-  name: varchar('name', { length: 100 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
   tier: planTierEnum('tier').notNull(),
-  priceAmount: integer('price_amount').notNull(), // cents
-  priceCurrency: varchar('price_currency', { length: 10 }).default('$CC').notNull(),
-  interval: intervalEnum('interval').default('monthly').notNull(),
-  features: jsonb('features').notNull(),
-  isActive: boolean('is_active').default(true).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const planTierEnum = pgEnum('plan_tier', ['discover', 'navigate', 'activate']);
-export const intervalEnum = pgEnum('interval', ['monthly', 'yearly']);`}
+  priceAmount: integer('price_amount').notNull(),       // in cents
+  priceCurrency: varchar('price_currency', { length: 10 }).default('$CC'),
+  interval: varchar('interval', { length: 20 }).notNull().default('monthly'),
+  features: jsonb('features').default('[]'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});`}
               language="typescript"
-              title="plans.ts"
+              title="plans"
+              copyable={true}
             />
-            <h3 id="subscriptions">Subscriptions</h3>
+
+            <h3 id="subscriptions-schema">subscriptions</h3>
             <CodeBlock
-              code={`// subscriptions table
-export const subscriptions = pgTable('subscriptions', {
+              code={`export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  orgId: uuid('org_id').references(() => organizations.id).notNull(),
-  planId: uuid('plan_id').references(() => plans.id).notNull(),
-  status: subscriptionStatusEnum('status').default('pending').notNull(),
-  currentPeriodStart: timestamp('current_period_start'),
-  currentPeriodEnd: timestamp('current_period_end'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const subscriptionStatusEnum = pgEnum('subscription_status', 
-  ['pending', 'trial', 'active', 'past_due', 'cancelled', 'expired']
-);`}
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  planId: uuid('plan_id').notNull().references(() => plans.id),
+  status: subscriptionStatusEnum('status').default('pending'),
+  currentPeriodStart: timestamp('current_period_start', { withTimezone: true }),
+  currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+  trialEndsAt: timestamp('trial_ends_at', { withTimezone: true }),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});`}
               language="typescript"
-              title="subscriptions.ts"
+              title="subscriptions"
+              copyable={true}
             />
-            <h3 id="invoices">Invoices</h3>
+
+            <h3 id="invoices-schema">invoices</h3>
             <CodeBlock
-              code={`// invoices table
-export const invoices = pgTable('invoices', {
+              code={`export const invoices = pgTable('invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
-  orgId: uuid('org_id').references(() => organizations.id).notNull(),
-  subscriptionId: uuid('subscription_id').references(() => subscriptions.id).notNull(),
-  amountDue: integer('amount_due').notNull(), // cents
-  currency: varchar('currency', { length: 10 }).default('$CC').notNull(),
-  status: invoiceStatusEnum('status').default('pending').notNull(),
-  lineItems: jsonb('line_items').notNull(),
-  dueDate: timestamp('due_date').notNull(),
-  paidAt: timestamp('paid_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const invoiceStatusEnum = pgEnum('invoice_status', 
-  ['pending', 'paid', 'overdue', 'cancelled']
-);`}
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  subscriptionId: uuid('subscription_id').notNull().references(() => subscriptions.id),
+  amountDue: integer('amount_due').notNull(),
+  currency: varchar('currency', { length: 10 }).default('$CC'),
+  status: varchar('invoice_status', { length: 20 }).default('draft'),
+  lineItems: jsonb('line_items').default('[]'),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  dueDate: timestamp('due_date', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});`}
               language="typescript"
-              title="invoices.ts"
+              title="invoices"
+              copyable={true}
             />
-            <h3 id="payment-methods">Payment Methods</h3>
+
+            <h3 id="payment-methods-schema">paymentMethods</h3>
             <CodeBlock
-              code={`// paymentMethods table
-export const paymentMethods = pgTable('payment_methods', {
+              code={`export const paymentMethods = pgTable('payment_methods', {
   id: uuid('id').primaryKey().defaultRandom(),
-  orgId: uuid('org_id').references(() => organizations.id).notNull(),
-  type: paymentTypeEnum('type').default('canton_cc').notNull(),
-  walletAddress: varchar('wallet_address', { length: 255 }).notNull(),
-  isDefault: boolean('is_default').default(false).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const paymentTypeEnum = pgEnum('payment_type', ['canton_cc']);`}
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  type: varchar('type', { length: 32 }).notNull().default('canton_cc'),
+  label: varchar('label', { length: 255 }),
+  walletAddress: varchar('wallet_address', { length: 255 }),
+  isDefault: boolean('is_default').default(false),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});`}
               language="typescript"
-              title="payment-methods.ts"
+              title="paymentMethods"
+              copyable={true}
             />
+
             <h2 id="provider-tables">Provider Tables</h2>
-            <h3 id="providers">Providers</h3>
+
+            <h3 id="providers-schema">providers</h3>
             <CodeBlock
-              code={`// providers table
-export const providers = pgTable('providers', {
+              code={`export const providers = pgTable('providers', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
   category: providerCategoryEnum('category').notNull(),
   description: text('description'),
-  status: providerStatusEnum('status').default('pending').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const providerCategoryEnum = pgEnum('provider_category', 
-  ['strategy', 'development', 'creative']
-);
-export const providerStatusEnum = pgEnum('provider_status', 
-  ['pending', 'active', 'inactive']
-);`}
+  website: varchar('website', { length: 512 }),
+  contactEmail: varchar('contact_email', { length: 255 }),
+  logoUrl: varchar('logo_url', { length: 512 }),
+  status: providerStatusEnum('status').default('active'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});`}
               language="typescript"
-              title="providers.ts"
+              title="providers"
+              copyable={true}
             />
-            <h3 id="provider-applications">Provider Applications</h3>
-            <CodeBlock
-              code={`// providerApplications table
-export const providerApplications = pgTable('provider_applications', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  providerId: uuid('provider_id').references(() => providers.id).notNull(),
-  orgId: uuid('org_id').references(() => organizations.id).notNull(),
-  userId: uuid('user_id').references(() => users.id).notNull(),
-  message: text('message'),
-  status: applicationStatusEnum('status').default('pending').notNull(),
-  reviewedBy: uuid('reviewed_by').references(() => users.id),
-  reviewedAt: timestamp('reviewed_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
 
-export const applicationStatusEnum = pgEnum('application_status', 
-  ['pending', 'approved', 'rejected']
-);`}
+            <h3 id="provider-applications-schema">providerApplications</h3>
+            <CodeBlock
+              code={`export const providerApplications = pgTable('provider_applications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  providerId: uuid('provider_id').notNull().references(() => providers.id),
+  orgId: uuid('org_id').notNull().references(() => organizations.id),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  message: text('message'),
+  status: joinRequestStatusEnum('status').default('pending'),
+  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+// UNIQUE constraint on (providerId, userId)`}
               language="typescript"
-              title="provider-applications.ts"
+              title="providerApplications"
+              copyable={true}
             />
           </DocContent>
         );
@@ -4669,8 +5647,7 @@ fetch('/api/flows', {
   body: JSON.stringify({
     title: 'My New Flow',
     description: 'Custom workflow for repo trading',
-    workflowType: 'repo-financing',
-    templateId: 'template-uuid-456' // optional
+    workflowType: 'repo-financing'
   })
 });
 
@@ -4854,8 +5831,8 @@ fetch('/api/deals');
       "id": "deal-uuid-123",
       "title": "ACME Corp Bond Issuance",
       "description": "Issue $100M corporate bonds",
-      "status": "active",
-      "volume": 100000000,
+      "status": "negotiating",
+      "volume": "100000000",
       "flowId": "flow-uuid-456",
       "createdAt": "2024-01-20T09:00:00Z",
       "updatedAt": "2024-01-22T14:30:00Z"
@@ -4871,7 +5848,7 @@ fetch('/api/deals', {
   body: JSON.stringify({
     title: 'New Repo Deal',
     description: 'Overnight repo transaction',
-    volume: 50000000,
+    volume: "50000000",
     flowId: 'flow-uuid-789'
   })
 });
@@ -4884,7 +5861,7 @@ fetch('/api/deals', {
       "title": "New Repo Deal",
       "description": "Overnight repo transaction",
       "status": "draft",
-      "volume": 50000000,
+      "volume": "50000000",
       "flowId": "flow-uuid-789",
       "createdBy": "admin-uuid-123",
       "createdAt": "2024-01-25T10:00:00Z"
@@ -4902,22 +5879,26 @@ fetch('/api/deals/deal-uuid-123');
     "deal": {
       "id": "deal-uuid-123",
       "title": "ACME Corp Bond Issuance",
-      "status": "active",
-      "volume": 100000000,
+      "status": "negotiating",
+      "volume": "100000000",
       "flowId": "flow-uuid-456"
     },
     "participants": [
       {
         "id": "participant-uuid-1",
         "userId": "user-uuid-456",
-        "role": "issuer",
-        "joinedAt": "2024-01-20T09:15:00Z"
+        "role": "admin",
+        "joinedAt": "2024-01-20T09:15:00Z",
+        "displayName": "John Trader",
+        "partyId": "mybank::trader001"
       },
       {
         "id": "participant-uuid-2",
         "userId": "user-uuid-789",
-        "role": "investor",
-        "joinedAt": "2024-01-20T10:30:00Z"
+        "role": "editor",
+        "joinedAt": "2024-01-20T10:30:00Z",
+        "displayName": "Jane Analyst",
+        "partyId": "mybank::analyst001"
       }
     ]
   }
@@ -4931,8 +5912,8 @@ fetch('/api/deals/deal-uuid-123', {
   body: JSON.stringify({
     title: 'Updated Deal Title',
     description: 'Modified description',
-    status: 'completed',
-    volume: 120000000
+    status: 'committed',
+    volume: "120000000"
   })
 });
 
@@ -4942,8 +5923,8 @@ fetch('/api/deals/deal-uuid-123', {
     "deal": {
       "id": "deal-uuid-123",
       "title": "Updated Deal Title",
-      "status": "completed",
-      "volume": 120000000,
+      "status": "committed",
+      "volume": "120000000",
       "updatedAt": "2024-01-25T15:45:00Z"
     }
   }
@@ -4958,18 +5939,26 @@ fetch('/api/deals/deal-uuid-123/messages');
   "data": [
     {
       "id": "message-uuid-1",
+      "dealId": "deal-uuid-123",
       "content": "Deal terms have been finalized",
       "contentType": "text",
-      "userId": "user-uuid-456",
+      "senderId": "user-uuid-456",
+      "senderDisplayName": "John Trader",
+      "senderPartyId": "mybank::trader001",
       "threadId": null,
       "createdAt": "2024-01-22T14:30:00Z"
     },
     {
       "id": "message-uuid-2",
+      "dealId": "deal-uuid-123",
       "content": "Collateral documents attached",
       "contentType": "file",
-      "userId": "user-uuid-789",
-      "fileUrl": "/api/files/doc-uuid-123",
+      "senderId": "user-uuid-789",
+      "senderDisplayName": "Jane Analyst",
+      "senderPartyId": "mybank::analyst001",
+      "fileUrl": "https://blob.vercel-storage.com/doc-uuid-123.pdf",
+      "fileName": "collateral-docs.pdf",
+      "fileSize": 245890,
       "createdAt": "2024-01-22T15:15:00Z"
     }
   ]
@@ -4994,7 +5983,9 @@ fetch('/api/deals/deal-uuid-123/messages', {
       "id": "new-message-uuid",
       "content": "Ready to proceed with settlement",
       "contentType": "text",
-      "userId": "user-uuid-123",
+      "senderId": "user-uuid-123",
+      "senderDisplayName": "Current User",
+      "senderPartyId": "mybank::user123",
       "dealId": "deal-uuid-123",
       "createdAt": "2024-01-25T16:20:00Z"
     }
@@ -5055,7 +6046,7 @@ fetch('/api/deals/deal-uuid-123/participants', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     userId: 'user-uuid-789',
-    role: 'custodian' // optional
+    role: 'viewer' // optional
   })
 });
 
@@ -5138,7 +6129,7 @@ fetch('/api/admin/analytics');
             <h2 id="admin-deals">GET /api/admin/deals</h2>
             <p>List all deals across organization with filtering.</p>
             <CodeBlock code={`// Request
-fetch('/api/admin/deals?status=active&limit=50');
+fetch('/api/admin/deals?status=open&limit=50');
 
 // Response
 {
@@ -5146,8 +6137,8 @@ fetch('/api/admin/deals?status=active&limit=50');
     {
       "id": "deal-uuid-123",
       "title": "ACME Corp Bond Issuance",
-      "status": "active",
-      "volume": 100000000,
+      "status": "open",
+      "volume": "100000000",
       "participantCount": 4,
       "createdBy": "user-uuid-456",
       "createdAt": "2024-01-20T09:00:00Z"
