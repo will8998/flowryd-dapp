@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCantonAuth } from '@/lib/auth-context';
 import { 
@@ -64,7 +64,7 @@ export default function OnboardPage() {
   const [contactName, setContactName] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
-  const searchMatchingProfiles = async () => {
+  const searchMatchingProfiles = useCallback(async () => {
     if (!user?.orgId && !partyId) return;
 
     try {
@@ -81,7 +81,7 @@ export default function OnboardPage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, [user?.orgId, partyId]);
 
   useEffect(() => {
     if (currentStep === 'identity' && (user || partyId)) {
