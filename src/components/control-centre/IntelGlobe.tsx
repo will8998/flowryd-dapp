@@ -96,6 +96,8 @@ export default function IntelGlobe({
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 0, h: 0 });
   const [ready, setReady] = useState(false);
+  const [cyclingRings, setCyclingRings] = useState<GlobeRing[]>([]);
+
 
   /* ---- Responsive sizing ---- */
   useEffect(() => {
@@ -132,13 +134,31 @@ export default function IntelGlobe({
   /* ---- Data ---- */
   const validParticipants = useMemo(
     () => participants.filter(p => p.lat != null && p.lng != null),
-    [],
+    [participants],
   );
 
   const validEvents = useMemo(
     () => events.filter(e => e.lat != null && e.lng != null),
     [events],
   );
+
+  /* ---- Cycling activity rings ---- */
+  useEffect(() => {
+    if (!ready || validParticipants.length === 0) return;
+
+    const interval = setInterval(() => {
+      // Pick 3 random participants for cycling rings
+      const shuffled = [...validParticipants].sort(() => Math.random() - 0.5);
+      const randomParticipants = shuffled.slice(0, 3);
+      const newRings = randomParticipants.map(p => ({
+        lat: p.lat!,
+        lng: p.lng!,
+      }));
+      setCyclingRings(newRings);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [ready, validParticipants]);
 
   /* Points (participants + events) */
   const pointsData = useMemo<GlobePoint[]>(() => {
@@ -148,11 +168,11 @@ export default function IntelGlobe({
       return {
         lat: p.lat!,
         lng: p.lng!,
-        pointSize: crit ? 0.35 : req ? 0.22 : 0.14,
-        pointAlt: crit ? 0.06 : req ? 0.03 : 0.015,
+        pointSize: crit ? 0.55 : req ? 0.38 : 0.25,
+        pointAlt: crit ? 0.15 : req ? 0.10 : 0.06,
         pointColor: p.superValidator
           ? '#34d399'
-          : crit ? '#ffffff' : req ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.3)',
+          : crit ? '#f0fdf4' : req ? 'rgba(167,243,208,0.8)' : 'rgba(110,231,183,0.5)',
         pointType: 'participant' as const,
         source: p,
         tooltipHtml: participantTooltip(p),
@@ -174,10 +194,11 @@ export default function IntelGlobe({
   }, [validParticipants, validEvents]);
 
   /* Rings (pulsing event markers) */
-  const ringsData = useMemo<GlobeRing[]>(
-    () => validEvents.map(e => ({ lat: e.lat!, lng: e.lng! })),
-    [validEvents],
-  );
+  const ringsData = useMemo<GlobeRing[]>(() => {
+    const eventRings = validEvents.map(e => ({ lat: e.lat!, lng: e.lng! }));
+    // Merge event rings with cycling activity rings
+    return [...eventRings, ...cyclingRings];
+  }, [validEvents, cyclingRings]);
 
   /* Arcs (network connections from events → critical nodes) */
   const arcsData = useMemo<GlobeArc[]>(() => {
@@ -194,7 +215,7 @@ export default function IntelGlobe({
           startLng: event.lng!,
           endLat: p.lat!,
           endLng: p.lng!,
-          arcColor: 'rgba(251,191,36,0.08)',
+          arcColor: 'rgba(251,191,36,0.15)',
         });
       });
     });
@@ -208,7 +229,7 @@ export default function IntelGlobe({
           startLng: svs[i].lng!,
           endLat: svs[j].lat!,
           endLng: svs[j].lng!,
-          arcColor: 'rgba(52,211,153,0.06)',
+          arcColor: 'rgba(52,211,153,0.12)',
         });
       }
     }
@@ -220,6 +241,9 @@ export default function IntelGlobe({
   const handlePointClick = useCallback(
     (point: object) => {
       const d = point as GlobePoint;
+      // Click-to-zoom: Move camera to point location
+      globeRef.current?.pointOfView({ lat: d.lat, lng: d.lng, altitude: 1.2 }, 800);
+      
       if (d.pointType === 'participant') {
         onSelectParticipant?.(d.source as Participant);
       } else {
@@ -228,6 +252,10 @@ export default function IntelGlobe({
     },
     [onSelectParticipant, onSelectEvent],
   );
+
+  const handleResetView = useCallback(() => {
+    globeRef.current?.pointOfView({ lat: 30, lng: 10, altitude: 2.2 }, 800);
+  }, []);
 
   const handleGlobeReady = useCallback(() => setReady(true), []);
 
@@ -254,8 +282,8 @@ export default function IntelGlobe({
           backgroundImageUrl={NIGHT_SKY}
           backgroundColor="rgba(0,0,0,0)"
           showAtmosphere={true}
-          atmosphereColor="#3b82f6"
-          atmosphereAltitude={0.18}
+          atmosphereColor="#10b981"
+          atmosphereAltitude={0.25}
           animateIn={true}
 
           /* ── Points (participants + events) ── */
@@ -266,7 +294,7 @@ export default function IntelGlobe({
           pointAltitude="pointAlt"
           pointColor="pointColor"
           pointLabel="tooltipHtml"
-          pointResolution={6}
+          pointResolution={12}
           pointsMerge={false}
           pointsTransitionDuration={800}
           onPointClick={handlePointClick}
@@ -290,7 +318,7 @@ export default function IntelGlobe({
           arcDashLength={0.4}
           arcDashGap={0.25}
           arcDashAnimateTime={4000}
-          arcStroke={0.3}
+          arcStroke={0.5}
           arcsTransitionDuration={500}
 
           /* ── Interaction ── */
@@ -298,6 +326,53 @@ export default function IntelGlobe({
           onGlobeReady={handleGlobeReady}
         />
       )}
+
+      {/* HUD Overlay */}
+      <div className="absolute inset-0 pointer-events-none font-mono text-white">
+        {/* Top-left: CANTON NETWORK label and stats */}
+        <div className="absolute top-4 left-4">
+          <div className="text-[10px] tracking-wider text-white font-bold">CANTON NETWORK</div>
+          <div className="text-[8px] text-white/40 mt-0.5">GLOBAL INTELLIGENCE</div>
+          <div className="text-[8px] text-white/60 mt-1">84 NODES • 12 SUPER VALIDATORS • LIVE</div>
+        </div>
+
+        {/* Top-right: Reset View button */}
+        <div className="absolute top-4 right-4">
+          <button
+            onClick={handleResetView}
+            className="pointer-events-auto px-2 py-1 text-[8px] bg-white/10 hover:bg-white/20 border border-white/20 rounded text-white/80 hover:text-white transition-colors"
+          >
+            Reset View
+          </button>
+        </div>
+
+        {/* Bottom-left: Color legend */}
+        <div className="absolute bottom-4 left-4">
+          <div className="text-[8px] text-white/60 mb-2">NODE TYPES</div>
+          <div className="space-y-0.5 text-[7px]">
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+              <span className="text-white/60">Super Validator</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+              <span className="text-white/60">Critical</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-200"></div>
+              <span className="text-white/60">Required</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-300"></div>
+              <span className="text-white/60">Standard</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+              <span className="text-white/60">Event</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Gradient vignette overlay for visual polish */}
       <div

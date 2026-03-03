@@ -273,7 +273,15 @@ export default function IntelligenceDashboard() {
         className="relative h-[60vh] min-h-[400px]"
       >
         <IntelGlobe
-          onSelectParticipant={(p: Participant) => setSelectedParticipantId(p.id)}
+          onSelectParticipant={(p: Participant) => {
+            setSelectedParticipantId(p.id);
+            setSelectedEvent(null);
+            setSelectedPerson(null);
+            setSelectedMedia(null);
+            setSelectedAnnouncement(null);
+            setSelectedCIP(null);
+            setShowPanel(true);
+          }}
           selectedParticipantId={selectedParticipantId ?? undefined}
           events={intelEvents}
           onSelectEvent={handleSelectEvent}

@@ -23,7 +23,7 @@ interface CoinGeckoResponse {
     usd_24h_vol: number;
     usd_market_cap: number;
   };
-  canton?: {
+  'canton-network'?: {
     usd: number;
     usd_24h_change: number;
     usd_24h_vol: number;
@@ -54,11 +54,11 @@ const fallbackData: MarketPrice[] = [
   {
     symbol: 'CC',
     name: 'Canton',
-    price: 0.0234,
-    change24h: 15.67,
-    volume24h: 2345678,
-    marketCap: 23456789,
-    sparkline: [0.020, 0.021, 0.022, 0.023, 0.0235, 0.0238, 0.0234, 0.0234],
+    price: 0.1576,
+    change24h: -2.82,
+    volume24h: 14230000,
+    marketCap: 5980000000,
+    sparkline: [0.1520, 0.1545, 0.1560, 0.1575, 0.1590, 0.1585, 0.1578, 0.1576],
   },
 ];
 
@@ -90,7 +90,7 @@ export async function GET() {
   try {
     // Fetch from CoinGecko API
     const response = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,canton&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true',
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,canton-network&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true',
       {
         next: { revalidate: 30 }, // Cache for 30 seconds
         headers: {
@@ -143,15 +143,15 @@ export async function GET() {
     }
 
     // Canton might not be available on CoinGecko, so include fallback
-    if (data.canton) {
+    if (data['canton-network']) {
       marketPrices.push({
         symbol: 'CC',
         name: 'Canton',
-        price: data.canton.usd,
-        change24h: data.canton.usd_24h_change || 0,
-        volume24h: data.canton.usd_24h_vol || 0,
-        marketCap: data.canton.usd_market_cap || 0,
-        sparkline: generateSparkline(data.canton.usd, data.canton.usd_24h_change || 0),
+        price: data['canton-network'].usd,
+        change24h: data['canton-network'].usd_24h_change || 0,
+        volume24h: data['canton-network'].usd_24h_vol || 0,
+        marketCap: data['canton-network'].usd_market_cap || 0,
+        sparkline: generateSparkline(data['canton-network'].usd, data['canton-network'].usd_24h_change || 0),
       });
     } else {
       // Add fallback Canton data
