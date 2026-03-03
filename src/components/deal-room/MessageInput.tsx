@@ -70,13 +70,9 @@ export default function MessageInput({ dealId, participants = [] }: MessageInput
   const mentionsRef = useRef<HTMLDivElement>(null);
 
   // Enhanced functionality
-  const getTypingUsers = () => {
-    // Placeholder - in real app this would come from SSE or WebSocket
-    const mockUsers: TypingUser[] = [
-      { userId: 'user1', displayName: 'Alice', timestamp: Date.now() },
-      { userId: 'user2', displayName: 'Bob', timestamp: Date.now() - 1000 }
-    ];
-    return mockUsers.filter(u => u.userId !== user?.id);
+  const getTypingUsers = (): TypingUser[] => {
+    // TODO: Wire to SSE typing events when implemented
+    return [];
   };
 
   const handleMentionSearch = (query: string) => {

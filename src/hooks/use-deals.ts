@@ -151,11 +151,14 @@ export function useSSE(dealId: string | null) {
     if (!dealId) return;
 
     let eventSource: EventSource | null = null;
+    let retryCount = 0;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
     const connect = () => {
       eventSource = new EventSource(`/api/deals/${dealId}/messages/stream`);
 
       eventSource.addEventListener('connected', () => {
+        retryCount = 0;
         setIsConnected(true);
       });
 
@@ -167,9 +170,12 @@ export function useSSE(dealId: string | null) {
       });
 
       eventSource.onerror = () => {
-        setIsConnected(false);
         eventSource?.close();
-        setTimeout(connect, 3000);
+        retryCount++;
+        // Only show disconnected after 2 failed attempts (6s grace period)
+        if (retryCount >= 2) setIsConnected(false);
+        const delay = Math.min(3000 * retryCount, 15000);
+        reconnectTimer = setTimeout(connect, delay);
       };
     };
 
@@ -177,6 +183,7 @@ export function useSSE(dealId: string | null) {
 
     return () => {
       eventSource?.close();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
       setIsConnected(false);
     };
   }, [dealId]);

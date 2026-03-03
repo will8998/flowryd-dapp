@@ -114,7 +114,7 @@ export async function GET(
         }
       }, 15000);
 
-      // 55s max — Vercel Pro serverless function execution limit is 60s
+      // 5 min max — self-hosted, no serverless limit. Clients auto-reconnect.
       const timeout = setTimeout(() => {
         closed = true;
         clearInterval(interval);
@@ -123,7 +123,7 @@ export async function GET(
           .where(eq(activeSessions.id, session.id))
           .catch(() => {});
         try { controller.close(); } catch {}
-      }, 55000);
+      }, 300000);
 
       req.signal.addEventListener('abort', () => {
         closed = true;
