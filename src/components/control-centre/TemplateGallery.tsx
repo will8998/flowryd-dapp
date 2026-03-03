@@ -15,10 +15,12 @@ import {
   Network,
   X,
   Users,
-  Building2
+  Building2,
+  ArrowRight,
+  Workflow
 } from 'lucide-react';
-import { cantonTemplates, templateParticipants } from '@/lib/canton-templates-data';
-import type { CantonTemplate, TemplateParticipantMapping } from '@/lib/canton-templates-data';
+import { cantonTemplates, cantonFlows, cantonFlowSteps, templateParticipants } from '@/lib/canton-templates-data';
+import type { CantonTemplate, CantonFlow, CantonFlowStep, TemplateParticipantMapping } from '@/lib/canton-templates-data';
 
 // Icon mapping based on template name
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -72,9 +74,10 @@ interface TemplateDetailProps {
   template: CantonTemplate;
   participants: TemplateParticipantMapping[];
   onClose: () => void;
+  onNavigateToFlow?: (flow: CantonFlow, steps: CantonFlowStep[]) => void;
 }
 
-const TemplateDetail: React.FC<TemplateDetailProps> = ({ template, participants, onClose }) => {
+const TemplateDetail: React.FC<TemplateDetailProps> = ({ template, participants, onClose, onNavigateToFlow }) => {
   const Icon = iconMap[template.name] || Shield;
   const color = colorMap[template.name] || 'white';
   
@@ -209,6 +212,74 @@ const TemplateDetail: React.FC<TemplateDetailProps> = ({ template, participants,
                 )}
               </div>
             </div>
+
+            {/* Used in Flows */}
+            {(() => {
+              const flowStepsForTemplate = cantonFlowSteps.filter(s => s.templateName === template.name);
+              const uniqueFlowIds = [...new Set(flowStepsForTemplate.map(s => s.flowId))];
+              const relatedFlows = uniqueFlowIds
+                .map(id => cantonFlows.find(f => f.id === id))
+                .filter((f): f is CantonFlow => f !== undefined);
+
+              if (relatedFlows.length === 0) return null;
+
+              const statusColors: Record<string, string> = {
+                PROVEN: 'bg-emerald-500/20 text-emerald-400',
+                ACTIVE: 'bg-blue-500/20 text-blue-400',
+                DESIGN: 'bg-amber-500/20 text-amber-400',
+                PLANNED: 'bg-white/20 text-white/40',
+              };
+
+              return (
+                <div>
+                  <h3 className="text-sm font-bold text-white/60 tracking-wide uppercase mb-3 flex items-center gap-2">
+                    <Workflow className="w-4 h-4" />
+                    Used in Flows ({relatedFlows.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {relatedFlows.map((flow) => {
+                      const stepsForFlow = cantonFlowSteps.filter(s => s.flowId === flow.id);
+                      const stepCount = stepsForFlow.length;
+                      const statusClass = statusColors[flow.status] || statusColors.PLANNED;
+
+                      return (
+                        <div
+                          key={flow.id}
+                          className="p-4 bg-white/5 border border-white/10 rounded hover:bg-white/8 transition-colors group/flow"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-white text-sm truncate">{flow.name}</span>
+                                <span className={`text-[9px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full ${statusClass}`}>
+                                  {flow.status}
+                                </span>
+                              </div>
+                              <div className="text-xs text-white/40">
+                                {stepCount} step{stepCount !== 1 ? 's' : ''} · {flow.category}
+                              </div>
+                            </div>
+                            {onNavigateToFlow && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onNavigateToFlow(flow, stepsForFlow);
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 rounded text-sm font-medium text-white transition-all opacity-80 group-hover/flow:opacity-100"
+                              >
+                                <span>Build with Blueprint</span>
+                                <ArrowRight className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
           </div>
         </div>
       </motion.div>
@@ -263,7 +334,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, participantCount,
   );
 };
 
-export const TemplateGallery: React.FC = () => {
+export const TemplateGallery: React.FC<{ onNavigateToFlow?: (flow: CantonFlow, steps: CantonFlowStep[]) => void }> = ({ onNavigateToFlow }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<CantonTemplate | null>(null);
 
   // Group templates by category
@@ -334,6 +405,7 @@ export const TemplateGallery: React.FC = () => {
             template={selectedTemplate}
             participants={getParticipantsForTemplate(selectedTemplate.name)}
             onClose={() => setSelectedTemplate(null)}
+            onNavigateToFlow={onNavigateToFlow}
           />
         )}
       </AnimatePresence>

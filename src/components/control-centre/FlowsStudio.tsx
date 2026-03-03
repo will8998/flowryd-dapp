@@ -220,7 +220,13 @@ export const FlowsStudio: React.FC = () => {
                   <div className="flex-1 min-h-0">
                     <AnimatePresence mode="wait">
                       {navigateView === 'templates' && (
-                        <TemplateGallery key="templates" />
+                        <TemplateGallery
+                          key="templates"
+                          onNavigateToFlow={(flow, steps) => {
+                            setSelectedBlueprint({ flow, steps });
+                            setNavigateView('template-builder');
+                          }}
+                        />
                       )}
                       {navigateView === 'blueprints' && (
                         <FlowBlueprintLibrary 
