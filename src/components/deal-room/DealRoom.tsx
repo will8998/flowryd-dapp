@@ -12,6 +12,7 @@ import DealSettings from './DealSettings';
 import ParticipantManagement from './ParticipantManagement';
 import FilesSidebar from './FilesSidebar';
 import ActivityTimeline from './ActivityTimeline';
+import WorkflowContextPanel from './WorkflowContextPanel';
 
 interface DealRoomProps {
   dealId: string;
@@ -126,26 +127,65 @@ export default function DealRoom({ dealId }: DealRoomProps) {
 
           <div className="h-4 w-px bg-white/5 shrink-0" />
 
-          <div className="flex items-center gap-0.5">
+          {/* Enhanced Status Bar with Connected Progress */}
+          <div className="flex items-center gap-0.5 relative">
             {STAGES.map((stage, i) => {
               const isCompleted = i < currentStageIdx;
               const isCurrent = i === currentStageIdx;
+              const stageDescription = {
+                draft: 'Initial draft phase - setting up deal structure',
+                open: 'Deal opened for participant review and discussion',
+                negotiating: 'Active negotiation phase - terms being finalized',
+                locked: 'Terms locked - preparing for final commitment',
+                committed: 'Deal committed and executed'
+              }[stage.key] || 'Deal stage';
+
               return (
-                <div key={stage.key} className="flex items-center gap-0.5">
+                <div key={stage.key} className="flex items-center gap-0.5 relative">
                   {i > 0 && (
-                    <div className={`w-5 h-px ${isCompleted ? 'bg-white/40' : 'bg-white/5'}`} />
-                  )}
-                  <div className="flex items-center gap-1.5 group relative">
-                    <div className={`w-2 h-2 rounded-full transition-all ${
-                      isCompleted ? 'bg-white/70'
-                        : isCurrent ? stage.activeColor
-                        : 'bg-white/10'
+                    <div className={`w-6 h-0.5 transition-all duration-500 ${
+                      isCompleted ? 'bg-gradient-to-r from-white/60 to-white/40' : 'bg-white/5'
                     }`} />
-                    <span className={`text-[8px] font-bold tracking-wide hidden md:inline ${
-                      isCurrent ? 'text-white/70' : isCompleted ? 'text-white/60' : 'text-white/15'
+                  )}
+                  
+                  <div className="flex items-center gap-1.5 group relative">
+                    {/* Stage Indicator */}
+                    <div className={`relative w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                      isCompleted ? 'bg-white/80 shadow-sm' 
+                        : isCurrent ? `${stage.activeColor} shadow-lg` 
+                        : 'bg-white/10'
+                    }`}>
+                      {/* Pulsing glow for current stage */}
+                      {isCurrent && (
+                        <div className="absolute inset-0 rounded-full bg-white/40 animate-ping" />
+                      )}
+                    </div>
+
+                    {/* Stage Label */}
+                    <span className={`text-[8px] font-bold tracking-wide hidden md:inline transition-colors ${
+                      isCurrent ? 'text-white/80' 
+                        : isCompleted ? 'text-white/60' 
+                        : 'text-white/15'
                     }`}>
                       {stage.label}
                     </span>
+
+                    {/* Hover Tooltip */}
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 whitespace-nowrap">
+                      <div className="text-[10px] font-semibold text-white/90 mb-0.5">{stage.label}</div>
+                      <div className="text-[8px] text-white/60 max-w-48">{stageDescription}</div>
+                      {isCurrent && (
+                        <div className="text-[7px] text-green-400 mt-1 flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                          Currently Active
+                        </div>
+                      )}
+                      {isCompleted && (
+                        <div className="text-[7px] text-white/40 mt-1 font-mono">
+                          Completed • {new Date().toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -161,25 +201,42 @@ export default function DealRoom({ dealId }: DealRoomProps) {
             </button>
             
             {canChangeStatus && nextStage && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => handleStatusChange(nextStage.key)}
                 disabled={isTransitioning}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-white/30 text-white rounded text-[9px] font-bold tracking-wide hover:border-white/50 transition-all disabled:opacity-50"
+                className="group flex items-center gap-2 px-4 py-2 border-2 border-white/40 text-white rounded-lg text-[10px] font-bold tracking-wide hover:border-white/60 hover:bg-white/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isTransitioning ? (
-                  <div className="w-3 h-3 border border-black/20 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3 h-3 border-2 border-white/40 border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <>
-                    <ChevronRight className="w-3 h-3" />
-                    {nextStage.label}
-                  </>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded border border-white/40 flex items-center justify-center group-hover:border-white/60 transition-colors">
+                      <ChevronRight className="w-3 h-3" />
+                    </div>
+                    <div>
+                      <div className="text-left">
+                        <div>ADVANCE TO</div>
+                        <div className="text-[8px] text-white/70 group-hover:text-white/90 transition-colors">
+                          {nextStage.label.toUpperCase()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </button>
+              </motion.button>
             )}
           </div>
         </div>
-      </div>
 
+      {/* Workflow Context Panel */}
+      {deal && (
+        <WorkflowContextPanel 
+          deal={deal as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+          participants={participants}
+        />
+      )}
       <AnimatePresence>
         {!isConnected && !dealLoading && (
           <motion.div
@@ -335,8 +392,9 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           </div>
           
           <div className="flex-shrink-0 border-t border-white/5">
-            <MessageInput dealId={dealId} />
+            <MessageInput dealId={dealId} participants={participants} />
           </div>
+        </div>
         </div>
       </div>
 

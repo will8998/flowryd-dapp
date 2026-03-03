@@ -21,6 +21,7 @@ export const providerStatusEnum = pgEnum('provider_status', ['pending', 'active'
 export const providerCategoryEnum = pgEnum('provider_category', ['strategy', 'development', 'creative']);
 export const participantVerificationEnum = pgEnum('participant_verification', ['unclaimed', 'pending', 'approved', 'verified', 'rejected']);
 export const participantCriticalityEnum = pgEnum('participant_criticality', ['critical', 'required', 'optional']);
+export const cantonFlowStatusEnum = pgEnum('canton_flow_status', ['proven', 'design', 'active', 'planned']);
 
 // Tables
 export const organizations = pgTable('organizations', {
@@ -77,7 +78,9 @@ export const flows = pgTable('flows', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   isFeatured: boolean('is_featured').default(false),
   featuredHeadline: varchar('featured_headline', { length: 500 }),
-  featuredSource: varchar('featured_source', { length: 500 })
+  featuredSource: varchar('featured_source', { length: 500 }),
+  // Liz's architecture: link user flow to a Canton Flow blueprint
+  cantonFlowId: varchar('canton_flow_id', { length: 32 }), // FK to canton_flows (null for custom flows)
 }, (table) => ({
   idxFlowsOrgStatusTemplate: index('idx_flows_org_status_template').on(table.orgId, table.status, table.isTemplate)
 }));
@@ -106,6 +109,9 @@ export const flowParticipants = pgTable('flow_participants', {
   positionX: real('position_x'),
   positionY: real('position_y'),
   addedBy: uuid('added_by').notNull().references(() => users.id),
+  // Liz's architecture: template step assignment
+  stepNumber: integer('step_number'), // which step in the canton flow
+  templateName: varchar('template_name', { length: 255 }), // which template role this participant fills
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 }, (table) => ({
   uniqueFlowParticipant: uniqueIndex('unique_flow_participant').on(table.flowId, table.participantId)
@@ -331,6 +337,94 @@ export const participants = pgTable('participants', {
   idxParticipantsName: index('idx_participants_name').on(table.name)
 }));
 
+// ============================================================
+// Liz's Architecture: Templates → Flows → Live Workflows
+// ============================================================
+
+// Layer 1: Canton Templates — Reusable role definitions (Building Blocks)
+export const cantonTemplates = pgTable('canton_templates', {
+  id: varchar('id', { length: 32 }).primaryKey(), // e.g. 'TMPL-001'
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  description: text('description'),
+  category: varchar('category', { length: 128 }), // e.g. 'Asset Safekeeping', 'Cash & Settlement'
+  participantColumn: varchar('participant_column', { length: 64 }), // maps to capability key
+  iconName: varchar('icon_name', { length: 64 }), // for UI rendering
+  color: varchar('color', { length: 32 }), // for UI color coding
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+// Layer 2: Canton Flows — Assembled Workflows (ordered sequences of template steps)
+export const cantonFlows = pgTable('canton_flows', {
+  id: varchar('id', { length: 32 }).primaryKey(), // e.g. 'FLOW-001'
+  name: varchar('name', { length: 255 }).notNull(),
+  category: varchar('category', { length: 128 }), // e.g. 'Collateral Mobility'
+  description: text('description'),
+  source: varchar('source', { length: 512 }), // e.g. 'Canton Working Group Rounds 1-4'
+  status: cantonFlowStatusEnum('status').default('planned'),
+  stepCount: integer('step_count').default(0),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+// Flow Steps — Join table linking Flows to Templates in order
+export const cantonFlowSteps = pgTable('canton_flow_steps', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  flowId: varchar('flow_id', { length: 32 }).notNull().references(() => cantonFlows.id),
+  step: integer('step').notNull(), // sequence order within the flow
+  templateId: varchar('template_id', { length: 32 }).notNull().references(() => cantonTemplates.id),
+  templateName: varchar('template_name', { length: 255 }).notNull(), // denormalized for easy lookup
+  action: text('action'), // what this template does at this step
+  inputs: text('inputs'), // what this step receives
+  outputs: text('outputs'), // what this step produces
+  triggersNext: varchar('triggers_next', { length: 255 }), // next step/template
+  cantonPrivacy: text('canton_privacy'), // how Canton privacy applies
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => ({
+  uniqueCantonFlowStep: uniqueIndex('unique_canton_flow_step').on(table.flowId, table.step),
+  idxCantonFlowStepsFlowId: index('idx_canton_flow_steps_flow_id').on(table.flowId),
+  idxCantonFlowStepsTemplateId: index('idx_canton_flow_steps_template_id').on(table.templateId)
+}));
+
+// Template Participants — Which Canton participants can fill which template roles
+export const templateParticipants = pgTable('template_participants', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  templateId: varchar('template_id', { length: 32 }).notNull().references(() => cantonTemplates.id),
+  templateName: varchar('template_name', { length: 255 }).notNull(), // denormalized
+  participantLegacyId: varchar('participant_legacy_id', { length: 64 }).notNull(), // e.g. 'p_fireblocks'
+  organization: varchar('organization', { length: 255 }),
+  criticality: participantCriticalityEnum('criticality').default('optional'),
+  isSV: boolean('is_sv').default(false),
+  isValidator: boolean('is_validator').default(false),
+  cantonRole: varchar('canton_role', { length: 512 }),
+  foundationCategory: varchar('foundation_category', { length: 255 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => ({
+  uniqueTemplateParticipant: uniqueIndex('unique_tmpl_participant').on(table.templateId, table.participantLegacyId),
+  idxTemplateParticipantsTemplateId: index('idx_template_participants_template_id').on(table.templateId),
+  idxTemplateParticipantsParticipant: index('idx_template_participants_participant').on(table.participantLegacyId)
+}));
+
+// Layer 3: Live Workflow Assignments — Specific participants slotted into flow steps
+export const liveWorkflowAssignments = pgTable('live_workflow_assignments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  flowId: uuid('flow_id').notNull().references(() => flows.id), // user's flow instance
+  cantonFlowStepId: uuid('canton_flow_step_id').notNull().references(() => cantonFlowSteps.id),
+  stepNumber: integer('step_number').notNull(),
+  templateName: varchar('template_name', { length: 255 }).notNull(),
+  participantLegacyId: varchar('participant_legacy_id', { length: 64 }), // assigned participant
+  participantName: varchar('participant_name', { length: 255 }), // denormalized
+  assignedBy: uuid('assigned_by').references(() => users.id),
+  assignedAt: timestamp('assigned_at', { withTimezone: true }).defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => ({
+  uniqueLiveAssignment: uniqueIndex('unique_live_assignment').on(table.flowId, table.cantonFlowStepId),
+  idxLiveAssignmentsFlowId: index('idx_live_assignments_flow_id').on(table.flowId)
+}));
+
 // Type exports
 export type Organization = InferSelectModel<typeof organizations>;
 export type NewOrganization = InferInsertModel<typeof organizations>;
@@ -391,3 +485,18 @@ export type NewProviderApplication = InferInsertModel<typeof providerApplication
 
 export type Participant = InferSelectModel<typeof participants>;
 export type NewParticipant = InferInsertModel<typeof participants>;
+
+export type CantonTemplate = InferSelectModel<typeof cantonTemplates>;
+export type NewCantonTemplate = InferInsertModel<typeof cantonTemplates>;
+
+export type CantonFlow = InferSelectModel<typeof cantonFlows>;
+export type NewCantonFlow = InferInsertModel<typeof cantonFlows>;
+
+export type CantonFlowStep = InferSelectModel<typeof cantonFlowSteps>;
+export type NewCantonFlowStep = InferInsertModel<typeof cantonFlowSteps>;
+
+export type TemplateParticipant = InferSelectModel<typeof templateParticipants>;
+export type NewTemplateParticipant = InferInsertModel<typeof templateParticipants>;
+
+export type LiveWorkflowAssignment = InferSelectModel<typeof liveWorkflowAssignments>;
+export type NewLiveWorkflowAssignment = InferInsertModel<typeof liveWorkflowAssignments>;

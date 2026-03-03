@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, X, ChevronDown } from 'lucide-react';
+import { Users, Plus, X, ChevronDown, Circle } from 'lucide-react';
+import { templateParticipants } from '@/lib/canton-templates-data';
 
 interface DealParticipant {
   id: string;
@@ -21,9 +22,13 @@ interface ParticipantManagementProps {
 }
 
 const ROLES = [
-  { value: 'admin', label: 'Admin', color: 'text-red-400' },
-  { value: 'editor', label: 'Editor', color: 'text-yellow-400' },
-  { value: 'viewer', label: 'Viewer', color: 'text-green-400' },
+  { value: 'admin', label: 'Admin', color: 'text-red-400', bgColor: 'bg-red-500/20' },
+  { value: 'editor', label: 'Editor', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' },
+  { value: 'viewer', label: 'Viewer', color: 'text-green-400', bgColor: 'bg-green-500/20' },
+  { value: 'custody', label: 'Custody Role', color: 'text-blue-400', bgColor: 'bg-blue-500/20' },
+  { value: 'settlement', label: 'Settlement Rail', color: 'text-purple-400', bgColor: 'bg-purple-500/20' },
+  { value: 'registry', label: 'Registry Role', color: 'text-cyan-400', bgColor: 'bg-cyan-500/20' },
+  { value: 'issuer', label: 'Issuer Role', color: 'text-orange-400', bgColor: 'bg-orange-500/20' },
 ];
 
 export default function ParticipantManagement({ 
@@ -86,8 +91,27 @@ export default function ParticipantManagement({
   };
 
   const getRoleColor = (role: string | null) => {
-    const roleConfig = ROLES.find(r => r.value === role);
+    const roleConfig = ROLES.find(r => r.value === role || r.label.toLowerCase().includes(role?.toLowerCase() || ''));
     return roleConfig?.color || 'text-white/30';
+  };
+
+  const getRoleBgColor = (role: string | null) => {
+    const roleConfig = ROLES.find(r => r.value === role || r.label.toLowerCase().includes(role?.toLowerCase() || ''));
+    return roleConfig?.bgColor || 'bg-white/5';
+  };
+
+  const getParticipantOrganization = (participant: DealParticipant) => {
+    // Try to find organization from templateParticipants data
+    const orgData = templateParticipants.find(tp => 
+      tp.participantId === participant.partyId || 
+      tp.organization.toLowerCase().includes((participant.displayName || '').toLowerCase())
+    );
+    return orgData?.organization || null;
+  };
+
+  const isParticipantOnline = (_participant: DealParticipant) => {
+    // Placeholder for online status - in real app this would check active_sessions
+    return Math.random() > 0.3; // Random for demo
   };
 
   return (
@@ -168,44 +192,99 @@ export default function ParticipantManagement({
         )}
       </AnimatePresence>
 
-      <div className="space-y-1">
-        {participants.map((participant) => (
-          <div
-            key={participant.id}
-            className="flex items-center gap-2.5 py-1.5 px-2 rounded-md hover:bg-white/[0.03] transition-colors group"
-          >
-            <div className="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
-              <span className="text-[8px] font-bold text-white/60">
-                {(participant.displayName || participant.partyId || participant.userId || 'U')[0].toUpperCase()}
-              </span>
-            </div>
-            
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-medium text-white/70 truncate">
-                {participant.displayName || participant.partyId || participant.userId || 'Unknown'}
-              </p>
-              {participant.role && (
-                <p className={`text-[8px] tracking-wide font-mono ${getRoleColor(participant.role)}`}>
-                  {participant.role.toUpperCase()}
-                </p>
-              )}
-            </div>
+      <div className="space-y-1.5">
+        {participants.map((participant) => {
+          const organization = getParticipantOrganization(participant);
+          const isOnline = isParticipantOnline(participant);
+          const avatar = (participant.displayName || participant.partyId || participant.userId || 'U')[0].toUpperCase();
 
-            {canManageParticipants && (
-              <button
-                onClick={() => handleRemoveParticipant(participant.userId)}
-                disabled={removingId === participant.userId}
-                className="opacity-0 group-hover:opacity-100 w-4 h-4 rounded bg-white/5 border border-white/10 flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-400/10 hover:border-red-400/20 transition-all shrink-0 disabled:opacity-50"
-              >
-                {removingId === participant.userId ? (
-                  <div className="w-2 h-2 border border-white/20 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <X className="w-2.5 h-2.5" />
-                )}
-              </button>
-            )}
-          </div>
-        ))}
+          return (
+            <div
+              key={participant.id}
+              className="relative group"
+            >
+              <div className="flex items-center gap-2.5 py-2 px-2.5 rounded-md hover:bg-white/[0.03] transition-colors">
+                {/* Avatar with Status Indicator */}
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-bold text-white/70">
+                      {avatar}
+                    </span>
+                  </div>
+                  {/* Online Status Dot */}
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#050505] flex items-center justify-center ${
+                    isOnline ? 'bg-green-500' : 'bg-white/20'
+                  }`}>
+                    <Circle className={`w-1.5 h-1.5 fill-current ${
+                      isOnline ? 'text-green-500' : 'text-white/40'
+                    }`} />
+                  </div>
+                </div>
+                
+                {/* Participant Info */}
+                <div className="min-w-0 flex-1">
+                  {/* Name */}
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-[12px] font-semibold text-white/80 truncate">
+                      {participant.displayName || 'Unknown'}
+                    </p>
+                    {isOnline && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    )}
+                  </div>
+
+                  {/* Organization */}
+                  {organization && (
+                    <p className="text-[9px] text-white/50 truncate mb-0.5">
+                      {organization}
+                    </p>
+                  )}
+
+                  {/* Party ID */}
+                  {participant.partyId && (
+                    <p className="text-[8px] text-white/30 font-mono truncate mb-1">
+                      {participant.partyId}
+                    </p>
+                  )}
+
+                  {/* Role Badge */}
+                  {participant.role && (
+                    <div className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[7px] font-bold tracking-wide ${
+                      getRoleBgColor(participant.role)} ${getRoleColor(participant.role)}
+                    }`}>
+                      {participant.role.toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Status & Actions */}
+                <div className="flex flex-col items-end gap-1">
+                  {/* Online Status Text */}
+                  <span className={`text-[8px] font-mono ${
+                    isOnline ? 'text-green-400' : 'text-white/25'
+                  }`}>
+                    {isOnline ? 'ONLINE' : 'OFFLINE'}
+                  </span>
+
+                  {/* Remove Button */}
+                  {canManageParticipants && (
+                    <button
+                      onClick={() => handleRemoveParticipant(participant.userId)}
+                      disabled={removingId === participant.userId}
+                      className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded bg-white/5 border border-white/10 flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-400/10 hover:border-red-400/20 transition-all shrink-0 disabled:opacity-50"
+                    >
+                      {removingId === participant.userId ? (
+                        <div className="w-2.5 h-2.5 border border-white/20 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <X className="w-3 h-3" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
 
         {participants.length === 0 && (
           <div className="text-center py-4">

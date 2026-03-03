@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, FileText, MessageCircle } from 'lucide-react';
+import { Download, FileText, MessageCircle, Eye, Clock } from 'lucide-react';
+import { templateParticipants } from '@/lib/canton-templates-data';
 
 interface Message {
   id: string;
@@ -43,9 +44,55 @@ const formatFileSize = (bytes: number) => {
 const formatTimestamp = (timestamp: string) => {
   const date = new Date(timestamp);
   const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  if (isToday) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  const diffInDays = Math.floor(diffInHours / 24);
+
+  if (diffInMinutes < 1) return 'now';
+  if (diffInMinutes < 60) return `${diffInMinutes}m`;
+  if (diffInHours < 24) return `${diffInHours}h`;
+  if (diffInDays < 7) return `${diffInDays}d`;
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
+const getMessageTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const getSenderOrganization = (message: Message) => {
+  // Try to find organization from templateParticipants data
+  const orgData = templateParticipants.find(tp => 
+    tp.participantId === message.senderPartyId ||
+    tp.organization.toLowerCase().includes((message.senderDisplayName || '').toLowerCase())
+  );
+  return orgData?.organization || null;
+};
+
+const getSenderRole = (message: Message) => {
+  const orgData = templateParticipants.find(tp => 
+    tp.participantId === message.senderPartyId ||
+    tp.organization.toLowerCase().includes((message.senderDisplayName || '').toLowerCase())
+  );
+  return orgData?.cantonRole || null;
+};
+
+const getSeenByCount = (_messageId: string) => {
+  // Placeholder for seen count - in real app this would query active_sessions/message_reads
+  return Math.floor(Math.random() * 3) + 1;
+};
+
+const _shouldGroupMessages = (current: Message, previous: Message) => {
+  if (!previous) return false;
+  if (current.senderId !== previous.senderId) return false;
+  if (current.contentType === 'system' || previous.contentType === 'system') return false;
+  
+  const currentTime = new Date(current.createdAt).getTime();
+  const previousTime = new Date(previous.createdAt).getTime();
+  const timeDifference = currentTime - previousTime;
+  
+  // Group if within 5 minutes
+  return timeDifference < 5 * 60 * 1000;
 };
 
 const groupMessages = (messages: Message[]): GroupedMessages[] => {
@@ -101,8 +148,16 @@ const isImageFile = (fileName: string | null) => {
   return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext || '');
 };
 
-const MessageBubble: React.FC<{ message: Message; isReply?: boolean }> = ({ message, isReply = false }) => {
+const MessageBubble: React.FC<{ 
+  message: Message; 
+  isReply?: boolean; 
+  isGrouped?: boolean; 
+  showTimestamp?: boolean; 
+}> = ({ message, isReply = false, isGrouped = false, showTimestamp: _showTimestamp = true }) => {
   const avatar = (message.senderDisplayName || message.senderPartyId || 'U')[0].toUpperCase();
+  const organization = getSenderOrganization(message);
+  const senderRole = getSenderRole(message);
+  const seenCount = getSeenByCount(message.id);
   const isFile = message.contentType === 'file' || message.fileUrl;
   const isSystem = message.contentType === 'system' || message.content.startsWith('[System]');
   const isImageFileMessage = isFile && isImageFile(message.fileName);
@@ -110,12 +165,15 @@ const MessageBubble: React.FC<{ message: Message; isReply?: boolean }> = ({ mess
   if (isSystem) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex justify-center mb-3"
+        initial={{ opacity: 0, y: 6, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="flex justify-center mb-4"
       >
-        <div className="px-3 py-1 bg-white/[0.02] border border-white/5 rounded-full">
-          <p className="text-[10px] text-white/30 italic text-center">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.02] border border-white/5 rounded-full">
+          <Clock className="w-3 h-3 text-white/30" />
+          <p className="text-[10px] text-white/40 font-mono">{getMessageTime(message.createdAt)}</p>
+          <p className="text-[10px] text-white/40 italic">
             {message.content.replace(/^\[System\]\s*/, '')}
           </p>
         </div>
@@ -125,69 +183,112 @@ const MessageBubble: React.FC<{ message: Message; isReply?: boolean }> = ({ mess
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`flex gap-2.5 ${isReply ? 'ml-5 mt-1.5' : 'mb-3'}`}
+      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className={`relative group ${isReply ? 'ml-6 mt-1' : 'mb-4'} ${isGrouped ? 'mt-1' : ''}`}
     >
-      <div className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0 mt-0.5">
-        <span className="text-[9px] font-bold text-white/60">{avatar}</span>
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-2 mb-0.5">
-          <span className="text-[11px] font-semibold text-white/80">
-            {message.senderDisplayName || message.senderPartyId || 'Unknown'}
-          </span>
-          <span className="text-[9px] text-white/20">{formatTimestamp(message.createdAt)}</span>
-          {message.isEdited && (
-            <span className="text-[8px] text-white/15 italic">edited</span>
-          )}
+      <div className="flex gap-3">
+        {/* Avatar */}
+        <div className={`shrink-0 transition-all duration-200 ${isGrouped ? 'opacity-30 scale-90' : ''}`}>
+          <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center group-hover:border-white/30 transition-all">
+            <span className="text-[10px] font-bold text-white/70">{avatar}</span>
+          </div>
         </div>
 
-        {isFile && message.fileUrl && message.fileName ? (
-          <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-2.5 max-w-xs mt-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-md bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
-                <FileText className="w-3.5 h-3.5 text-white/60" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-medium text-white/80 truncate">
-                  {message.fileName}
-                </p>
-                {message.fileSize && (
-                  <p className="text-[9px] text-white/30">{formatFileSize(message.fileSize)}</p>
+        {/* Message Content */}
+        <div className="flex-1 min-w-0">
+          {/* Header - only show for non-grouped messages */}
+          {!isGrouped && (
+            <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-semibold text-white/90">
+                  {message.senderDisplayName || message.senderPartyId || 'Unknown'}
+                </span>
+                
+                {/* Organization Badge */}
+                {organization && (
+                  <span className="text-[9px] text-white/50 bg-white/5 px-1.5 py-0.5 rounded font-mono">
+                    {organization}
+                  </span>
+                )}
+                
+                {/* Role Badge */}
+                {senderRole && (
+                  <span className="text-[8px] font-bold tracking-wide px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
+                    {senderRole.split(',')[0].trim()}
+                  </span>
                 )}
               </div>
-              <button
-                onClick={() => window.open(message.fileUrl!, '_blank')}
-                className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/10 transition-all shrink-0"
-              >
-                <Download className="w-3 h-3" />
-              </button>
+              
+              {/* Timestamp and Status */}
+              <div className="flex items-center gap-2 ml-auto">
+                <span className="text-[9px] text-white/25 font-mono group-hover:text-white/40 transition-colors">
+                  {formatTimestamp(message.createdAt)}
+                </span>
+                
+                {/* Seen indicator */}
+                {seenCount > 0 && (
+                  <div className="flex items-center gap-1 text-[8px] text-white/20 group-hover:text-white/30 transition-colors">
+                    <Eye className="w-2.5 h-2.5" />
+                    <span>{seenCount}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            
-            {isImageFileMessage && (
-              <div className="mt-2">
-                <img
-                  src={message.fileUrl}
-                  alt={message.fileName}
-                  className="max-w-full h-auto max-h-48 rounded border border-white/10 object-cover"
-                  loading="lazy"
-                />
+          )}
+
+          {/* Message Body */}
+          {isFile && message.fileUrl && message.fileName ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3 max-w-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all group-hover:shadow-lg group-hover:shadow-white/5"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4 text-white/60" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium text-white/90 truncate">
+                    {message.fileName}
+                  </p>
+                  {message.fileSize && (
+                    <p className="text-[9px] text-white/40 mt-0.5">{formatFileSize(message.fileSize)}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => window.open(message.fileUrl!, '_blank')}
+                  className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/15 hover:border-white/20 transition-all shrink-0"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                </button>
               </div>
-            )}
-            
-            {message.content && message.content.trim() && (
-              <div className="text-[12px] text-white/70 mt-1.5 leading-relaxed">
-                {renderMessageContent(message.content)}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-[13px] text-white/70 leading-relaxed whitespace-pre-wrap">
-            {renderMessageContent(message.content)}
-          </div>
-        )}
+              
+              {isImageFileMessage && (
+                <div className="mt-3">
+                  <img
+                    src={message.fileUrl}
+                    alt={message.fileName}
+                    className="w-full h-auto max-h-64 rounded-lg border border-white/10 object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+              
+              {message.content && message.content.trim() && (
+                <div className="text-[13px] text-white/80 mt-3 leading-relaxed border-t border-white/5 pt-2">
+                  {renderMessageContent(message.content)}
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <div className="text-[13px] text-white/80 leading-relaxed whitespace-pre-wrap">
+              {renderMessageContent(message.content)}
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );

@@ -19,7 +19,12 @@ import {
   paymentMethods,
   providers,
   providerApplications,
-  participants
+  participants,
+  cantonTemplates,
+  cantonFlows,
+  cantonFlowSteps,
+  templateParticipants,
+  liveWorkflowAssignments
 } from './schema';
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({
@@ -82,7 +87,8 @@ export const flowsRelations = relations(flows, ({ one, many }) => ({
   versions: many(flowVersions),
   participants: many(flowParticipants),
   deals: many(deals),
-  joinRequests: many(joinRequests)
+  joinRequests: many(joinRequests),
+  liveWorkflowAssignments: many(liveWorkflowAssignments)
 }));
 
 export const flowVersionsRelations = relations(flowVersions, ({ one }) => ({
@@ -268,4 +274,48 @@ export const participantsRelations = relations(participants, ({ one }) => ({
     references: [users.id],
     relationName: 'participantReviewedBy'
   })
+}));
+
+// Canton Architecture Relations (Liz's spec)
+
+export const cantonTemplatesRelations = relations(cantonTemplates, ({ many }) => ({
+  flowSteps: many(cantonFlowSteps),
+  templateParticipants: many(templateParticipants),
+}));
+
+export const cantonFlowsRelations = relations(cantonFlows, ({ many }) => ({
+  steps: many(cantonFlowSteps),
+}));
+
+export const cantonFlowStepsRelations = relations(cantonFlowSteps, ({ one }) => ({
+  flow: one(cantonFlows, {
+    fields: [cantonFlowSteps.flowId],
+    references: [cantonFlows.id]
+  }),
+  template: one(cantonTemplates, {
+    fields: [cantonFlowSteps.templateId],
+    references: [cantonTemplates.id]
+  }),
+}));
+
+export const templateParticipantsRelations = relations(templateParticipants, ({ one }) => ({
+  template: one(cantonTemplates, {
+    fields: [templateParticipants.templateId],
+    references: [cantonTemplates.id]
+  }),
+}));
+
+export const liveWorkflowAssignmentsRelations = relations(liveWorkflowAssignments, ({ one }) => ({
+  flow: one(flows, {
+    fields: [liveWorkflowAssignments.flowId],
+    references: [flows.id]
+  }),
+  cantonFlowStep: one(cantonFlowSteps, {
+    fields: [liveWorkflowAssignments.cantonFlowStepId],
+    references: [cantonFlowSteps.id]
+  }),
+  assignedByUser: one(users, {
+    fields: [liveWorkflowAssignments.assignedBy],
+    references: [users.id]
+  }),
 }));

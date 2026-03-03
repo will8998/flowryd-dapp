@@ -7,7 +7,10 @@ import {
   Command,
   HelpCircle,
   CheckCircle2,
-} from 'lucide-react';
+  Database,
+  Workflow,
+  LayoutTemplate,
+  } from 'lucide-react';
 import { StudioSidebar } from './StudioSidebar';
 import { NetworkGrid } from './NetworkGrid';
 import { NavigatePathways } from './NavigatePathways';
@@ -16,6 +19,9 @@ import { ActivateEngine } from './ActivateEngine';
 import { RydAITerminal } from './RydAITerminal';
 import { OnboardingWizard } from './OnboardingWizard';
 import { CollectiveHub } from './CollectiveHub';
+import { TemplateGallery } from './TemplateGallery';
+import { FlowBlueprintLibrary } from './FlowBlueprintLibrary';
+import { TemplateFlowBuilder } from './TemplateFlowBuilder';
 import { AdminPanel } from './AdminPanel';
 
 import dynamic from 'next/dynamic';
@@ -29,8 +35,10 @@ import { CommandPalette } from './CommandPalette';
 import { NotificationPanel } from './NotificationPanel';
 import { HelpModal } from './HelpModal';
 import { useCantonAuth } from '@/lib/auth-context';
+import type { CantonFlow, CantonFlowStep } from '@/lib/canton-templates-data';
 
 type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'INTEL';
+type NavigateView = 'templates' | 'blueprints' | 'library' | 'create' | 'template-builder';
 
 interface SelectedJumpCut {
   id: string;
@@ -47,7 +55,8 @@ export const FlowsStudio: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [pendingJumpCut, setPendingJumpCut] = useState<SelectedJumpCut | null>(null);
-  const [navigateView, setNavigateView] = useState<'library' | 'create'>('library');
+  const [navigateView, setNavigateView] = useState<NavigateView>('templates');
+  const [selectedBlueprint, setSelectedBlueprint] = useState<{ flow: CantonFlow; steps: CantonFlowStep[] } | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,7 +86,7 @@ export const FlowsStudio: React.FC = () => {
     setShowCommandPalette(false);
     setShowNotifications(false);
     if (tier === 'NAVIGATE') {
-      setNavigateView('library');
+      setNavigateView('templates');
     }
   };
 
@@ -161,29 +170,96 @@ export const FlowsStudio: React.FC = () => {
           <div className="h-full overflow-y-auto custom-scrollbar relative">
             <AnimatePresence mode="wait">
               {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectJumpCut={(jumpCut) => { setPendingJumpCut({ id: jumpCut.id, name: jumpCut.name, nodes: jumpCut.nodes }); handleTierChange('NAVIGATE'); setNavigateView('create'); }} />}
-              {activeTier === 'NAVIGATE' && navigateView === 'library' && (
-                <div key="navigate-library" className="h-full flex flex-col">
-                  <div className="p-6 pb-0 flex justify-end">
-                    <button
-                      onClick={() => setNavigateView('create')}
-                      className="px-4 py-2 border border-white/20 hover:border-white/40 rounded text-white text-sm font-medium transition-colors"
-                    >
-                      + Create New Flow
-                    </button>
+
+              {activeTier === 'NAVIGATE' && (
+                <div key="navigate" className="h-full flex flex-col">
+                  {/* Navigation Sub-tabs */}
+                  <div className="p-6 pb-0 border-b border-white/5">
+                    <div className="flex gap-2 p-1 bg-white/5 border border-white/10 rounded w-fit mb-4">
+                      {[
+                        { key: 'templates' as const, label: 'Templates', icon: Database },
+                        { key: 'blueprints' as const, label: 'Blueprints', icon: Workflow },
+                        { key: 'library' as const, label: 'My Flows', icon: LayoutTemplate }
+                      ].map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = navigateView === tab.key;
+                        
+                        return (
+                          <button
+                            key={tab.key}
+                            onClick={() => setNavigateView(tab.key)}
+                            className={`
+                              flex items-center gap-2 px-4 py-2 rounded transition-all duration-200 text-sm font-medium
+                              ${isActive 
+                                ? 'border border-white/30 bg-black/40 text-white' 
+                                : 'text-white/40 hover:text-white hover:bg-white/5'
+                              }
+                            `}
+                          >
+                            <Icon className="w-4 h-4" />
+                            <span>{tab.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Create New Flow Button - only show on library view */}
+                    {navigateView === 'library' && (
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => setNavigateView('create')}
+                          className="px-4 py-2 border border-white/20 hover:border-white/40 rounded text-white text-sm font-medium transition-colors"
+                        >
+                          + Create New Flow
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <FlowSections />
+
+                  {/* Content Area */}
+                  <div className="flex-1 min-h-0">
+                    <AnimatePresence mode="wait">
+                      {navigateView === 'templates' && (
+                        <TemplateGallery key="templates" />
+                      )}
+                      {navigateView === 'blueprints' && (
+                        <FlowBlueprintLibrary 
+                          key="blueprints" 
+                          onUseBlueprint={(flow, steps) => {
+                            setSelectedBlueprint({ flow, steps });
+                            setNavigateView('template-builder');
+                          }}
+                        />
+                      )}
+                      {navigateView === 'library' && (
+                        <FlowSections key="library" />
+                      )}
+                      {navigateView === 'create' && (
+                        <NavigatePathways
+                          key="create"
+                          initialJumpCut={pendingJumpCut}
+                          onJumpCutConsumed={() => setPendingJumpCut(null)}
+                          onNavigateToTier={(tier) => handleTierChange(tier as Tier)}
+                          onBackToLibrary={() => setNavigateView('library')}
+                        />
+                      )}
+                      {navigateView === 'template-builder' && selectedBlueprint && (
+                        <TemplateFlowBuilder
+                          key="template-builder"
+                          flow={selectedBlueprint.flow}
+                          steps={selectedBlueprint.steps}
+                          onBack={() => setNavigateView('blueprints')}
+                          onCreateWorkflow={(flow, steps, participants) => {
+                            // Handle creating live workflow
+                            console.log('Create live workflow:', { flow, steps, participants });
+                            // For now, just navigate to activate tier
+                            handleTierChange('ACTIVATE');
+                          }}
+                        />
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
-              )}
-              {activeTier === 'NAVIGATE' && navigateView === 'create' && (
-                <NavigatePathways
-                  key="navigate-create"
-                  initialJumpCut={pendingJumpCut}
-                  onJumpCutConsumed={() => setPendingJumpCut(null)}
-                  onNavigateToTier={(tier) => handleTierChange(tier as Tier)}
-                  onBackToLibrary={() => setNavigateView('library')}
-                />
               )}
               {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}

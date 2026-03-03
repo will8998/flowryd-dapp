@@ -2,7 +2,12 @@
 
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Calendar, Newspaper, Users, Monitor, Megaphone, ScrollText, ChevronRight, ChevronLeft, ChevronDown } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { 
+  Globe, Calendar, Users, Monitor, 
+  ChevronRight, ChevronLeft, ChevronDown, TrendingUp, GitBranch, 
+  CalendarDays, Film, Bell, FileText
+} from 'lucide-react';
 import IntelGlobe from './IntelGlobe';
 import IntelEventsView from './IntelEventsView';
 import IntelMediaView from './IntelMediaView';
@@ -28,15 +33,23 @@ import {
   type CIPRecord,
 } from '@/lib/canton-intel-data';
 
-type IntelTab = 'map' | 'events' | 'media' | 'people' | 'monitor' | 'announcements' | 'cip';
+// Dynamic imports for new components (SSR-safe)
+const IntelMarketTicker = dynamic(() => import('./IntelMarketTicker'), { ssr: false });
+const IntelCalendarView = dynamic(() => import('./IntelCalendarView'), { ssr: false });
+const IntelRelationshipGraph = dynamic(() => import('./IntelRelationshipGraph'), { ssr: false });
+
+type IntelTab = 'map' | 'markets' | 'calendar' | 'graph' | 'events' | 'media' | 'people' | 'announcements' | 'cip' | 'monitor';
 
 const TABS: { id: IntelTab; label: string; icon: React.ElementType; count?: number }[] = [
   { id: 'map', label: 'Map', icon: Globe },
-  { id: 'events', label: 'Events', icon: Calendar },
-  { id: 'media', label: 'Media', icon: Newspaper },
+  { id: 'markets', label: 'Markets', icon: TrendingUp },
+  { id: 'calendar', label: 'Calendar', icon: Calendar },
+  { id: 'graph', label: 'Graph', icon: GitBranch },
+  { id: 'events', label: 'Events', icon: CalendarDays },
+  { id: 'media', label: 'Media', icon: Film },
   { id: 'people', label: 'People', icon: Users },
-  { id: 'announcements', label: 'Announcements', icon: Megaphone },
-  { id: 'cip', label: 'CIP Registry', icon: ScrollText },
+  { id: 'announcements', label: 'Announcements', icon: Bell },
+  { id: 'cip', label: 'CIP', icon: FileText },
   { id: 'monitor', label: 'Monitor', icon: Monitor },
 ];
 
@@ -49,17 +62,27 @@ export default function IntelligenceDashboard() {
   const [selectedEvent, setSelectedEvent] = useState<IntelEvent | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<IntelPerson | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<IntelMedia | null>(null);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<IntelAnnouncement | null>(null);
-  const [selectedCIP, setSelectedCIP] = useState<CIPRecord | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<IntelAnnouncement | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [selectedCIP, setSelectedCIP] = useState<CIPRecord | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
 
-  // Collapsible sections state
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(['events', 'media', 'people', 'announcements', 'cip']));
+  // Collapsible sections state - calendar and graph start expanded (new features to showcase)
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
+    new Set(['events', 'media', 'people', 'announcements', 'cip'])
+  );
 
   // Refs for scroll navigation
   const sectionRefs = useRef<Record<IntelTab, HTMLElement | null>>({
-    map: null, events: null, media: null, people: null,
-    monitor: null, announcements: null, cip: null,
+    map: null, 
+    markets: null,
+    calendar: null,
+    graph: null,
+    events: null, 
+    media: null, 
+    people: null,
+    monitor: null, 
+    announcements: null, 
+    cip: null,
   });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -83,6 +106,9 @@ export default function IntelligenceDashboard() {
 
   const tabCounts: Record<IntelTab, number | undefined> = {
     map: stats.mapped,
+    markets: undefined,
+    calendar: stats.events,
+    graph: stats.total,
     events: stats.events,
     media: stats.media,
     people: stats.people,
@@ -119,15 +145,6 @@ export default function IntelligenceDashboard() {
     setShowPanel(true);
   };
 
-  const handleCloseDetail = () => {
-    setSelectedEvent(null);
-    setSelectedPerson(null);
-    setSelectedMedia(null);
-    setSelectedAnnouncement(null);
-    setSelectedCIP(null);
-  };
-
-
   const handleSelectAnnouncement = (announcement: IntelAnnouncement) => {
     setSelectedAnnouncement(announcement);
     setSelectedEvent(null);
@@ -145,6 +162,15 @@ export default function IntelligenceDashboard() {
     setSelectedAnnouncement(null);
     setShowPanel(true);
   };
+
+  const handleCloseDetail = () => {
+    setSelectedEvent(null);
+    setSelectedPerson(null);
+    setSelectedMedia(null);
+    setSelectedAnnouncement(null);
+    setSelectedCIP(null);
+  };
+
   const handleTabChange = (tab: IntelTab) => {
     setActiveTab(tab);
     const el = sectionRefs.current[tab];
@@ -162,7 +188,7 @@ export default function IntelligenceDashboard() {
     });
   }, []);
 
-  // Section header component
+  // Bloomberg Terminal-style section header component
   const SectionHeader = ({ id, icon: Icon, label, count, color }: {
     id: string; icon: React.ElementType; label: string; count?: number; color: string;
   }) => {
@@ -170,19 +196,32 @@ export default function IntelligenceDashboard() {
     return (
       <button
         onClick={() => toggleSection(id)}
-        className="w-full flex items-center gap-3 px-4 py-3 bg-black/40 border-y border-white/5 hover:bg-black/50 transition-colors group"
+        className="flex items-center justify-between px-4 py-3 bg-black/40 border border-white/5 cursor-pointer hover:bg-white/[0.02] rounded-lg transition-colors group w-full"
       >
-        <Icon className={`w-4 h-4 ${color}`} />
-        <span className="text-[10px] font-bold font-mono tracking-[0.2em] text-white/50 group-hover:text-white/70">
-          {label}
-        </span>
-        {count !== undefined && (
-          <span className="text-[9px] font-mono text-white/25">{count}</span>
-        )}
-        <ChevronDown className={`w-3.5 h-3.5 text-white/20 ml-auto transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+        <div className="flex items-center gap-3">
+          <Icon className={`w-4 h-4 ${color}`} />
+          <span className="text-xs font-bold uppercase tracking-wider text-white/60 group-hover:text-white/80">
+            {label}
+          </span>
+          {count !== undefined && (
+            <span className="text-[9px] font-mono text-white/30 bg-white/5 rounded px-1.5 py-0.5">{count}</span>
+          )}
+        </div>
+        <ChevronDown className={`w-3.5 h-3.5 text-white/20 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
       </button>
     );
   };
+
+  const getCurrentTimestamp = () => {
+    const now = new Date();
+    return now.toLocaleTimeString('en-US', { 
+      hour12: false, 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+  };
+
   return (
     <motion.div
       ref={scrollContainerRef}
@@ -191,37 +230,48 @@ export default function IntelligenceDashboard() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* ── Sticky Tab Bar ── */}
-      <div className="sticky top-0 z-30 flex items-center gap-1 p-1.5 px-3 bg-black/80 backdrop-blur-xl border-b border-white/5">
-        {TABS.map(tab => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`
-                flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-all
-                ${isActive
-                  ? 'border border-white/30 bg-white/5 text-white'
-                  : 'text-white/40 hover:text-white hover:bg-white/5'
-                }
-              `}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              <span className="font-mono tracking-wide">{tab.label}</span>
-              {tabCounts[tab.id] !== undefined && (
-                <span className={`text-[8px] font-mono ${isActive ? 'text-white/50' : 'text-white/20'}`}>
-                  {tabCounts[tab.id]}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      {/* ── Market Ticker (Sticky Top) ── */}
+      <div className="sticky top-0 z-40">
+        <IntelMarketTicker />
       </div>
 
-      {/* ── Globe Section ── */}
-      <section ref={(el) => { sectionRefs.current.map = el; }} id="section-map" className="relative h-[60vh] min-h-[400px]">
+      {/* ── Enhanced Tab Bar (Sticky Below Ticker) ── */}
+      <div className="sticky top-8 z-30 bg-zinc-950/95 backdrop-blur-sm border-b border-white/5">
+        <div className="flex items-center gap-1 p-1.5 px-3">
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`
+                  flex items-center gap-1.5 px-3 py-2 rounded text-[10px] font-mono uppercase tracking-wider transition-all
+                  ${isActive
+                    ? 'text-white border-b-2 border-emerald-500 bg-white/5'
+                    : 'text-white/40 hover:text-white/60'
+                  }
+                `}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{tab.label}</span>
+                {tabCounts[tab.id] !== undefined && (
+                  <span className={`text-[8px] font-mono ${isActive ? 'text-white/50' : 'text-white/20'}`}>
+                    {tabCounts[tab.id]}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── 3D Globe Section (60vh) ── */}
+      <section 
+        ref={(el) => { sectionRefs.current.map = el; }} 
+        id="section-map" 
+        className="relative h-[60vh] min-h-[400px]"
+      >
         <IntelGlobe
           onSelectParticipant={(p: Participant) => setSelectedParticipantId(p.id)}
           selectedParticipantId={selectedParticipantId ?? undefined}
@@ -230,88 +280,196 @@ export default function IntelligenceDashboard() {
         />
       </section>
 
-      {/* ── 3-Column Grid (News | Monitor | Intel Brief) ── */}
-      <section className="grid grid-cols-1 lg:grid-cols-[2fr_2fr_1fr] border-t border-white/5 h-[480px]">
-        <div className="border-r border-white/5 overflow-y-auto">
+      {/* ── Bloomberg Bento Grid (News | Monitor | Intel Brief) ── */}
+      <section className="grid grid-cols-12 gap-px bg-zinc-800 p-px rounded-lg overflow-hidden">
+        <div className="col-span-4 h-[480px] bg-black overflow-y-auto">
           <IntelNewsFeed />
         </div>
-        <div ref={(el) => { sectionRefs.current.monitor = el; }} id="section-monitor" className="border-r border-white/5 overflow-y-auto">
+        <div 
+          ref={(el) => { sectionRefs.current.monitor = el; }} 
+          id="section-monitor" 
+          className="col-span-4 h-[480px] bg-black overflow-y-auto"
+        >
           <IntelMonitorView />
         </div>
-        <div className="overflow-y-auto">
+        <div className="col-span-4 h-[480px] bg-black overflow-y-auto">
           <IntelBriefPanel />
         </div>
       </section>
 
-      {/* ── Events Section ── */}
-      <section ref={(el) => { sectionRefs.current.events = el; }} id="section-events">
-        <SectionHeader id="events" icon={Calendar} label="EVENTS" count={stats.events} color="text-amber-400/60" />
+      {/* ── Calendar Section (Expanded by default) ── */}
+      <section 
+        ref={(el) => { sectionRefs.current.calendar = el; }} 
+        id="section-calendar" 
+        className="mt-8"
+      >
+        <SectionHeader 
+          id="calendar" 
+          icon={Calendar} 
+          label="CALENDAR" 
+          count={stats.events} 
+          color="text-cyan-400/60" 
+        />
+        {!collapsedSections.has('calendar') && (
+          <div className="mt-2">
+            <IntelCalendarView onEventSelect={handleSelectEvent} />
+          </div>
+        )}
+      </section>
+
+      {/* ── Relationship Graph Section (Expanded by default) ── */}
+      <section 
+        ref={(el) => { sectionRefs.current.graph = el; }} 
+        id="section-graph" 
+        className="mt-6"
+      >
+        <SectionHeader 
+          id="graph" 
+          icon={GitBranch} 
+          label="RELATIONSHIP GRAPH" 
+          count={stats.total} 
+          color="text-violet-400/60" 
+        />
+        {!collapsedSections.has('graph') && (
+          <div className="mt-2">
+            <IntelRelationshipGraph 
+              onNodeSelect={(node) => {
+                if (node.type === 'Person' && node.data) {
+                  handleSelectPerson(node.data as IntelPerson);
+                } else if (node.type === 'Event' && node.data) {
+                  handleSelectEvent(node.data as IntelEvent);
+                }
+              }}
+              height={500}
+            />
+          </div>
+        )}
+      </section>
+
+      {/* ── Events Section (Collapsed by default) ── */}
+      <section 
+        ref={(el) => { sectionRefs.current.events = el; }} 
+        id="section-events" 
+        className="mt-6"
+      >
+        <SectionHeader 
+          id="events" 
+          icon={CalendarDays} 
+          label="EVENTS" 
+          count={stats.events} 
+          color="text-amber-400/60" 
+        />
         {!collapsedSections.has('events') && (
-          <IntelEventsView onSelectEvent={handleSelectEvent} />
+          <div className="mt-2">
+            <IntelEventsView onSelectEvent={handleSelectEvent} />
+          </div>
         )}
       </section>
 
-      {/* ── Media Section ── */}
-      <section ref={(el) => { sectionRefs.current.media = el; }} id="section-media">
-        <SectionHeader id="media" icon={Newspaper} label="MEDIA" count={stats.media} color="text-emerald-400/60" />
+      {/* ── Media Section (Collapsed by default) ── */}
+      <section 
+        ref={(el) => { sectionRefs.current.media = el; }} 
+        id="section-media" 
+        className="mt-6"
+      >
+        <SectionHeader 
+          id="media" 
+          icon={Film} 
+          label="MEDIA" 
+          count={stats.media} 
+          color="text-emerald-400/60" 
+        />
         {!collapsedSections.has('media') && (
-          <IntelMediaView onSelectMedia={handleSelectMedia} />
+          <div className="mt-2">
+            <IntelMediaView onSelectMedia={handleSelectMedia} />
+          </div>
         )}
       </section>
 
-      {/* ── People Section ── */}
-      <section ref={(el) => { sectionRefs.current.people = el; }} id="section-people">
-        <SectionHeader id="people" icon={Users} label="PEOPLE" count={stats.people} color="text-cyan-400/60" />
+      {/* ── People Section (Collapsed by default) ── */}
+      <section 
+        ref={(el) => { sectionRefs.current.people = el; }} 
+        id="section-people" 
+        className="mt-6"
+      >
+        <SectionHeader 
+          id="people" 
+          icon={Users} 
+          label="PEOPLE" 
+          count={stats.people} 
+          color="text-cyan-400/60" 
+        />
         {!collapsedSections.has('people') && (
-          <IntelPeopleView onSelectPerson={handleSelectPerson} />
+          <div className="mt-2">
+            <IntelPeopleView onSelectPerson={handleSelectPerson} />
+          </div>
         )}
       </section>
 
-      {/* ── Announcements Section ── */}
-      <section ref={(el) => { sectionRefs.current.announcements = el; }} id="section-announcements">
-        <SectionHeader id="announcements" icon={Megaphone} label="ANNOUNCEMENTS" count={stats.announcements} color="text-purple-400/60" />
+      {/* ── Announcements Section (Collapsed by default) ── */}
+      <section 
+        ref={(el) => { sectionRefs.current.announcements = el; }} 
+        id="section-announcements" 
+        className="mt-6"
+      >
+        <SectionHeader 
+          id="announcements" 
+          icon={Bell} 
+          label="ANNOUNCEMENTS" 
+          count={stats.announcements} 
+          color="text-purple-400/60" 
+        />
         {!collapsedSections.has('announcements') && (
-          <IntelAnnouncementsView onSelectAnnouncement={handleSelectAnnouncement} />
+          <div className="mt-2">
+            <IntelAnnouncementsView onSelectAnnouncement={handleSelectAnnouncement} />
+          </div>
         )}
       </section>
 
-      {/* ── CIP Registry Section ── */}
-      <section ref={(el) => { sectionRefs.current.cip = el; }} id="section-cip">
-        <SectionHeader id="cip" icon={ScrollText} label="CIP REGISTRY" count={stats.cip} color="text-orange-400/60" />
+      {/* ── CIP Registry Section (Collapsed by default) ── */}
+      <section 
+        ref={(el) => { sectionRefs.current.cip = el; }} 
+        id="section-cip" 
+        className="mt-6"
+      >
+        <SectionHeader 
+          id="cip" 
+          icon={FileText} 
+          label="CIP REGISTRY" 
+          count={stats.cip} 
+          color="text-orange-400/60" 
+        />
         {!collapsedSections.has('cip') && (
-          <IntelCIPView onSelectCIP={handleSelectCIP} />
+          <div className="mt-2">
+            <IntelCIPView onSelectCIP={handleSelectCIP} />
+          </div>
         )}
       </section>
 
       {/* ── Bottom Panel (kept per user request) ── */}
-      <IntelBottomPanel
-        isOpen={showBottomPanel}
-        onToggle={() => setShowBottomPanel(!showBottomPanel)}
-        activeTab={activeTab}
-        onSelectEvent={handleSelectEvent}
-        onSelectMedia={handleSelectMedia}
-      />
+      <div className="mt-8">
+        <IntelBottomPanel
+          isOpen={showBottomPanel}
+          onToggle={() => setShowBottomPanel(!showBottomPanel)}
+          activeTab={activeTab}
+          onSelectEvent={handleSelectEvent}
+          onSelectMedia={handleSelectMedia}
+        />
+      </div>
 
-      {/* ── Stats Bar ── */}
-      <div className="h-8 bg-black/60 backdrop-blur-sm border-t border-white/5 flex items-center px-4 z-10">
-        <div className="flex items-center text-[9px] font-mono text-white/30 tracking-wide">
-          <span>{stats.total} Participants</span>
-          <span className="text-white/10 mx-3">·</span>
-          <span>{stats.mapped} Mapped</span>
-          <span className="text-white/10 mx-3">·</span>
-          <span>{stats.validators} Validators</span>
-          <span className="text-white/10 mx-3">·</span>
-          <span>{stats.superValidators} Super Validators</span>
-          <span className="text-white/10 mx-3">·</span>
-          <span className="text-amber-400/40">{stats.events} Events</span>
-          <span className="text-white/10 mx-3">·</span>
-          <span className="text-emerald-400/40">{stats.media} Media</span>
-          <span className="text-white/10 mx-3">·</span>
-          <span className="text-cyan-400/40">{stats.people} People</span>
-          <span className="text-white/10 mx-3">·</span>
-          <span className="text-purple-400/40">{stats.announcements} Announcements</span>
-          <span className="text-white/10 mx-3">·</span>
-          <span className="text-orange-400/40">{stats.cip} CIPs</span>
+      {/* ── Status Bar ── */}
+      <div className="h-8 bg-black border-t border-white/5 flex items-center px-4 text-[9px] font-mono text-white/20">
+        <div className="flex items-center gap-3">
+          <span className="text-white/40 uppercase tracking-wider">CANTON INTELLIGENCE</span>
+          <span className="text-white/10">·</span>
+          <span>{stats.total} NODES</span>
+          <span className="text-white/10">·</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+            <span className="text-emerald-400/60">LIVE</span>
+          </div>
+          <span className="text-white/10">·</span>
+          <span>{getCurrentTimestamp()}</span>
         </div>
       </div>
 
