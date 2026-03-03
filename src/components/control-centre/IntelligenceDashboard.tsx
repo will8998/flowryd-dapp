@@ -66,6 +66,12 @@ export default function IntelligenceDashboard() {
   const [selectedCIP, setSelectedCIP] = useState<CIPRecord | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
 
+  // Derive the full participant object from selectedParticipantId
+  const selectedParticipant = useMemo(() => {
+    if (!selectedParticipantId) return null;
+    return participants.find(p => p.id === selectedParticipantId) ?? null;
+  }, [selectedParticipantId]);
+
   // Collapsible sections state - calendar and graph start expanded (new features to showcase)
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
     new Set(['events', 'media', 'people', 'announcements', 'cip'])
@@ -124,6 +130,7 @@ export default function IntelligenceDashboard() {
     setSelectedMedia(null);
     setSelectedAnnouncement(null);
     setSelectedCIP(null);
+    setSelectedParticipantId(null);
     setShowPanel(true);
   };
 
@@ -133,6 +140,7 @@ export default function IntelligenceDashboard() {
     setSelectedMedia(null);
     setSelectedAnnouncement(null);
     setSelectedCIP(null);
+    setSelectedParticipantId(null);
     setShowPanel(true);
   };
 
@@ -142,6 +150,7 @@ export default function IntelligenceDashboard() {
     setSelectedPerson(null);
     setSelectedAnnouncement(null);
     setSelectedCIP(null);
+    setSelectedParticipantId(null);
     setShowPanel(true);
   };
 
@@ -151,6 +160,7 @@ export default function IntelligenceDashboard() {
     setSelectedPerson(null);
     setSelectedMedia(null);
     setSelectedCIP(null);
+    setSelectedParticipantId(null);
     setShowPanel(true);
   };
 
@@ -160,6 +170,7 @@ export default function IntelligenceDashboard() {
     setSelectedPerson(null);
     setSelectedMedia(null);
     setSelectedAnnouncement(null);
+    setSelectedParticipantId(null);
     setShowPanel(true);
   };
 
@@ -169,6 +180,18 @@ export default function IntelligenceDashboard() {
     setSelectedMedia(null);
     setSelectedAnnouncement(null);
     setSelectedCIP(null);
+    setSelectedParticipantId(null);
+    setShowPanel(false);
+  };
+
+  const handleSelectParticipant = (p: Participant) => {
+    setSelectedParticipantId(p.id);
+    setSelectedEvent(null);
+    setSelectedPerson(null);
+    setSelectedMedia(null);
+    setSelectedAnnouncement(null);
+    setSelectedCIP(null);
+    setShowPanel(true);
   };
 
   const handleTabChange = (tab: IntelTab) => {
@@ -273,18 +296,12 @@ export default function IntelligenceDashboard() {
         className="relative h-[60vh] min-h-[400px]"
       >
         <IntelGlobe
-          onSelectParticipant={(p: Participant) => {
-            setSelectedParticipantId(p.id);
-            setSelectedEvent(null);
-            setSelectedPerson(null);
-            setSelectedMedia(null);
-            setSelectedAnnouncement(null);
-            setSelectedCIP(null);
-            setShowPanel(true);
-          }}
+          onSelectParticipant={handleSelectParticipant}
           selectedParticipantId={selectedParticipantId ?? undefined}
           events={intelEvents}
           onSelectEvent={handleSelectEvent}
+          onSelectPerson={handleSelectPerson}
+          onSelectAnnouncement={handleSelectAnnouncement}
         />
       </section>
 
@@ -346,6 +363,17 @@ export default function IntelligenceDashboard() {
                   handleSelectPerson(node.data as IntelPerson);
                 } else if (node.type === 'Event' && node.data) {
                   handleSelectEvent(node.data as IntelEvent);
+                } else if (node.type === 'Media' && node.data) {
+                  handleSelectMedia(node.data as IntelMedia);
+                } else if (node.type === 'Organization' && node.data) {
+                  const org = node.data as Participant;
+                  setSelectedParticipantId(org.id);
+                  setSelectedEvent(null);
+                  setSelectedPerson(null);
+                  setSelectedMedia(null);
+                  setSelectedAnnouncement(null);
+                  setSelectedCIP(null);
+                  setShowPanel(true);
                 }
               }}
               height={500}
@@ -495,10 +523,12 @@ export default function IntelligenceDashboard() {
               selectedEvent={selectedEvent}
               selectedPerson={selectedPerson}
               selectedMedia={selectedMedia}
+              selectedParticipant={selectedParticipant}
               onClose={handleCloseDetail}
               onSelectPerson={handleSelectPerson}
               onSelectEvent={handleSelectEvent}
               onSelectMedia={handleSelectMedia}
+              onSelectParticipant={handleSelectParticipant}
             />
           </motion.div>
         )}

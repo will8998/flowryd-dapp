@@ -2,7 +2,11 @@
 
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { participants, type Participant } from '@/lib/canton-data';
-import { type IntelEvent } from '@/lib/canton-intel-data';
+import { 
+  type IntelEvent, type IntelPerson, type IntelAnnouncement, type CIPRecord,
+  intelPeople, intelAnnouncements, cipRegistry,
+  getOrgById
+} from '@/lib/canton-intel-data';
 import type { GlobeMethods, GlobeProps } from 'react-globe.gl';
 
 /* ------------------------------------------------------------------ */
@@ -20,6 +24,8 @@ interface IntelGlobeProps {
   selectedParticipantId?: string;
   events?: IntelEvent[];
   onSelectEvent?: (event: IntelEvent) => void;
+  onSelectPerson?: (person: IntelPerson) => void;
+  onSelectAnnouncement?: (announcement: IntelAnnouncement) => void;
 }
 
 interface GlobePoint {
@@ -28,8 +34,8 @@ interface GlobePoint {
   pointSize: number;
   pointAlt: number;
   pointColor: string;
-  pointType: 'participant' | 'event';
-  source: Participant | IntelEvent;
+  pointType: 'participant' | 'event' | 'person' | 'announcement' | 'cip';
+  source: Participant | IntelEvent | IntelPerson | IntelAnnouncement | CIPRecord;
   tooltipHtml: string;
 }
 
@@ -73,6 +79,43 @@ function eventTooltip(e: IntelEvent): string {
     </div>`;
 }
 
+function personTooltip(p: IntelPerson): string {
+  const priority = p.priority === 'Critical' || p.priority === 'High'
+    ? '<div style="font-size:9px;color:#f87171;margin-top:3px;">● HIGH PRIORITY</div>'
+    : '';
+  return `
+    <div style="padding:8px 12px;font-family:ui-monospace,monospace;max-width:240px;line-height:1.4;">
+      <div style="font-weight:700;font-size:12px;color:#22d3ee;">${p.fullName}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.5);">${p.currentRole}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">${p.organization}</div>
+      ${priority}
+    </div>`;
+}
+
+function announcementTooltip(a: IntelAnnouncement): string {
+  const description = a.description.length > 80 ? a.description.slice(0, 80) + '...' : a.description;
+  const impact = a.impact === 'Critical' || a.impact === 'High'
+    ? '<div style="font-size:9px;color:#f87171;margin-top:3px;">● HIGH IMPACT</div>'
+    : '';
+  return `
+    <div style="padding:8px 12px;font-family:ui-monospace,monospace;max-width:240px;line-height:1.4;">
+      <div style="font-weight:700;font-size:12px;color:#a78bfa;">${a.type.toUpperCase()}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:3px;">${description}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,0.3);">${a.date}</div>
+      ${impact}
+    </div>`;
+}
+
+function cipTooltip(c: CIPRecord): string {
+  return `
+    <div style="padding:8px 12px;font-family:ui-monospace,monospace;max-width:240px;line-height:1.4;">
+      <div style="font-weight:700;font-size:12px;color:#fb923c;">${c.cipNumber}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.5);">${c.title}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px;">${c.proposer}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,0.3);">${c.status}</div>
+    </div>`;
+}
+
 /* ------------------------------------------------------------------ */
 /* Component                                                           */
 /* ------------------------------------------------------------------ */
@@ -80,6 +123,8 @@ export default function IntelGlobe({
   onSelectParticipant,
   events = [],
   onSelectEvent,
+  onSelectPerson,
+  onSelectAnnouncement,
 }: IntelGlobeProps) {
   /* ---- Dynamic import (SSR-safe) ---- */
   type GlobeFC = React.FunctionComponent<
@@ -160,7 +205,7 @@ export default function IntelGlobe({
     return () => clearInterval(interval);
   }, [ready, validParticipants]);
 
-  /* Points (participants + events) */
+  /* Points (participants + events + people + announcements + cips) */
   const pointsData = useMemo<GlobePoint[]>(() => {
     const pts: GlobePoint[] = validParticipants.map(p => {
       const crit = p.criticality === 'CRITICAL';
@@ -190,9 +235,65 @@ export default function IntelGlobe({
       tooltipHtml: eventTooltip(e),
     }));
 
-    return [...pts, ...evtPts];
-  }, [validParticipants, validEvents]);
+    // People points — derive location from their organization
+    const peoplePts: GlobePoint[] = intelPeople
+      .map(person => {
+        const org = getOrgById(person.organizationId);
+        if (!org?.lat || !org?.lng) return null;
+        // Offset slightly so they don't overlap the org dot
+        const offset = 0.5 + (Math.random() * 0.5);
+        return {
+          lat: org.lat + offset,
+          lng: org.lng + offset,
+          pointSize: 0.20,
+          pointAlt: 0.04,
+          pointColor: '#22d3ee', // cyan-400
+          pointType: 'person' as const,
+          source: person,
+          tooltipHtml: personTooltip(person),
+        };
+      })
+      .filter(Boolean) as GlobePoint[];
 
+    const announcementPts: GlobePoint[] = intelAnnouncements
+      .map(ann => {
+        // Find first participant org with coordinates
+        const orgName = ann.participants[0];
+        if (!orgName) return null;
+        const org = participants.find(p => p.name.toLowerCase().includes(orgName.toLowerCase().split(' ')[0]));
+        if (!org?.lat || !org?.lng) return null;
+        return {
+          lat: org.lat - 0.8,
+          lng: org.lng + 0.8,
+          pointSize: 0.22,
+          pointAlt: 0.05,
+          pointColor: '#a78bfa', // violet-400
+          pointType: 'announcement' as const,
+          source: ann,
+          tooltipHtml: announcementTooltip(ann),
+        };
+      })
+      .filter(Boolean) as GlobePoint[];
+
+    const cipPts: GlobePoint[] = cipRegistry
+      .map(cip => {
+        const org = participants.find(p => p.name.toLowerCase().includes(cip.proposer.toLowerCase().split(' ')[0]));
+        if (!org?.lat || !org?.lng) return null;
+        return {
+          lat: org.lat + 0.3,
+          lng: org.lng - 0.6,
+          pointSize: 0.18,
+          pointAlt: 0.03,
+          pointColor: '#fb923c', // orange-400
+          pointType: 'cip' as const,
+          source: cip,
+          tooltipHtml: cipTooltip(cip),
+        };
+      })
+      .filter(Boolean) as GlobePoint[];
+
+    return [...pts, ...evtPts, ...peoplePts, ...announcementPts, ...cipPts];
+  }, [validParticipants, validEvents, intelPeople, intelAnnouncements, cipRegistry]);
   /* Rings (pulsing event markers) */
   const ringsData = useMemo<GlobeRing[]>(() => {
     const eventRings = validEvents.map(e => ({ lat: e.lat!, lng: e.lng! }));
@@ -246,13 +347,17 @@ export default function IntelGlobe({
       
       if (d.pointType === 'participant') {
         onSelectParticipant?.(d.source as Participant);
-      } else {
+      } else if (d.pointType === 'event') {
         onSelectEvent?.(d.source as IntelEvent);
+      } else if (d.pointType === 'person') {
+        onSelectPerson?.(d.source as IntelPerson);
+      } else if (d.pointType === 'announcement') {
+        onSelectAnnouncement?.(d.source as IntelAnnouncement);
       }
+      // CIP clicks — no dedicated handler, could zoom only
     },
-    [onSelectParticipant, onSelectEvent],
+    [onSelectParticipant, onSelectEvent, onSelectPerson, onSelectAnnouncement],
   );
-
   const handleResetView = useCallback(() => {
     globeRef.current?.pointOfView({ lat: 30, lng: 10, altitude: 2.2 }, 800);
   }, []);
@@ -333,7 +438,7 @@ export default function IntelGlobe({
         <div className="absolute top-4 left-4">
           <div className="text-[10px] tracking-wider text-white font-bold">CANTON NETWORK</div>
           <div className="text-[8px] text-white/40 mt-0.5">GLOBAL INTELLIGENCE</div>
-          <div className="text-[8px] text-white/60 mt-1">84 NODES • 12 SUPER VALIDATORS • LIVE</div>
+          <div className="text-[8px] text-white/60 mt-1">{validParticipants.length} NODES • {intelPeople.length} PEOPLE • {intelAnnouncements.length} ALERTS • LIVE</div>
         </div>
 
         {/* Top-right: Reset View button */}
@@ -370,8 +475,20 @@ export default function IntelGlobe({
               <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
               <span className="text-white/60">Event</span>
             </div>
-          </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+              <span className="text-white/60">People</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
+              <span className="text-white/60">Announcements</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-400"></div>
+              <span className="text-white/60">CIP Proposals</span>
+            </div>
         </div>
+      </div>
       </div>
 
       {/* Gradient vignette overlay for visual polish */}

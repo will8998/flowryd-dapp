@@ -8,27 +8,34 @@ import {
   Lightbulb, ChevronRight
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { type Participant } from '@/lib/canton-data';
 import IntelNewsFeed from './IntelNewsFeed';
 import {
   type IntelEvent,
   type IntelPerson,
   type IntelMedia,
+  type IntelAnnouncement,
   getPersonById,
   getOrgById,
   getPeopleForEvent,
   getOrgsForEvent,
   getEventsForPerson,
   getMediaForPerson,
+  getAnnouncementsForOrg,
+  getCIPsForOrg,
+  intelPeople,
 } from '@/lib/canton-intel-data';
 
 interface IntelDetailPanelProps {
   selectedEvent?: IntelEvent | null;
   selectedPerson?: IntelPerson | null;
   selectedMedia?: IntelMedia | null;
+  selectedParticipant?: Participant | null;
   onClose: () => void;
   onSelectPerson?: (person: IntelPerson) => void;
   onSelectEvent?: (event: IntelEvent) => void;
   onSelectMedia?: (media: IntelMedia) => void;
+  onSelectParticipant?: (participant: Participant) => void;
 }
 
 const formatDateRange = (start: string, end: string): string => {
@@ -387,17 +394,119 @@ function MediaDetail({ media, onSelectPerson }: { media: IntelMedia; onSelectPer
   );
 }
 
+/* ── Participant Detail ───────────────────────────── */
+function ParticipantDetail({ participant, onSelectPerson }: { participant: Participant; onSelectPerson?: (p: IntelPerson) => void }) {
+  const relatedPeople = intelPeople.filter(person => person.organizationId === participant.id);
+  const announcements = getAnnouncementsForOrg(participant.name);
+  const cips = getCIPsForOrg(participant.name);
+
+  return (
+    <div className="space-y-1">
+      <div className="mb-4">
+        <h3 className="text-sm font-bold text-white/90 mb-1">{participant.name}</h3>
+        <p className="text-[10px] text-white/40 font-mono mb-2">{participant.cantonRole}</p>
+        <div className="flex gap-2">
+          {participant.criticality && (
+            <Badge variant={participant.criticality === 'CRITICAL' ? 'danger' : participant.criticality === 'REQUIRED' ? 'warning' : 'info'}>
+              {participant.criticality}
+            </Badge>
+          )}
+          {participant.superValidator && <Badge variant="warning">Super Validator</Badge>}
+        </div>
+      </div>
+
+      <Section icon={Globe} label="NETWORK STATUS">
+        <div className="flex flex-wrap gap-1">
+          {participant.isSV && <span className="text-[8px] px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-full font-mono text-white/50">Super Validator</span>}
+          {participant.isFA && <span className="text-[8px] px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-full font-mono text-white/50">Foundation Admin</span>}
+          {participant.isFoundationMember && <span className="text-[8px] px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-full font-mono text-white/50">Foundation Member</span>}
+        </div>
+        {participant.validatorNodes && (
+          <p className="text-[10px] text-white/30 font-mono mt-1">{participant.validatorNodes} validator nodes</p>
+        )}
+        {participant.svWeight && (
+          <p className="text-[10px] text-white/30 font-mono mt-1">SV weight: {participant.svWeight}</p>
+        )}
+      </Section>
+
+      {relatedPeople.length > 0 && (
+        <Section icon={User} label="PEOPLE">
+          <div className="space-y-1.5">
+            {relatedPeople.map(person => (
+              <button
+                key={person.id}
+                onClick={() => onSelectPerson?.(person)}
+                className="w-full flex items-center gap-2 p-1.5 rounded hover:bg-white/5 transition-colors text-left group"
+              >
+                <div className="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                  <User className="w-2.5 h-2.5 text-white/40" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-white/70 group-hover:text-white font-medium truncate">{person.fullName}</div>
+                  <div className="text-[9px] text-white/30 font-mono truncate">{person.currentRole}</div>
+                </div>
+                <ChevronRight className="w-3 h-3 text-white/10 group-hover:text-white/30" />
+              </button>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {announcements.length > 0 && (
+        <Section icon={Newspaper} label="ANNOUNCEMENTS">
+          <div className="space-y-1.5">
+            {announcements.map((announcement, index) => (
+              <div key={index} className="p-2 rounded bg-white/5 border border-white/10">
+                <div className="text-[10px] text-white/70 font-medium mb-1">{formatDate(announcement.date)}</div>
+                <div className="text-[9px] text-white/50 leading-relaxed">{announcement.description}</div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {cips.length > 0 && (
+        <Section icon={FileText} label="CIP PROPOSALS">
+          <div className="space-y-1.5">
+            {cips.map((cip, index) => (
+              <div key={index} className="p-2 rounded bg-white/5 border border-white/10">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] text-white/70 font-mono">CIP-{cip.cipNumber}</span>
+                  <Badge variant={cip.status === 'Accepted' ? 'success' : cip.status === 'Rejected' ? 'danger' : 'default'}>
+                    {cip.status}
+                  </Badge>
+                </div>
+                <div className="text-[9px] text-white/50 leading-relaxed">{cip.title}</div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {participant.website && (
+        <Section icon={Globe} label="LINKS">
+          <a href={participant.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] text-white/30 hover:text-white/60 transition-colors">
+            <ExternalLink className="w-3 h-3" />
+            <span className="font-mono">Website</span>
+          </a>
+        </Section>
+      )}
+    </div>
+  );
+}
+
 /* ── Main Panel ───────────────────────────────────── */
 export default function IntelDetailPanel({
   selectedEvent,
   selectedPerson,
   selectedMedia,
+  selectedParticipant,
   onClose,
   onSelectPerson,
   onSelectEvent,
   onSelectMedia,
 }: IntelDetailPanelProps) {
-  const hasSelection = selectedEvent || selectedPerson || selectedMedia;
+  const hasSelection = selectedEvent || selectedPerson || selectedMedia || selectedParticipant;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -413,7 +522,7 @@ export default function IntelDetailPanel({
           >
             <div className="flex items-center justify-between p-3 border-b border-white/5">
               <h2 className="text-[9px] font-bold font-mono tracking-[0.2em] text-white/40">
-                {selectedEvent ? 'EVENT DETAIL' : selectedPerson ? 'PERSON DETAIL' : 'MEDIA DETAIL'}
+                {selectedEvent ? 'EVENT DETAIL' : selectedPerson ? 'PERSON DETAIL' : selectedMedia ? 'MEDIA DETAIL' : selectedParticipant ? 'PARTICIPANT DETAIL' : ''}
               </h2>
               <button
                 onClick={onClose}
@@ -427,6 +536,7 @@ export default function IntelDetailPanel({
               {selectedEvent && <EventDetail event={selectedEvent} onSelectPerson={onSelectPerson} />}
               {selectedPerson && <PersonDetail person={selectedPerson} onSelectEvent={onSelectEvent} onSelectMedia={onSelectMedia} />}
               {selectedMedia && <MediaDetail media={selectedMedia} onSelectPerson={onSelectPerson} />}
+              {selectedParticipant && <ParticipantDetail participant={selectedParticipant} onSelectPerson={onSelectPerson} />}
             </div>
           </motion.div>
         ) : (

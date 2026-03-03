@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, X, RefreshCw, Wifi, WifiOff, Monitor } from 'lucide-react';
+import { Play, X, RefreshCw, Wifi, WifiOff, Monitor, Maximize2, Minimize2 } from 'lucide-react';
 import {
   type MonitorVideo,
   SEED_VIDEOS,
@@ -132,6 +132,8 @@ export default function IntelMonitorView() {
   const [isLoading, setIsLoading] = useState(true);
   const [lastFetch, setLastFetch] = useState<string | null>(null);
   const [source, setSource] = useState<string>('seed');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const refreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchVideos = useCallback(async () => {
@@ -161,11 +163,32 @@ export default function IntelMonitorView() {
     };
   }, [fetchVideos]);
 
+  const toggleFullscreen = useCallback(async () => {
+    if (!containerRef.current) return;
+    try {
+      if (!document.fullscreenElement) {
+        await containerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch {
+      // Fullscreen not supported
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
   const handlePlay = useCallback((id: string) => setPlayingId(id), []);
   const handleClose = useCallback(() => setPlayingId(null), []);
 
   return (
-    <div className="w-full flex flex-col bg-zinc-950">
+    <div ref={containerRef} className={`w-full flex flex-col bg-zinc-950 ${isFullscreen ? 'h-screen overflow-y-auto' : ''}`}>
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Monitor className="w-3.5 h-3.5 text-white/30" />
@@ -190,6 +213,17 @@ export default function IntelMonitorView() {
               <WifiOff className="w-3 h-3 text-red-500/60" />
             )}
           </div>
+          <button
+            onClick={toggleFullscreen}
+            className="p-1 rounded hover:bg-white/5 text-white/30 hover:text-white/60 transition-all"
+            title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+          >
+            {isFullscreen ? (
+              <Minimize2 className="w-3.5 h-3.5" />
+            ) : (
+              <Maximize2 className="w-3.5 h-3.5" />
+            )}
+          </button>
           <button
             onClick={fetchVideos}
             disabled={isLoading}
