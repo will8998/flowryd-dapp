@@ -135,7 +135,7 @@ export default function IntelPeopleView({ onSelectPerson }: IntelPeopleViewProps
   ];
 
   return (
-    <div className="w-full h-full overflow-auto p-4">
+    <div className="w-full p-4">
       <DataTable
         columns={columns}
         data={filteredData}

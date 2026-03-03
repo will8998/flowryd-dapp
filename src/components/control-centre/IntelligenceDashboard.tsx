@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Calendar, Newspaper, Users, Monitor, Megaphone, ScrollText, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Globe, Calendar, Newspaper, Users, Monitor, Megaphone, ScrollText, ChevronRight, ChevronLeft, ChevronDown } from 'lucide-react';
 import IntelGlobe from './IntelGlobe';
 import IntelEventsView from './IntelEventsView';
 import IntelMediaView from './IntelMediaView';
@@ -12,6 +12,8 @@ import IntelAnnouncementsView from './IntelAnnouncementsView';
 import IntelCIPView from './IntelCIPView';
 import IntelBottomPanel from './IntelBottomPanel';
 import IntelDetailPanel from './IntelDetailPanel';
+import IntelNewsFeed from './IntelNewsFeed';
+import IntelBriefPanel from './IntelBriefPanel';
 import { participants, type Participant } from '@/lib/canton-data';
 import {
   intelEvents,
@@ -50,6 +52,16 @@ export default function IntelligenceDashboard() {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<IntelAnnouncement | null>(null);
   const [selectedCIP, setSelectedCIP] = useState<CIPRecord | null>(null);
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
+
+  // Collapsible sections state
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+
+  // Refs for scroll navigation
+  const sectionRefs = useRef<Record<IntelTab, HTMLElement | null>>({
+    map: null, events: null, media: null, people: null,
+    monitor: null, announcements: null, cip: null,
+  });
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const stats = useMemo(() => {
     const withCoords = participants.filter(p => p.lat != null && p.lng != null);
@@ -135,19 +147,52 @@ export default function IntelligenceDashboard() {
   };
   const handleTabChange = (tab: IntelTab) => {
     setActiveTab(tab);
-    // Clear selection when switching tabs
-    handleCloseDetail();
+    const el = sectionRefs.current[tab];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
+  const toggleSection = useCallback((id: string) => {
+    setCollapsedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  // Section header component
+  const SectionHeader = ({ id, icon: Icon, label, count, color }: {
+    id: string; icon: React.ElementType; label: string; count?: number; color: string;
+  }) => {
+    const isCollapsed = collapsedSections.has(id);
+    return (
+      <button
+        onClick={() => toggleSection(id)}
+        className="w-full flex items-center gap-3 px-4 py-3 bg-black/40 border-y border-white/5 hover:bg-black/50 transition-colors group"
+      >
+        <Icon className={`w-4 h-4 ${color}`} />
+        <span className="text-[10px] font-bold font-mono tracking-[0.2em] text-white/50 group-hover:text-white/70">
+          {label}
+        </span>
+        {count !== undefined && (
+          <span className="text-[9px] font-mono text-white/25">{count}</span>
+        )}
+        <ChevronDown className={`w-3.5 h-3.5 text-white/20 ml-auto transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+      </button>
+    );
+  };
   return (
     <motion.div
-      className="relative w-full h-full bg-zinc-950 flex flex-col"
+      ref={scrollContainerRef}
+      className="relative w-full bg-zinc-950"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* ── Tab Bar (top-left, floating over content) ── */}
-      <div className="absolute top-3 left-3 z-20 flex gap-1 p-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg">
+      {/* ── Sticky Tab Bar ── */}
+      <div className="sticky top-0 z-30 flex items-center gap-1 p-1.5 px-3 bg-black/80 backdrop-blur-xl border-b border-white/5">
         {TABS.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -158,7 +203,7 @@ export default function IntelligenceDashboard() {
               className={`
                 flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-all
                 ${isActive
-                  ? 'border border-white/30 bg-black/40 text-white'
+                  ? 'border border-white/30 bg-white/5 text-white'
                   : 'text-white/40 hover:text-white hover:bg-white/5'
                 }
               `}
@@ -175,148 +220,70 @@ export default function IntelligenceDashboard() {
         })}
       </div>
 
-      {/* ── Main Content Area ── */}
-      <div className="flex-1 relative min-h-0 flex">
-        {/* Main view */}
-        <div className={`flex-1 relative min-w-0 ${showPanel ? '' : ''}`}>
-          <AnimatePresence mode="wait">
-            {activeTab === 'map' && (
-              <motion.div
-                key="map"
-                className="absolute inset-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <IntelGlobe
-                  onSelectParticipant={(p: Participant) => setSelectedParticipantId(p.id)}
-                  selectedParticipantId={selectedParticipantId ?? undefined}
-                  events={intelEvents}
-                  onSelectEvent={handleSelectEvent}
-                />
-              </motion.div>
-            )}
+      {/* ── Globe Section ── */}
+      <section ref={(el) => { sectionRefs.current.map = el; }} id="section-map" className="relative h-[60vh] min-h-[400px]">
+        <IntelGlobe
+          onSelectParticipant={(p: Participant) => setSelectedParticipantId(p.id)}
+          selectedParticipantId={selectedParticipantId ?? undefined}
+          events={intelEvents}
+          onSelectEvent={handleSelectEvent}
+        />
+      </section>
 
-            {activeTab === 'events' && (
-              <motion.div
-                key="events"
-                className="absolute inset-0"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
-                <IntelEventsView onSelectEvent={handleSelectEvent} />
-              </motion.div>
-            )}
-
-            {activeTab === 'media' && (
-              <motion.div
-                key="media"
-                className="absolute inset-0"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
-                <IntelMediaView onSelectMedia={handleSelectMedia} />
-              </motion.div>
-            )}
-
-            {activeTab === 'people' && (
-              <motion.div
-                key="people"
-                className="absolute inset-0"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
-                <IntelPeopleView onSelectPerson={handleSelectPerson} />
-              </motion.div>
-            )}
-
-            {activeTab === 'monitor' && (
-              <motion.div
-                key="monitor"
-                className="absolute inset-0"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
-                <IntelMonitorView />
-              </motion.div>
-            )}
-
-            {activeTab === 'announcements' && (
-              <motion.div
-                key="announcements"
-                className="absolute inset-0"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
-                <IntelAnnouncementsView onSelectAnnouncement={handleSelectAnnouncement} />
-              </motion.div>
-            )}
-
-            {activeTab === 'cip' && (
-              <motion.div
-                key="cip"
-                className="absolute inset-0"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
-                <IntelCIPView onSelectCIP={handleSelectCIP} />
-              </motion.div>
-            )}
-          </AnimatePresence>
+      {/* ── 3-Column Grid (News | Monitor | Intel Brief) ── */}
+      <section className="grid grid-cols-1 lg:grid-cols-[2fr_2fr_1fr] border-t border-white/5" style={{ minHeight: '420px' }}>
+        <div className="border-r border-white/5 min-h-[420px]">
+          <IntelNewsFeed />
         </div>
+        <div ref={(el) => { sectionRefs.current.monitor = el; }} id="section-monitor" className="border-r border-white/5 min-h-[420px]">
+          <IntelMonitorView />
+        </div>
+        <div className="min-h-[420px]">
+          <IntelBriefPanel />
+        </div>
+      </section>
 
-        {/* ── Right Panel (news feed / detail) ── */}
-        <AnimatePresence>
-          {showPanel && (
-            <motion.div
-              className="w-80 bg-black/60 backdrop-blur-md border-l border-white/5 z-10 flex-shrink-0"
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 320, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            >
-              <IntelDetailPanel
-                selectedEvent={selectedEvent}
-                selectedPerson={selectedPerson}
-                selectedMedia={selectedMedia}
-                onClose={handleCloseDetail}
-                onSelectPerson={handleSelectPerson}
-                onSelectEvent={handleSelectEvent}
-                onSelectMedia={handleSelectMedia}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* ── Events Section ── */}
+      <section ref={(el) => { sectionRefs.current.events = el; }} id="section-events">
+        <SectionHeader id="events" icon={Calendar} label="EVENTS" count={stats.events} color="text-amber-400/60" />
+        {!collapsedSections.has('events') && (
+          <IntelEventsView onSelectEvent={handleSelectEvent} />
+        )}
+      </section>
 
-        {/* Toggle panel button */}
-        <motion.button
-          onClick={() => setShowPanel(!showPanel)}
-          className="absolute top-4 z-20 w-6 h-12 bg-black/60 border border-white/10 rounded-l flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-black/80 transition-all"
-          animate={{ right: showPanel ? 320 : 0 }}
-          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        >
-          {showPanel ? (
-            <ChevronRight className="w-3 h-3" />
-          ) : (
-            <ChevronLeft className="w-3 h-3" />
-          )}
-        </motion.button>
-      </div>
+      {/* ── Media Section ── */}
+      <section ref={(el) => { sectionRefs.current.media = el; }} id="section-media">
+        <SectionHeader id="media" icon={Newspaper} label="MEDIA" count={stats.media} color="text-emerald-400/60" />
+        {!collapsedSections.has('media') && (
+          <IntelMediaView onSelectMedia={handleSelectMedia} />
+        )}
+      </section>
 
-      {/* ── Bottom Panel ── */}
+      {/* ── People Section ── */}
+      <section ref={(el) => { sectionRefs.current.people = el; }} id="section-people">
+        <SectionHeader id="people" icon={Users} label="PEOPLE" count={stats.people} color="text-cyan-400/60" />
+        {!collapsedSections.has('people') && (
+          <IntelPeopleView onSelectPerson={handleSelectPerson} />
+        )}
+      </section>
+
+      {/* ── Announcements Section ── */}
+      <section ref={(el) => { sectionRefs.current.announcements = el; }} id="section-announcements">
+        <SectionHeader id="announcements" icon={Megaphone} label="ANNOUNCEMENTS" count={stats.announcements} color="text-purple-400/60" />
+        {!collapsedSections.has('announcements') && (
+          <IntelAnnouncementsView onSelectAnnouncement={handleSelectAnnouncement} />
+        )}
+      </section>
+
+      {/* ── CIP Registry Section ── */}
+      <section ref={(el) => { sectionRefs.current.cip = el; }} id="section-cip">
+        <SectionHeader id="cip" icon={ScrollText} label="CIP REGISTRY" count={stats.cip} color="text-orange-400/60" />
+        {!collapsedSections.has('cip') && (
+          <IntelCIPView onSelectCIP={handleSelectCIP} />
+        )}
+      </section>
+
+      {/* ── Bottom Panel (kept per user request) ── */}
       <IntelBottomPanel
         isOpen={showBottomPanel}
         onToggle={() => setShowBottomPanel(!showBottomPanel)}
@@ -326,7 +293,7 @@ export default function IntelligenceDashboard() {
       />
 
       {/* ── Stats Bar ── */}
-      <div className="h-8 bg-black/60 backdrop-blur-sm border-t border-white/5 flex items-center px-4 z-10 flex-shrink-0">
+      <div className="h-8 bg-black/60 backdrop-blur-sm border-t border-white/5 flex items-center px-4 z-10">
         <div className="flex items-center text-[9px] font-mono text-white/30 tracking-wide">
           <span>{stats.total} Participants</span>
           <span className="text-white/10 mx-3">·</span>
@@ -347,6 +314,43 @@ export default function IntelligenceDashboard() {
           <span className="text-orange-400/40">{stats.cip} CIPs</span>
         </div>
       </div>
+
+      {/* ── Detail Panel (Fixed Overlay) ── */}
+      <AnimatePresence>
+        {showPanel && (
+          <motion.div
+            className="fixed top-16 right-0 bottom-0 w-80 bg-black/80 backdrop-blur-xl border-l border-white/5 z-40 overflow-y-auto"
+            initial={{ x: 320, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 320, opacity: 0 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+          >
+            <IntelDetailPanel
+              selectedEvent={selectedEvent}
+              selectedPerson={selectedPerson}
+              selectedMedia={selectedMedia}
+              onClose={handleCloseDetail}
+              onSelectPerson={handleSelectPerson}
+              onSelectEvent={handleSelectEvent}
+              onSelectMedia={handleSelectMedia}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Toggle panel button */}
+      <motion.button
+        onClick={() => setShowPanel(!showPanel)}
+        className="fixed top-20 z-50 w-6 h-12 bg-black/60 border border-white/10 rounded-l flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-black/80 transition-all"
+        animate={{ right: showPanel ? 320 : 0 }}
+        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+      >
+        {showPanel ? (
+          <ChevronRight className="w-3 h-3" />
+        ) : (
+          <ChevronLeft className="w-3 h-3" />
+        )}
+      </motion.button>
     </motion.div>
   );
 }

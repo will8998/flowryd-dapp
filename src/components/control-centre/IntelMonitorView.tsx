@@ -165,7 +165,7 @@ export default function IntelMonitorView() {
   const handleClose = useCallback(() => setPlayingId(null), []);
 
   return (
-    <div className="w-full h-full flex flex-col bg-zinc-950">
+    <div className="w-full flex flex-col bg-zinc-950">
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Monitor className="w-3.5 h-3.5 text-white/30" />
@@ -200,7 +200,7 @@ export default function IntelMonitorView() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {videos.map((video) => (
             <VideoTile
