@@ -2,12 +2,14 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Calendar, Newspaper, Users, Monitor, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Globe, Calendar, Newspaper, Users, Monitor, Megaphone, ScrollText, ChevronRight, ChevronLeft } from 'lucide-react';
 import IntelGlobe from './IntelGlobe';
 import IntelEventsView from './IntelEventsView';
 import IntelMediaView from './IntelMediaView';
 import IntelPeopleView from './IntelPeopleView';
 import IntelMonitorView from './IntelMonitorView';
+import IntelAnnouncementsView from './IntelAnnouncementsView';
+import IntelCIPView from './IntelCIPView';
 import IntelBottomPanel from './IntelBottomPanel';
 import IntelDetailPanel from './IntelDetailPanel';
 import { participants, type Participant } from '@/lib/canton-data';
@@ -15,18 +17,24 @@ import {
   intelEvents,
   intelMedia,
   intelPeople,
+  intelAnnouncements,
+  cipRegistry,
   type IntelEvent,
   type IntelPerson,
   type IntelMedia,
+  type IntelAnnouncement,
+  type CIPRecord,
 } from '@/lib/canton-intel-data';
 
-type IntelTab = 'map' | 'events' | 'media' | 'people' | 'monitor';
+type IntelTab = 'map' | 'events' | 'media' | 'people' | 'monitor' | 'announcements' | 'cip';
 
 const TABS: { id: IntelTab; label: string; icon: React.ElementType; count?: number }[] = [
   { id: 'map', label: 'Map', icon: Globe },
   { id: 'events', label: 'Events', icon: Calendar },
   { id: 'media', label: 'Media', icon: Newspaper },
   { id: 'people', label: 'People', icon: Users },
+  { id: 'announcements', label: 'Announcements', icon: Megaphone },
+  { id: 'cip', label: 'CIP Registry', icon: ScrollText },
   { id: 'monitor', label: 'Monitor', icon: Monitor },
 ];
 
@@ -39,6 +47,8 @@ export default function IntelligenceDashboard() {
   const [selectedEvent, setSelectedEvent] = useState<IntelEvent | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<IntelPerson | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<IntelMedia | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<IntelAnnouncement | null>(null);
+  const [selectedCIP, setSelectedCIP] = useState<CIPRecord | null>(null);
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
 
   const stats = useMemo(() => {
@@ -54,6 +64,8 @@ export default function IntelligenceDashboard() {
       events: intelEvents.length,
       media: intelMedia.length,
       people: intelPeople.length,
+      announcements: intelAnnouncements.length,
+      cip: cipRegistry.length,
     };
   }, []);
 
@@ -62,6 +74,8 @@ export default function IntelligenceDashboard() {
     events: stats.events,
     media: stats.media,
     people: stats.people,
+    announcements: stats.announcements,
+    cip: stats.cip,
     monitor: undefined,
   };
 
@@ -70,6 +84,8 @@ export default function IntelligenceDashboard() {
     setSelectedEvent(event);
     setSelectedPerson(null);
     setSelectedMedia(null);
+    setSelectedAnnouncement(null);
+    setSelectedCIP(null);
     setShowPanel(true);
   };
 
@@ -77,6 +93,8 @@ export default function IntelligenceDashboard() {
     setSelectedPerson(person);
     setSelectedEvent(null);
     setSelectedMedia(null);
+    setSelectedAnnouncement(null);
+    setSelectedCIP(null);
     setShowPanel(true);
   };
 
@@ -84,6 +102,8 @@ export default function IntelligenceDashboard() {
     setSelectedMedia(media);
     setSelectedEvent(null);
     setSelectedPerson(null);
+    setSelectedAnnouncement(null);
+    setSelectedCIP(null);
     setShowPanel(true);
   };
 
@@ -91,8 +111,28 @@ export default function IntelligenceDashboard() {
     setSelectedEvent(null);
     setSelectedPerson(null);
     setSelectedMedia(null);
+    setSelectedAnnouncement(null);
+    setSelectedCIP(null);
   };
 
+
+  const handleSelectAnnouncement = (announcement: IntelAnnouncement) => {
+    setSelectedAnnouncement(announcement);
+    setSelectedEvent(null);
+    setSelectedPerson(null);
+    setSelectedMedia(null);
+    setSelectedCIP(null);
+    setShowPanel(true);
+  };
+
+  const handleSelectCIP = (cip: CIPRecord) => {
+    setSelectedCIP(cip);
+    setSelectedEvent(null);
+    setSelectedPerson(null);
+    setSelectedMedia(null);
+    setSelectedAnnouncement(null);
+    setShowPanel(true);
+  };
   const handleTabChange = (tab: IntelTab) => {
     setActiveTab(tab);
     // Clear selection when switching tabs
@@ -209,6 +249,32 @@ export default function IntelligenceDashboard() {
                 <IntelMonitorView />
               </motion.div>
             )}
+
+            {activeTab === 'announcements' && (
+              <motion.div
+                key="announcements"
+                className="absolute inset-0"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.15 }}
+              >
+                <IntelAnnouncementsView onSelectAnnouncement={handleSelectAnnouncement} />
+              </motion.div>
+            )}
+
+            {activeTab === 'cip' && (
+              <motion.div
+                key="cip"
+                className="absolute inset-0"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.15 }}
+              >
+                <IntelCIPView onSelectCIP={handleSelectCIP} />
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
 
@@ -275,6 +341,10 @@ export default function IntelligenceDashboard() {
           <span className="text-emerald-400/40">{stats.media} Media</span>
           <span className="text-white/10 mx-3">·</span>
           <span className="text-cyan-400/40">{stats.people} People</span>
+          <span className="text-white/10 mx-3">·</span>
+          <span className="text-purple-400/40">{stats.announcements} Announcements</span>
+          <span className="text-white/10 mx-3">·</span>
+          <span className="text-orange-400/40">{stats.cip} CIPs</span>
         </div>
       </div>
     </motion.div>

@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { participants } from './schema';
 import { participants as cantonParticipants } from '../lib/canton-data';
-import { sql } from 'drizzle-orm';
+
 
 function parseCriticality(c: string): 'critical' | 'required' | 'optional' {
   const lower = c.toLowerCase();
@@ -36,6 +36,8 @@ async function seedParticipants() {
     legacyId: p.id,
     name: p.name,
     description: p.description ?? null,
+    website: p.website ?? null,
+    cantonPartyId: p.cantonPartyId ?? null,
     roles: parseRoles(p.cantonRole),
     capabilities: p.capabilities,
     criticality: parseCriticality(p.criticality),
@@ -43,6 +45,25 @@ async function seedParticipants() {
     validatorNodes: p.validatorNodes ?? 0,
     superValidator: p.superValidator ?? false,
     verificationStatus: 'unclaimed' as const,
+    metadata: {
+      xHandle: p.xHandle ?? null,
+      location: p.location ?? null,
+      cip: p.cip ?? null,
+      svWeight: p.svWeight ?? null,
+      isSV: p.isSV ?? false,
+      isFA: p.isFA ?? false,
+      isFoundationMember: p.isFoundationMember ?? false,
+      isValidator: p.isValidator ?? false,
+      isNodeOperator: p.isNodeOperator ?? false,
+      voteResult: p.voteResult ?? null,
+      ccDistributed: p.ccDistributed ?? null,
+      notes: p.notes ?? null,
+      source: p.source ?? null,
+      partners: p.partners ?? null,
+      tickers: p.tickers ?? null,
+      lat: p.lat ?? null,
+      lng: p.lng ?? null,
+    },
   }));
 
   try {

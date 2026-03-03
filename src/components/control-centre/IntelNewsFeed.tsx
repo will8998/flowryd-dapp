@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { intelAnnouncements, type IntelAnnouncement } from '@/lib/canton-intel-data';
 
 interface NewsItem {
   id: string;
@@ -11,84 +12,7 @@ interface NewsItem {
   summary?: string;
 }
 
-const MOCK_NEWS: NewsItem[] = [
-  {
-    id: '1',
-    title: 'Canton Network Completes Cross-Border Repo Transaction with Major Banks',
-    url: '#',
-    source: 'Digital Asset Blog',
-    publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    summary: 'DTCC, Broadridge and BNY successfully execute first cross-border intraday repo on Canton Network.'
-  },
-  {
-    id: '2', 
-    title: 'Goldman Sachs Digital Asset Platform Goes Live on Canton',
-    url: '#',
-    source: 'CoinDesk',
-    publishedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    summary: 'GS DAP™ processes tokenized treasury bonds with same-day settlement via Canton Network.'
-  },
-  {
-    id: '3',
-    title: 'HQLAx Collateral Mobility Platform Reaches $50B in Assets',
-    url: '#',
-    source: 'The Block',
-    publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '4',
-    title: 'Broadridge DLR Processes Record Intraday Repo Volume',
-    url: '#',
-    source: 'Canton Network',
-    publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    summary: 'Distributed Ledger Repo platform handles $2.1B in single-day repo transactions.'
-  },
-  {
-    id: '5',
-    title: 'HKEX Synapse Connects Asian Markets to Canton Network',
-    url: '#',
-    source: 'Reuters',
-    publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '6',
-    title: 'Paxos Launches Stablecoin Settlement on Canton Network',
-    url: '#',
-    source: 'Bloomberg',
-    publishedAt: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString(),
-    summary: 'USDP stablecoin now available for atomic DvP settlement across Canton participants.'
-  },
-  {
-    id: '7',
-    title: 'Canton Network Validator Count Exceeds 100 Nodes',
-    url: '#',
-    source: 'Digital Asset Blog',
-    publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '8',
-    title: 'Euroclear Integrates Collateral Management with Canton Network',
-    url: '#',
-    source: 'Financial Times',
-    publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    summary: 'European CSD enables real-time collateral mobility across 20+ Canton participants.'
-  },
-  {
-    id: '9',
-    title: 'Circle USDC Deployed as Settlement Currency on Canton',
-    url: '#',
-    source: 'CoinDesk',
-    publishedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '10',
-    title: 'Canton Network Global Sync Commits Surpass 1 Million Daily',
-    url: '#',
-    source: 'Canton Network',
-    publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    summary: 'Daily commit volume milestone driven by repo financing and cross-border settlement flows.'
-  },
-];
+
 
 function timeAgo(dateString: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
@@ -192,7 +116,29 @@ export default function IntelNewsFeed({ className }: IntelNewsFeedProps) {
   // Simulate loading delay for visual effect
   useEffect(() => {
     const timer = setTimeout(() => {
-      setNews(MOCK_NEWS);
+      const mappedNews: NewsItem[] = intelAnnouncements.map(announcement => {
+        const descriptionLength = announcement.description.length;
+        const title = descriptionLength > 100 
+          ? announcement.description.substring(0, 100) + '...' 
+          : announcement.description;
+        const summary = announcement.notes || 
+          (descriptionLength > 100 ? announcement.description : undefined);
+        
+        // Convert YYYY-MM-DD format to ISO string
+        const publishedAt = announcement.date.includes('T') 
+          ? announcement.date 
+          : new Date(announcement.date + 'T00:00:00Z').toISOString();
+          
+        return {
+          id: announcement.id,
+          title,
+          url: announcement.sourceUrl || '#',
+          source: announcement.type,
+          publishedAt,
+          summary,
+        };
+      });
+      setNews(mappedNews);
       setIsLoading(false);
     }, 1200); // 1.2s simulated load
     return () => clearTimeout(timer);
