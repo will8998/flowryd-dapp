@@ -18,13 +18,19 @@ import { OnboardingWizard } from './OnboardingWizard';
 import { CollectiveHub } from './CollectiveHub';
 import { AdminPanel } from './AdminPanel';
 
+import dynamic from 'next/dynamic';
+const IntelligenceDashboard = dynamic(
+  () => import('./IntelligenceDashboard'),
+  { ssr: false, loading: () => <div className="w-full h-full bg-zinc-950" /> }
+);
+
 import { RetainerWidget } from './RetainerWidget';
 import { CommandPalette } from './CommandPalette';
 import { NotificationPanel } from './NotificationPanel';
 import { HelpModal } from './HelpModal';
 import { useCantonAuth } from '@/lib/auth-context';
 
-type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN';
+type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'INTEL';
 
 interface SelectedJumpCut {
   id: string;
@@ -91,7 +97,7 @@ export const FlowsStudio: React.FC = () => {
              <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 tracking-wide">
                <span className="text-white/60">Mission Control</span>
                <ChevronRight className="w-3 h-3" />
-                 <span className="text-white/80">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : 'Marketplace'}</span>
+                <span className="text-white/80">{activeTier === 'DISCOVER' ? 'Discover Network' : activeTier === 'NAVIGATE' ? 'Build Flow' : activeTier === 'ACTIVATE' ? 'Finalise Deals' : activeTier === 'ADMIN' ? 'Administration' : activeTier === 'INTEL' ? 'Intelligence' : 'Marketplace'}</span>
              </div>
 
              <div className="h-4 w-px bg-white/5" />
@@ -182,6 +188,7 @@ export const FlowsStudio: React.FC = () => {
               {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}
               {activeTier === 'ADMIN' && user?.role === 'admin' && <AdminPanel key="admin" />}
+              {activeTier === 'INTEL' && <IntelligenceDashboard key="intel" />}
             </AnimatePresence>
           </div>
         </main>

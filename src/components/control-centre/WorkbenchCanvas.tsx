@@ -230,8 +230,10 @@ export const WorkbenchCanvas: React.FC<WorkbenchCanvasProps> = ({
   }));
 
   return (
-    <div className="w-full h-full bg-[#050505] relative overflow-hidden" onDrop={onDrop} onDragOver={onDragOver}>
+    <div className="w-full h-full bg-[#050505] relative overflow-hidden">
       <ReactFlow
+        onDrop={onDrop}
+        onDragOver={onDragOver}
         nodes={nodesWithSelection}
         edges={edges}
         onNodesChange={onNodesChange}

@@ -6,7 +6,7 @@ import {
   Globe, 
   Layers, 
   Users, 
-  Terminal, 
+  Radar,
   Settings, 
 
   Shield,
@@ -18,7 +18,7 @@ import { useCantonAuth } from '@/lib/auth-context';
 import { useSubscription } from '@/hooks/use-subscription';
 import Image from 'next/image';
 
-type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN';
+type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'INTEL';
 
 interface StudioSidebarProps {
   activeTier: Tier;
@@ -58,7 +58,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
 
   const SECONDARY_ITEMS: Array<{ id?: string; label: string; icon: typeof Globe; tier?: Tier; action?: () => void }> = [
     { id: 'JOIN', label: 'Marketplace', icon: Users, tier: 'JOIN' },
-    { label: 'Intelligence', icon: Terminal, action: () => window.dispatchEvent(new Event('toggle-ryd-ai')) },
+    { id: 'INTEL', label: 'Intelligence', icon: Radar, tier: 'INTEL' },
   ];
 
   return (
