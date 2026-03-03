@@ -1196,6 +1196,26 @@ export const participants: Participant[] = [
     description: "Global law firm specializing in financial services.",
     lat: 51.5155,
     lng: -0.1050
+  },
+  {
+    id: "p_talos",
+    name: "Talos",
+    cantonRole: "Trading Infrastructure",
+    capabilities: { Trading: 1, Market_Making: 1 },
+    criticality: "REQUIRED",
+    description: "Institutional digital asset trading technology provider.",
+    lat: 40.7484,
+    lng: -73.9856
+  },
+  {
+    id: "p_hidden_road",
+    name: "Hidden Road",
+    cantonRole: "Prime Brokerage",
+    capabilities: { Prime_Brokerage: 1, Clearing: 1 },
+    criticality: "REQUIRED",
+    description: "Institutional prime brokerage and credit network.",
+    lat: 40.7527,
+    lng: -73.9772
   }
 ];
 

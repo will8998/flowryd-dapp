@@ -3,6 +3,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { participants, type Participant } from '@/lib/canton-data';
+import { type IntelEvent } from '@/lib/canton-intel-data';
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 const INITIAL_VIEW = {
@@ -16,11 +17,34 @@ const INITIAL_VIEW = {
 interface IntelMapProps {
   onSelectParticipant?: (participant: Participant) => void;
   selectedParticipantId?: string;
+  events?: IntelEvent[];
+  onSelectEvent?: (event: IntelEvent) => void;
 }
 
-export default function IntelMap({ onSelectParticipant, selectedParticipantId: _selectedParticipantId }: IntelMapProps) {
+function formatEventDates(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const startMonth = start.toLocaleString('en-US', { month: 'short' });
+  const endMonth = end.toLocaleString('en-US', { month: 'short' });
+  const startDay = start.getDate();
+  const endDay = end.getDate();
+  const year = end.getFullYear();
+
+  if (startMonth === endMonth) {
+    return `${startMonth} ${startDay}–${endDay}, ${year}`;
+  }
+  return `${startMonth} ${startDay} – ${endMonth} ${endDay}, ${year}`;
+}
+
+export default function IntelMap({
+  onSelectParticipant,
+  selectedParticipantId: _selectedParticipantId,
+  events = [],
+  onSelectEvent,
+}: IntelMapProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedPopupId, setSelectedPopupId] = useState<string | null>(null);
+  const [selectedEventPopupId, setSelectedEventPopupId] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   // Filter participants with valid coordinates
@@ -29,8 +53,15 @@ export default function IntelMap({ onSelectParticipant, selectedParticipantId: _
     []
   );
 
+  // Filter events with valid coordinates
+  const validEvents = useMemo(() =>
+    events.filter(e => e.lat != null && e.lng != null),
+    [events]
+  );
+
   const handleMarkerClick = useCallback((participant: Participant) => {
     setSelectedPopupId(participant.id);
+    setSelectedEventPopupId(null);
     onSelectParticipant?.(participant);
   }, [onSelectParticipant]);
 
@@ -45,7 +76,19 @@ export default function IntelMap({ onSelectParticipant, selectedParticipantId: _
 
   const handleMapClick = useCallback(() => {
     setSelectedPopupId(null);
+    setSelectedEventPopupId(null);
   }, []);
+
+  const handleEventMarkerClick = useCallback((event: IntelEvent) => {
+    setSelectedEventPopupId(event.id);
+    setSelectedPopupId(null);
+    onSelectEvent?.(event);
+  }, [onSelectEvent]);
+
+  const selectedEvent = useMemo(() =>
+    validEvents.find(e => e.id === selectedEventPopupId) ?? null,
+    [validEvents, selectedEventPopupId]
+  );
 
   return (
     <>
@@ -148,7 +191,25 @@ export default function IntelMap({ onSelectParticipant, selectedParticipantId: _
             );
           })}
 
-          {/* Popup */}
+          {/* Event Markers */}
+          {validEvents.map(event => (
+            <Marker key={event.id} longitude={event.lng!} latitude={event.lat!}>
+              <div
+                className="relative cursor-pointer group"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEventMarkerClick(event);
+                }}
+              >
+                {/* Outer pulse ring */}
+                <div className="absolute inset-0 w-5 h-5 -m-0.5 rounded bg-amber-400/20 animate-ping" />
+                {/* Main marker — amber diamond shape */}
+                <div className="w-4 h-4 bg-amber-400 rotate-45 shadow-[0_0_12px_rgba(251,191,36,0.6)] group-hover:scale-125 transition-transform" />
+              </div>
+            </Marker>
+          ))}
+
+          {/* Participant Popup */}
           {selectedPopupId && validParticipants.find(p => p.id === selectedPopupId) && (
             <Popup
               longitude={validParticipants.find(p => p.id === selectedPopupId)!.lng!}
@@ -199,6 +260,68 @@ export default function IntelMap({ onSelectParticipant, selectedParticipantId: _
                   </div>
                 );
               })()}
+            </Popup>
+          )}
+
+          {/* Event Popup */}
+          {selectedEvent && (
+            <Popup
+              longitude={selectedEvent.lng!}
+              latitude={selectedEvent.lat!}
+              anchor="bottom"
+              onClose={() => setSelectedEventPopupId(null)}
+              closeButton={true}
+              closeOnClick={false}
+            >
+              <div className="p-4 max-w-xs">
+                {/* Name */}
+                <div className="font-bold text-sm mb-1">{selectedEvent.name}</div>
+
+                {/* Type badge */}
+                <span className="inline-block text-[9px] font-mono px-1.5 py-0.5 bg-amber-400/15 border border-amber-400/30 text-amber-300 rounded mb-2">
+                  {selectedEvent.type.toUpperCase()}
+                </span>
+
+                {/* Location */}
+                <div className="text-[11px] font-mono text-white/60 mb-1">
+                  {selectedEvent.venue ? `${selectedEvent.venue}, ` : ''}{selectedEvent.location}
+                </div>
+
+                {/* Dates */}
+                <div className="text-[11px] font-mono text-white/50 mb-3">
+                  {formatEventDates(selectedEvent.startDate, selectedEvent.endDate)}
+                </div>
+
+                {/* Canton Relevance badge */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[9px] font-mono text-white/40">CANTON RELEVANCE</span>
+                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                    selectedEvent.cantonRelevance === 'High'
+                      ? 'bg-amber-400/15 border-amber-400/30 text-amber-300'
+                      : selectedEvent.cantonRelevance === 'Medium'
+                      ? 'bg-white/10 border-white/20 text-white/60'
+                      : 'bg-white/5 border-white/10 text-white/40'
+                  }`}>
+                    {selectedEvent.cantonRelevance.toUpperCase()}
+                  </span>
+                </div>
+
+                {/* Attendee cap */}
+                {selectedEvent.attendeeCap != null && (
+                  <div className="text-[10px] font-mono text-white/50 mb-2">
+                    ATTENDEES: {selectedEvent.attendeeCap}
+                  </div>
+                )}
+
+                {/* Notes */}
+                {selectedEvent.notes && (
+                  <div className="text-[10px] text-white/60 border-t border-white/10 pt-2 mt-2">
+                    {selectedEvent.notes.length > 100
+                      ? `${selectedEvent.notes.slice(0, 100)}…`
+                      : selectedEvent.notes}
+                  </div>
+                )}
+              </div>
             </Popup>
           )}
         </Map>
