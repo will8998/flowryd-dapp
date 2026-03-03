@@ -42,7 +42,7 @@ const TABS: { id: IntelTab; label: string; icon: React.ElementType; count?: numb
 
 export default function IntelligenceDashboard() {
   const [activeTab, setActiveTab] = useState<IntelTab>('map');
-  const [showPanel, setShowPanel] = useState(true);
+  const [showPanel, setShowPanel] = useState(false);
   const [showBottomPanel, setShowBottomPanel] = useState(true);
 
   // Selection state for detail panel
@@ -54,7 +54,7 @@ export default function IntelligenceDashboard() {
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
 
   // Collapsible sections state
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(['events', 'media', 'people', 'announcements', 'cip']));
 
   // Refs for scroll navigation
   const sectionRefs = useRef<Record<IntelTab, HTMLElement | null>>({
@@ -231,14 +231,14 @@ export default function IntelligenceDashboard() {
       </section>
 
       {/* ── 3-Column Grid (News | Monitor | Intel Brief) ── */}
-      <section className="grid grid-cols-1 lg:grid-cols-[2fr_2fr_1fr] border-t border-white/5" style={{ minHeight: '420px' }}>
-        <div className="border-r border-white/5 min-h-[420px]">
+      <section className="grid grid-cols-1 lg:grid-cols-[2fr_2fr_1fr] border-t border-white/5 h-[480px]">
+        <div className="border-r border-white/5 overflow-y-auto">
           <IntelNewsFeed />
         </div>
-        <div ref={(el) => { sectionRefs.current.monitor = el; }} id="section-monitor" className="border-r border-white/5 min-h-[420px]">
+        <div ref={(el) => { sectionRefs.current.monitor = el; }} id="section-monitor" className="border-r border-white/5 overflow-y-auto">
           <IntelMonitorView />
         </div>
-        <div className="min-h-[420px]">
+        <div className="overflow-y-auto">
           <IntelBriefPanel />
         </div>
       </section>
