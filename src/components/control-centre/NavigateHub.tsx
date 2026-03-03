@@ -60,9 +60,10 @@ interface NavigateHubProps {
   onJumpCutConsumed?: () => void;
   initialParticipant?: Participant | null;
   onParticipantConsumed?: () => void;
+  onDealCreated?: (dealId: string) => void;
 }
 
-const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJumpCutConsumed, initialParticipant, onParticipantConsumed }) => {
+const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJumpCutConsumed, initialParticipant, onParticipantConsumed, onDealCreated }) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -835,7 +836,13 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                   });
                   if (res.ok) {
                     const { data } = await res.json();
-                    window.location.href = `/deals/${data.deal.id}`;
+                    if (onDealCreated) {
+                      onDealCreated(data.deal.id);
+                    } else {
+                      window.location.href = `/deals/${data.deal.id}`;
+                    }
+                  } else {
+                    throw new Error('Failed to create deal');
                   }
                 } catch (error) {
                   setDealError('Failed to create deal. Please try again.');
@@ -847,7 +854,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
               disabled={isCreatingDeal}
               className="px-3 py-1.5 border border-white/30 text-white rounded-lg text-[10px] font-bold hover:border-white/50 transition-colors flex items-center gap-1.5 tracking-wide disabled:opacity-50"
             >
-              <Play className="w-3 h-3 fill-white" /> {isCreatingDeal ? 'Creating...' : 'Deal Room'}
+              <Play className="w-3 h-3 fill-white" /> {isCreatingDeal ? 'Creating...' : 'Create Deal'}
             </button>
           )}
         </div>

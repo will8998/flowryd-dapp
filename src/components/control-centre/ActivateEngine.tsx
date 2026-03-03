@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Briefcase, Clock, ChevronRight } from 'lucide-react';
+import { Plus, Briefcase, Clock, ChevronRight, CheckCircle2, ExternalLink, X } from 'lucide-react';
 import { useDeals } from '@/hooks/use-deals';
 import { authFetch } from '@/lib/auth-fetch';
 import { ListSkeleton } from './SkeletonLoaders';
@@ -36,10 +36,46 @@ const timeAgo = (dateStr: string) => {
   return `${days}d ago`;
 };
 
-export const ActivateEngine: React.FC = () => {
+interface ActivateEngineProps {
+  highlightDealId?: string | null;
+  onHighlightConsumed?: () => void;
+}
+
+export const ActivateEngine: React.FC<ActivateEngineProps> = ({ highlightDealId, onHighlightConsumed }) => {
   const { deals, isLoading, refetch } = useDeals();
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [successDealId, setSuccessDealId] = useState<string | null>(null);
+  const [highlightFading, setHighlightFading] = useState(false);
+  const highlightRef = useRef<HTMLDivElement>(null);
+
+  // When a new deal is created from NAVIGATE, refetch and show success
+  useEffect(() => {
+    if (highlightDealId) {
+      refetch();
+      setSuccessDealId(highlightDealId);
+      setShowSuccessBanner(true);
+      setHighlightFading(false);
+      // Fade highlight after 5s
+      const fadeTimer = setTimeout(() => setHighlightFading(true), 5000);
+      // Remove highlight after fade animation (6s)
+      const removeTimer = setTimeout(() => {
+        setSuccessDealId(null);
+        onHighlightConsumed?.();
+      }, 6000);
+      // Auto-dismiss banner after 8s
+      const bannerTimer = setTimeout(() => setShowSuccessBanner(false), 8000);
+      return () => { clearTimeout(fadeTimer); clearTimeout(removeTimer); clearTimeout(bannerTimer); };
+    }
+  }, [highlightDealId, refetch, onHighlightConsumed]);
+
+  // Scroll highlighted deal into view
+  useEffect(() => {
+    if (successDealId && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [successDealId, deals]);
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -78,8 +114,36 @@ export const ActivateEngine: React.FC = () => {
   return (
     <div className="h-full flex flex-col bg-background">
       <div className="px-6 pt-5 pb-4 space-y-4">
+        {/* Success Banner */}
+        <AnimatePresence>
+          {showSuccessBanner && successDealId && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span className="text-sm text-emerald-300 font-medium">Deal created successfully</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.location.href = `/deals/${successDealId}`}
+                  className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Open Deal Room <ExternalLink className="w-3 h-3" />
+                </button>
+                <button onClick={() => setShowSuccessBanner(false)} className="text-white/30 hover:text-white/60 transition-colors ml-2">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {error && (
-          <div className="mx-4 mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
             {error}
           </div>
         )}
@@ -175,6 +239,7 @@ export const ActivateEngine: React.FC = () => {
                 const config = STATUS_CONFIG[status];
                 return (
                   <motion.div
+                    ref={deal.id === successDealId ? highlightRef : undefined}
                     key={deal.id}
                     layout
                     initial={{ opacity: 0, y: 8 }}
@@ -182,7 +247,13 @@ export const ActivateEngine: React.FC = () => {
                     exit={{ opacity: 0, scale: 0.98 }}
                     transition={{ delay: i * 0.03 }}
                     onClick={() => window.location.href = `/deals/${deal.id}`}
-                    className="flex items-center gap-4 px-4 py-3 bg-black/30 border border-white/10 rounded hover:border-white/20 hover:bg-white/[0.02] transition-all cursor-pointer group"
+                    className={`flex items-center gap-4 px-4 py-3 bg-black/30 border rounded hover:border-white/20 hover:bg-white/[0.02] transition-all cursor-pointer group ${
+                      deal.id === successDealId
+                        ? highlightFading
+                          ? 'border-emerald-500/10 ring-0'
+                          : 'border-emerald-500/40 ring-1 ring-emerald-500/20 bg-emerald-500/[0.03]'
+                        : 'border-white/10'
+                    }`}
                   >
                     <span className={`w-2 h-2 rounded-full shrink-0 ${DOT_COLORS[status]}`} />
 

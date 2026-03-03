@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { 
   Bell, 
   Command,
@@ -45,6 +45,8 @@ import type { Participant } from '@/lib/canton-data';
 type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'INTEL';
 type NavigateView = 'templates' | 'blueprints' | 'library' | 'create' | 'template-builder';
 
+const DEAL_ERROR_TIMEOUT = 5000;
+
 interface SelectedJumpCut {
   id: string;
   name: string;
@@ -65,6 +67,13 @@ export const FlowsStudio: React.FC = () => {
   const [previousNavigateView, setPreviousNavigateView] = useState<NavigateView>('blueprints');
   const [selectedBlueprint, setSelectedBlueprint] = useState<{ flow: CantonFlow; steps: CantonFlowStep[] } | null>(null);
 
+  const [highlightDealId, setHighlightDealId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDealCreated = useCallback((dealId: string) => {
+    setHighlightDealId(dealId);
+    handleTierChange('ACTIVATE');
+  }, []);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -185,6 +194,22 @@ export const FlowsStudio: React.FC = () => {
            </div>
         </header>
 
+        {/* Deal creation error banner */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="px-8 py-2 bg-red-500/10 border-b border-red-500/20"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-red-400">{error}</span>
+                <button onClick={() => setError(null)} className="text-white/30 hover:text-white/60 text-sm ml-4">×</button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <main className="flex-1 relative overflow-hidden min-h-0">
           <div className="h-full overflow-y-auto custom-scrollbar relative">
             <AnimatePresence mode="wait">
@@ -275,6 +300,7 @@ export const FlowsStudio: React.FC = () => {
                           onParticipantConsumed={() => setPendingParticipant(null)}
                           onNavigateToTier={(tier) => handleTierChange(tier as Tier)}
                           onBackToLibrary={() => setNavigateView('library')}
+                          onDealCreated={handleDealCreated}
                         />
                       )}
                       {navigateView === 'template-builder' && selectedBlueprint && (
@@ -296,10 +322,11 @@ export const FlowsStudio: React.FC = () => {
                               });
                               if (!res.ok) throw new Error('Failed to create deal');
                               const { data } = await res.json();
-                              window.location.href = `/deals/${data.deal.id}`;
+                              handleDealCreated(data.deal.id);
                             } catch (err) {
                               console.error('Failed to create deal:', err);
-                              handleTierChange('ACTIVATE');
+                              setError(err instanceof Error ? err.message : 'Failed to create deal. Please try again.');
+                              setTimeout(() => setError(null), DEAL_ERROR_TIMEOUT);
                             }
                           }}
                         />
@@ -308,7 +335,7 @@ export const FlowsStudio: React.FC = () => {
                   </div>
                 </div>
               )}
-              {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" />}
+              {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" highlightDealId={highlightDealId} onHighlightConsumed={() => setHighlightDealId(null)} />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}
               {activeTier === 'ADMIN' && (
                 user?.role === 'admin' ? <AdminPanel key="admin" /> : (

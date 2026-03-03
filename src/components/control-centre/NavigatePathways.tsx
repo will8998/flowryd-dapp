@@ -14,9 +14,10 @@ interface NavigatePathwaysProps {
   onParticipantConsumed?: () => void;
   onNavigateToTier?: (tier: string) => void;
   onBackToLibrary?: () => void;
+  onDealCreated?: (dealId: string) => void;
 }
 
-export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpCut, onJumpCutConsumed, initialParticipant, onParticipantConsumed, onNavigateToTier, onBackToLibrary }) => {
+export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpCut, onJumpCutConsumed, initialParticipant, onParticipantConsumed, onNavigateToTier, onBackToLibrary, onDealCreated }) => {
   const [selectedPathway, setSelectedPathway] = useState<'join' | 'build' | 'custom' | null>(initialJumpCut || initialParticipant ? 'build' : null);
 
 
@@ -154,6 +155,7 @@ export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpC
               onJumpCutConsumed={onJumpCutConsumed}
               initialParticipant={initialParticipant}
               onParticipantConsumed={onParticipantConsumed}
+              onDealCreated={onDealCreated}
             />
           </div>
         </motion.div>
