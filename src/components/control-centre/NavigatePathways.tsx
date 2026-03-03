@@ -144,11 +144,11 @@ export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpC
                 setSelectedPathway(null);
               }
             }}
-            className="text-white/40 hover:text-white text-sm mb-4 text-left transition-colors duration-200"
+            className="shrink-0 text-white/40 hover:text-white text-sm mb-4 text-left transition-colors duration-200"
           >
             ← {(initialJumpCut || initialParticipant) ? 'Back to Discover' : 'Back to Pathways'}
           </button>
-          <div className="flex-1">
+          <div className="flex-1 min-h-0 overflow-hidden">
             <NavigateHub 
               initialJumpCut={initialJumpCut}
               onJumpCutConsumed={onJumpCutConsumed}
