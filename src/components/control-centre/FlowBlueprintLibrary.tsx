@@ -271,8 +271,7 @@ export const FlowBlueprintLibrary: React.FC<FlowBlueprintLibraryProps> = ({ onUs
   const handleUseAsBlueprint = (flow: CantonFlow) => {
     const steps = getStepsForFlow(flow.id);
     onUseBlueprint?.(flow, steps);
-    // For now, just log - will be connected to TemplateFlowBuilder later
-    console.log('Use as blueprint:', flow.name, steps);
+    // Connected to TemplateFlowBuilder via onUseBlueprint callback
   };
 
   // Group flows by category

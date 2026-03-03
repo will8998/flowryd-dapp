@@ -174,7 +174,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
         
         <div className="grid grid-cols-2 gap-2">
            <button 
-             onClick={() => { setShowSettingsToast(true); setTimeout(() => setShowSettingsToast(false), 2000); }}
+             aria-label="Settings"
              className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded hover:bg-white/10 transition-all text-white/40 hover:text-white relative group"
            >
              <Settings className="w-4 h-4" />
@@ -185,7 +185,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
              )}
            </button>
            <button 
-             onClick={disconnect}
+             aria-label="Logout"
              className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all text-white/40"
            >
              <LogOut className="w-4 h-4" />

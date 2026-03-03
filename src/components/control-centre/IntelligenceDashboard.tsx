@@ -32,6 +32,7 @@ import {
   type IntelAnnouncement,
   type CIPRecord,
 } from '@/lib/canton-intel-data';
+import { ErrorBoundary } from './ErrorBoundary';
 
 // Dynamic imports for new components (SSR-safe)
 const IntelMarketTicker = dynamic(() => import('./IntelMarketTicker'), { ssr: false });
@@ -295,6 +296,7 @@ export default function IntelligenceDashboard() {
         id="section-map" 
         className="relative h-[60vh] min-h-[400px]"
       >
+        <ErrorBoundary label="3D Globe">
         <IntelGlobe
           onSelectParticipant={handleSelectParticipant}
           selectedParticipantId={selectedParticipantId ?? undefined}
@@ -303,6 +305,7 @@ export default function IntelligenceDashboard() {
           onSelectPerson={handleSelectPerson}
           onSelectAnnouncement={handleSelectAnnouncement}
         />
+        </ErrorBoundary>
       </section>
 
       {/* ── Bloomberg Bento Grid (News | Monitor | Intel Brief) ── */}
@@ -357,6 +360,7 @@ export default function IntelligenceDashboard() {
         />
         {!collapsedSections.has('graph') && (
           <div className="mt-2">
+            <ErrorBoundary label="Relationship Graph">
             <IntelRelationshipGraph 
               onNodeSelect={(node) => {
                 if (node.type === 'Person' && node.data) {
@@ -378,6 +382,7 @@ export default function IntelligenceDashboard() {
               }}
               height={500}
             />
+            </ErrorBoundary>
           </div>
         )}
       </section>

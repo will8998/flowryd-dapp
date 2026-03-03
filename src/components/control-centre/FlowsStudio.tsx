@@ -10,6 +10,7 @@ import {
   Database,
   Workflow,
   LayoutTemplate,
+  Monitor,
   } from 'lucide-react';
 import { StudioSidebar } from './StudioSidebar';
 import { NetworkGrid } from './NetworkGrid';
@@ -25,10 +26,12 @@ import { TemplateFlowBuilder } from './TemplateFlowBuilder';
 import { AdminPanel } from './AdminPanel';
 import { authFetch } from '@/lib/auth-fetch';
 
+import { DashboardSkeleton } from './SkeletonLoaders';
+
 import dynamic from 'next/dynamic';
 const IntelligenceDashboard = dynamic(
   () => import('./IntelligenceDashboard'),
-  { ssr: false, loading: () => <div className="w-full h-full bg-zinc-950" /> }
+  { ssr: false, loading: () => <DashboardSkeleton /> }
 );
 
 import { RetainerWidget } from './RetainerWidget';
@@ -95,6 +98,16 @@ export const FlowsStudio: React.FC = () => {
   };
 
   return (
+    <>
+    {/* Mobile Notice */}
+    <div className="md:hidden fixed inset-0 z-[100] bg-zinc-950 flex flex-col items-center justify-center p-8 text-center">
+      <Monitor className="w-12 h-12 text-white/20 mb-6" />
+      <h2 className="text-xl font-bold text-white mb-2">Desktop Experience Required</h2>
+      <p className="text-sm text-white/40 max-w-sm leading-relaxed mb-8">
+        FlowRyd&apos;s mission control is built for desktop browsers. Please switch to a larger screen for the full experience.
+      </p>
+      <div className="text-[9px] font-mono text-white/20 tracking-widest">FLOWRYD.COM</div>
+    </div>
     <div className="flex h-screen bg-background text-white overflow-hidden selection:bg-white/30">
       <AnimatePresence>
         {showOnboarding && (
@@ -148,6 +161,7 @@ export const FlowsStudio: React.FC = () => {
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <button 
+                    aria-label="Notifications"
                     className="p-2 text-white/40 hover:text-white transition-colors relative"
                     onClick={() => setShowNotifications(prev => !prev)}
                   >
@@ -161,6 +175,7 @@ export const FlowsStudio: React.FC = () => {
                   />
                 </div>
                 <button 
+                  aria-label="Help"
                   className="p-2 text-white/40 hover:text-white transition-colors"
                   onClick={() => setShowHelp(true)}
                 >
@@ -206,6 +221,11 @@ export const FlowsStudio: React.FC = () => {
                         );
                       })}
                     </div>
+                    <p className="text-[9px] text-white/20 mt-1 px-1">
+                      {navigateView === 'templates' && 'Industry-standard workflow templates from Canton Network'}
+                      {navigateView === 'blueprints' && 'Pre-built flow blueprints with specific participants assigned'}
+                      {navigateView === 'library' && 'Your saved and active workflows'}
+                    </p>
 
                     {/* Create New Flow Button - only show on library view */}
                     {navigateView === 'library' && (
@@ -321,6 +341,7 @@ export const FlowsStudio: React.FC = () => {
         onClose={() => setShowHelp(false)}
       />
     </div>
+    </>
   );
 };
 

@@ -52,7 +52,7 @@ export const SubscriptionPaywall: React.FC<SubscriptionPaywallProps> = ({
   const selectedPlan = PLANS.find(plan => plan.name === requiredTier);
 
   const handleSubscribe = (planName: string) => {
-    console.log(`Subscribe to ${planName} clicked`);
+    // Subscription handler — will connect to payment provider
   };
 
   return (

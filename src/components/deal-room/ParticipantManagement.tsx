@@ -111,7 +111,7 @@ export default function ParticipantManagement({
 
   const isParticipantOnline = (_participant: DealParticipant) => {
     // Placeholder for online status - in real app this would check active_sessions
-    return Math.random() > 0.3; // Random for demo
+    return true;
   };
 
   return (

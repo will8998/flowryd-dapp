@@ -82,7 +82,28 @@ function generateSparkline(basePrice: number, points: number = 24, symbol: strin
   return data;
 }
 
+// Server-side cache
+let cachedData: { data: unknown; timestamp: number } | null = null;
+const CACHE_TTL = 60_000; // 60 seconds
+
+// Commodity data (simulated with small variance)
+function getCommodityData(): MarketPrice[] {
+  const variance = () => 1 + (Math.random() - 0.5) * 0.005; // ±0.25%
+  return [
+    { symbol: 'XAU', name: 'Gold', price: 2650.40 * variance(), change24h: 0.32, volume24h: 0, marketCap: 0, sparkline: generateSparkline(2650.40, 8, 'XAU') },
+    { symbol: 'WTI', name: 'Crude Oil', price: 71.25 * variance(), change24h: -0.85, volume24h: 0, marketCap: 0, sparkline: generateSparkline(71.25, 8, 'WTI') },
+    { symbol: 'EUR/USD', name: 'EUR/USD', price: 1.0842 * variance(), change24h: 0.12, volume24h: 0, marketCap: 0, sparkline: generateSparkline(1.0842, 8, 'EURUSD') },
+    { symbol: 'GBP/USD', name: 'GBP/USD', price: 1.2654 * variance(), change24h: -0.15, volume24h: 0, marketCap: 0, sparkline: generateSparkline(1.2654, 8, 'GBPUSD') },
+    { symbol: 'XAG', name: 'Silver', price: 31.15 * variance(), change24h: 0.67, volume24h: 0, marketCap: 0, sparkline: generateSparkline(31.15, 8, 'XAG') },
+  ];
+}
+
 export async function GET() {
+  // Check cache first
+  if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
+    return NextResponse.json(cachedData.data);
+  }
+
   try {
     // Fetch from CoinGecko API
     const response = await fetch(
@@ -154,22 +175,30 @@ export async function GET() {
       marketPrices.push(fallbackData[2]);
     }
 
+    // Append commodity data
+    const commodities = getCommodityData();
+    const allData = [...marketPrices, ...commodities];
+
     // If no data was returned at all, use fallback
-    if (marketPrices.length === 0) {
-      return NextResponse.json({
+    if (allData.length === 0) {
+      const fallbackResponse = {
         success: true,
         data: fallbackData,
         source: 'fallback',
         timestamp: new Date().toISOString(),
-      });
+      };
+      cachedData = { data: fallbackResponse, timestamp: Date.now() };
+      return NextResponse.json(fallbackResponse);
     }
 
-    return NextResponse.json({
+    const response_data = {
       success: true,
-      data: marketPrices,
+      data: allData,
       source: 'coingecko',
       timestamp: new Date().toISOString(),
-    });
+    };
+    cachedData = { data: response_data, timestamp: Date.now() };
+    return NextResponse.json(response_data);
 
   } catch (error) {
     console.error('Market API error:', error);

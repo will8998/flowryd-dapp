@@ -28,6 +28,7 @@ import {
   LayoutGrid,
 } from 'lucide-react';
 import { ParticipantTray } from './ParticipantTray';
+import { ErrorBoundary } from './ErrorBoundary';
 import { WorkbenchCanvas } from './WorkbenchCanvas';
 import { NodeConfigPanel } from './NodeConfigPanel';
 import { FlowCreationModal } from './FlowCreationModal';
@@ -958,6 +959,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
               </button>
             </div>
           ) : (
+            <ErrorBoundary label="Flow Canvas">
             <WorkbenchCanvas 
               nodes={nodes}
               edges={edges}
@@ -970,6 +972,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
               selectedNodeId={selectedNodeId}
               selectedWorkflowId={selectedWorkflow}
             />
+            </ErrorBoundary>
           )}
           <NodeConfigPanel
             isOpen={showNodeConfig}

@@ -225,6 +225,9 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut, onSel
         p.criticality === 'CRITICAL' ? 'border-white/20 border-l-white/40 border-l-2' : 'border-white/10'
       }`}
       onClick={() => setSelectedParticipant(p)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedParticipant(p); } }}
     >
       {p.criticality === 'CRITICAL' && (
         <div className="absolute top-3 right-3">

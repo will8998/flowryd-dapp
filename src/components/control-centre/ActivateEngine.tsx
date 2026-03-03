@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Briefcase, Clock, ChevronRight } from 'lucide-react';
 import { useDeals } from '@/hooks/use-deals';
 import { authFetch } from '@/lib/auth-fetch';
+import { ListSkeleton } from './SkeletonLoaders';
 
 const STATUSES = ['draft', 'open', 'negotiating', 'locked', 'committed'] as const;
 
@@ -138,9 +139,7 @@ export const ActivateEngine: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto px-6 pb-6">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-5 h-5 border-2 border-white/40 border-t-transparent rounded-full animate-spin" />
-          </div>
+          <ListSkeleton />
         ) : filteredDeals.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 10 }}

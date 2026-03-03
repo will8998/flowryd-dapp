@@ -54,19 +54,22 @@ interface TickerItemProps {
 
 function TickerItem({ symbol, name: _name, price, change24h, sparkline }: TickerItemProps) {
   const isPositive = change24h >= 0;
-  const formattedPrice = price > 1 
-    ? new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(price)
-    : new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 6,
-      }).format(price);
+  const isFx = ['EUR/USD', 'GBP/USD', 'USD/JPY'].includes(symbol?.toUpperCase());
+  const formattedPrice = isFx
+    ? price.toFixed(4)
+    : price > 1 
+      ? new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(price)
+      : new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 4,
+          maximumFractionDigits: 6,
+        }).format(price);
   
   const changeDisplay = `${isPositive ? '+' : ''}${change24h.toFixed(2)}%`;
 

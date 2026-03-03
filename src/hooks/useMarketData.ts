@@ -30,9 +30,9 @@ export function useMarketData(): MarketDataReturn {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch data from our API endpoint
-  const fetchMarketData = useCallback(async () => {
+  const fetchMarketData = useCallback(async (silent = false) => {
     try {
-      setError(null);
+      if (!silent) setError(null);
       const response = await fetch('/api/intel/market');
       
       if (!response.ok) {
@@ -44,14 +44,16 @@ export function useMarketData(): MarketDataReturn {
       if (result.success && result.data) {
         setPrices(result.data);
         setLastUpdate(new Date());
-        setIsLoading(false);
+        if (!silent) setIsLoading(false);
       } else {
         throw new Error('Invalid API response format');
       }
     } catch (err) {
-      console.error('Failed to fetch market data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch market data');
-      setIsLoading(false);
+      if (!silent) {
+        console.error('Failed to fetch market data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch market data');
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -158,9 +160,9 @@ export function useMarketData(): MarketDataReturn {
     // Initial data fetch
     fetchMarketData();
 
-    // Set up polling interval (60 seconds)
+    // Set up silent polling interval (60 seconds, stale-while-revalidate)
     pollIntervalRef.current = setInterval(() => {
-      fetchMarketData();
+      fetchMarketData(true);
     }, 60000);
 
     // Connect to WebSocket
