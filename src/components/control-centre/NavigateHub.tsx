@@ -40,6 +40,7 @@ import { useAutoSave } from '@/hooks/use-auto-save';
 import { useUndoRedo } from '@/hooks/use-undo-redo';
 import { useCantonAuth } from '@/lib/auth-context';
 import { participants as cantonParticipants, workflows as cantonWorkflows } from '@/lib/canton-data';
+import type { Participant } from '@/lib/canton-data';
 import { authFetch } from '@/lib/auth-fetch';
 
 interface JumpCutData {
@@ -56,9 +57,11 @@ interface JumpCutData {
 interface NavigateHubProps {
   initialJumpCut?: JumpCutData | null;
   onJumpCutConsumed?: () => void;
+  initialParticipant?: Participant | null;
+  onParticipantConsumed?: () => void;
 }
 
-const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJumpCutConsumed }) => {
+const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJumpCutConsumed, initialParticipant, onParticipantConsumed }) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -198,6 +201,41 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
     
     onJumpCutConsumed?.();
   }, [initialJumpCut, orgName, makeUserOrgNode, onJumpCutConsumed, fitView]);
+
+  // Handle initialParticipant — place user-org + selected participant on canvas
+  useEffect(() => {
+    if (!initialParticipant || !orgName) return;
+    
+    // User-org node positioned on the left
+    const userNode = makeUserOrgNode(orgName);
+    userNode.position = { x: 300, y: 250 };
+    
+    // Participant node positioned on the right
+    const participantNode: Node = {
+      id: `participant-${Date.now()}`,
+      type: 'institutional',
+      position: { x: 700, y: 250 },
+      data: { participantId: initialParticipant.id },
+    };
+    
+    // Edge connecting user-org → participant
+    const connectEdge: Edge = {
+      id: `pe-${Date.now()}`,
+      source: 'user-org',
+      target: participantNode.id,
+      type: 'liquid',
+      animated: true,
+    };
+    
+    setNodes([userNode, participantNode]);
+    setEdges([connectEdge]);
+    
+    // Auto-fit the canvas
+    setTimeout(() => fitView({ padding: 0.3, duration: 400 }), 100);
+    
+    onParticipantConsumed?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialParticipant, orgName, makeUserOrgNode, onParticipantConsumed, fitView]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {

@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ArrowRight, Building2, Database, Network, Layers, Plus, Users, Eye, X, Star } from 'lucide-react';
-import { participants } from '@/lib/canton-data';
+import { Search, ArrowRight, Building2, Database, Network, Layers, Plus, Users, Eye, X, Star, Globe, ExternalLink } from 'lucide-react';
+import { participants, type Participant } from '@/lib/canton-data';
 
 
 interface JumpCut {
@@ -40,17 +40,19 @@ interface CommunityFlow {
 
 interface NetworkGridProps {
   onSelectJumpCut: (jumpCut: JumpCut) => void;
+  onSelectParticipant?: (participant: Participant) => void;
 }
 
 type ViewState = 'welcome' | 'browsing' | 'filtered';
 
-export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => {
+export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut, onSelectParticipant }) => {
   const [filter, setFilter] = useState('');
   const [selectedRole, setSelectedRole] = useState('ALL');
   const [viewState, setViewState] = useState<ViewState>('welcome');
   const [communityFlows, setCommunityFlows] = useState<CommunityFlow[]>([]);
   const [joiningFlows, setJoiningFlows] = useState<Set<string>>(new Set());
   const [joinedFlows, setJoinedFlows] = useState<Set<string>>(new Set());
+  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
   // Determine view state based on user interactions
   const currentViewState = useMemo<ViewState>(() => {
@@ -222,6 +224,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
       className={`bg-black/30 border rounded p-5 hover:border-white/30 hover:bg-white/[0.01] transition-all group relative overflow-hidden cursor-pointer ${
         p.criticality === 'CRITICAL' ? 'border-white/20 border-l-white/40 border-l-2' : 'border-white/10'
       }`}
+      onClick={() => setSelectedParticipant(p)}
     >
       {p.criticality === 'CRITICAL' && (
         <div className="absolute top-3 right-3">
@@ -614,6 +617,181 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
                </div>
              </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Participant Detail Drawer */}
+      <AnimatePresence>
+        {selectedParticipant && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-50"
+              onClick={() => setSelectedParticipant(null)}
+            />
+
+            {/* Drawer Panel */}
+            <motion.div
+              initial={{ x: 380 }}
+              animate={{ x: 0 }}
+              exit={{ x: 380 }}
+              transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
+              className="fixed right-0 top-0 h-full w-[380px] bg-[#0a0a0a] border-l border-white/10 z-50 overflow-y-auto"
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-[#0a0a0a] border-b border-white/10 p-4 z-10">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-lg font-bold text-white truncate">{selectedParticipant.name}</h2>
+                    <p className="text-[9px] font-mono text-white/30 tracking-wide font-bold">{selectedParticipant.cantonRole}</p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-3">
+                    {selectedParticipant.criticality === 'CRITICAL' && (
+                      <div className="px-2 py-1 bg-white/10 border border-white/20 rounded text-[8px] font-mono font-bold text-white/60">
+                        CRITICAL
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setSelectedParticipant(null)}
+                      className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded transition-all"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-4 space-y-6">
+                {/* Overview Section */}
+                {selectedParticipant.description && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Eye className="w-3 h-3 text-white/30" />
+                      <span className="text-[9px] font-bold font-mono tracking-[0.15em] text-white/30">OVERVIEW</span>
+                    </div>
+                    <p className="text-xs text-white/60 leading-relaxed">{selectedParticipant.description}</p>
+                  </div>
+                )}
+
+                {/* Network Status Section */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Network className="w-3 h-3 text-white/30" />
+                    <span className="text-[9px] font-bold font-mono tracking-[0.15em] text-white/30">NETWORK STATUS</span>
+                  </div>
+                  <div className="space-y-2">
+                    {selectedParticipant.validatorNodes && (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-white/40 font-mono">Validator Nodes</span>
+                        <span className="text-white/70 font-mono">{selectedParticipant.validatorNodes}</span>
+                      </div>
+                    )}
+                    {selectedParticipant.superValidator && (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-white/40 font-mono">Super Validator</span>
+                        <div className="w-2 h-2 rounded-full bg-white/40" />
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-white/40 font-mono">Criticality</span>
+                      <span className={`text-xs font-mono ${ 
+                        selectedParticipant.criticality === 'CRITICAL' ? 'text-white' :
+                        selectedParticipant.criticality === 'REQUIRED' ? 'text-white/70' : 'text-white/50'
+                      }`}>{selectedParticipant.criticality}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Capabilities Section */}
+                {selectedParticipant.capabilities && Object.keys(selectedParticipant.capabilities).length > 0 && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Layers className="w-3 h-3 text-white/30" />
+                      <span className="text-[9px] font-bold font-mono tracking-[0.15em] text-white/30">CAPABILITIES</span>
+                    </div>
+                    <div className="space-y-2">
+                      {Object.entries(selectedParticipant.capabilities).slice(0, 5).map(([cap, value]) => (
+                        <div key={cap} className="flex justify-between items-center text-xs">
+                          <span className="text-white/40 font-mono capitalize">{cap.replace(/([A-Z])/g, ' $1').trim()}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-1 bg-white/10 rounded">
+                              <div 
+                                className="h-full bg-white/40 rounded" 
+                                style={{ width: `${Math.min(value * 20, 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-white/60 font-mono text-[10px] w-6 text-right">{value}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Partners Section */}
+                {selectedParticipant.partners && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Users className="w-3 h-3 text-white/30" />
+                      <span className="text-[9px] font-bold font-mono tracking-[0.15em] text-white/30">PARTNERS</span>
+                    </div>
+                    <p className="text-xs text-white/60 leading-relaxed">{selectedParticipant.partners}</p>
+                  </div>
+                )}
+
+                {/* Links Section */}
+                {(selectedParticipant.website || selectedParticipant.xHandle) && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <ExternalLink className="w-3 h-3 text-white/30" />
+                      <span className="text-[9px] font-bold font-mono tracking-[0.15em] text-white/30">LINKS</span>
+                    </div>
+                    <div className="space-y-2">
+                      {selectedParticipant.website && (
+                        <a
+                          href={selectedParticipant.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-xs text-white/60 hover:text-white transition-colors"
+                        >
+                          <Globe className="w-3 h-3" />
+                          <span>Website</span>
+                        </a>
+                      )}
+                      {selectedParticipant.xHandle && (
+                        <a
+                          href={`https://x.com/${selectedParticipant.xHandle.replace('@', '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-xs text-white/60 hover:text-white transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>X / Twitter</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* CTA Button */}
+              <div className="sticky bottom-0 p-4 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent pt-8">
+                <button
+                  onClick={() => {
+                    onSelectParticipant?.(selectedParticipant);
+                    setSelectedParticipant(null);
+                  }}
+                  className="w-full py-3 border border-white/30 text-white rounded text-sm font-bold hover:border-white/50 hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                >
+                  Start Flow with {selectedParticipant.name} →
+                </button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>

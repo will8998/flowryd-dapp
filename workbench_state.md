@@ -1,0 +1,218 @@
+- generic [ref=e1]:
+  - generic [ref=e14]:
+    - generic [ref=e15]:
+      - generic [ref=e17]:
+        - img "Flowryd" [ref=e18]
+        - generic [ref=e19]: v1.2
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - paragraph [ref=e22]: Core
+          - button "Discover" [ref=e23]:
+            - generic [ref=e24]:
+              - img [ref=e25]
+              - generic [ref=e28]: Discover
+          - button "Workbench" [active] [ref=e29]:
+            - generic [ref=e30]:
+              - img [ref=e31]
+              - generic [ref=e35]: Workbench
+            - img [ref=e1964]
+          - button "Deals" [ref=e38]:
+            - generic [ref=e39]:
+              - img [ref=e40]
+              - generic [ref=e42]: Deals
+        - generic [ref=e43]:
+          - paragraph [ref=e44]: Ecosystem
+          - generic [ref=e1966]:
+            - button "Marketplace" [ref=e1967]:
+              - img [ref=e1968]
+              - generic [ref=e1973]: Marketplace
+            - button "Intelligence" [ref=e1974]:
+              - img [ref=e1975]
+              - generic [ref=e1982]: Intelligence
+      - generic [ref=e62]:
+        - generic [ref=e63]:
+          - generic [ref=e64]: F
+          - generic [ref=e65]:
+            - paragraph [ref=e66]: Canton Node
+            - paragraph [ref=e67]: admin
+        - generic [ref=e70]:
+          - button [ref=e71]:
+            - img [ref=e72]
+          - button [ref=e75]:
+            - img [ref=e76]
+    - generic [ref=e79]:
+      - banner [ref=e80]:
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - generic [ref=e83]: Mission Control
+            - img [ref=e84]
+            - generic [ref=e86]: Build Flow
+          - generic [ref=e88]:
+            - generic [ref=e89]:
+              - img [ref=e91]
+              - generic [ref=e94]: 1. Discover Network
+            - generic [ref=e95]:
+              - generic [ref=e96]: "2"
+              - generic [ref=e97]: 2. Build Flow
+            - generic [ref=e98]:
+              - generic [ref=e99]: "3"
+              - generic [ref=e100]: 3. Finalise Deals
+        - generic [ref=e101]:
+          - generic [ref=e102] [cursor=pointer]:
+            - img [ref=e103]
+            - generic [ref=e105]: Command Palette (⌘K)
+          - generic [ref=e106]:
+            - button [ref=e108]:
+              - img [ref=e109]
+            - button [ref=e112]:
+              - img [ref=e113]
+      - main [ref=e116]:
+        - generic [ref=e1983]:
+          - generic [ref=e1985]:
+            - button "Templates" [ref=e1986]:
+              - img [ref=e1987]
+              - generic [ref=e1991]: Templates
+            - button "Blueprints" [ref=e1992]:
+              - img [ref=e1993]
+              - generic [ref=e1997]: Blueprints
+            - button "My Flows" [ref=e1998]:
+              - img [ref=e1999]
+              - generic [ref=e2003]: My Flows
+          - generic [ref=e2005]:
+            - generic [ref=e2006]:
+              - generic [ref=e2007]:
+                - img [ref=e2008]
+                - heading "Template Gallery" [level=1] [ref=e2012]
+              - paragraph [ref=e2013]: Reusable building blocks for workflow construction
+            - generic [ref=e2015]:
+              - generic [ref=e2016]:
+                - heading "Analytics" [level=2] [ref=e2017]: Analytics
+                - generic [ref=e2021] [cursor=pointer]:
+                  - generic [ref=e2022]:
+                    - img [ref=e2024]
+                    - generic [ref=e2027]: "6"
+                  - generic [ref=e2028]:
+                    - heading "Explorer" [level=3] [ref=e2029]
+                    - generic [ref=e2030]: Analytics
+                    - paragraph [ref=e2031]: Block explorers, network analytics, dashboards, ecosystem reporting. Visibility into on-chain activity, transaction flows, and network health.
+              - generic [ref=e2032]:
+                - heading "Asset Creation" [level=2] [ref=e2033]: Asset Creation
+                - generic [ref=e2037] [cursor=pointer]:
+                  - generic [ref=e2038]:
+                    - img [ref=e2040]
+                    - generic [ref=e2044]: "31"
+                  - generic [ref=e2045]:
+                    - heading "Tokenize / Issuer Role" [level=3] [ref=e2046]
+                    - generic [ref=e2047]: Asset Creation
+                    - paragraph [ref=e2048]: Tokenize assets on-chain. Create primary market instruments. Structure and deploy token smart contracts.
+              - generic [ref=e2049]:
+                - heading "Asset Safekeeping" [level=2] [ref=e2050]: Asset Safekeeping
+                - generic [ref=e2052]:
+                  - generic [ref=e2054] [cursor=pointer]:
+                    - generic [ref=e2055]:
+                      - img [ref=e2057]
+                      - generic [ref=e2059]: "23"
+                    - generic [ref=e2060]:
+                      - heading "Custody Role" [level=3] [ref=e2061]
+                      - generic [ref=e2062]: Asset Safekeeping
+                      - paragraph [ref=e2063]: Safekeep digital and tokenized assets. Hot/cold storage, key management, institutional-grade security.
+                  - generic [ref=e2065] [cursor=pointer]:
+                    - generic [ref=e2066]:
+                      - img [ref=e2068]
+                      - generic [ref=e2072]: "11"
+                    - generic [ref=e2073]:
+                      - heading "Registry Role" [level=3] [ref=e2074]
+                      - generic [ref=e2075]: Asset Safekeeping
+                      - paragraph [ref=e2076]: Legal record of ownership. CSD functions. Issuance registration, dematerialisation, corporate actions processing.
+              - generic [ref=e2077]:
+                - heading "Cash & Settlement" [level=2] [ref=e2078]: Cash & Settlement
+                - generic [ref=e2082] [cursor=pointer]:
+                  - generic [ref=e2083]:
+                    - img [ref=e2085]
+                    - generic [ref=e2087]: "38"
+                  - generic [ref=e2088]:
+                    - heading "Settlement Rail" [level=3] [ref=e2089]
+                    - generic [ref=e2090]: Cash & Settlement
+                    - paragraph [ref=e2091]: Provide cash leg for transactions. Stablecoins, deposit tokens, tokenized commercial bank deposits. Also handles atomic DvP execution.
+              - generic [ref=e2092]:
+                - heading "Collateral & Financing" [level=2] [ref=e2093]: Collateral & Financing
+                - generic [ref=e2097] [cursor=pointer]:
+                  - generic [ref=e2098]:
+                    - img [ref=e2100]
+                    - generic [ref=e2102]: "10"
+                  - generic [ref=e2103]:
+                    - heading "Collateral Agent" [level=3] [ref=e2104]
+                    - generic [ref=e2105]: Collateral & Financing
+                    - paragraph [ref=e2106]: Manage collateral pools, margin calls, haircuts, reuse/rehypothecation. Tri-party and bilateral collateral management.
+              - generic [ref=e2107]:
+                - heading "Data & Analytics" [level=2] [ref=e2108]: Data & Analytics
+                - generic [ref=e2112] [cursor=pointer]:
+                  - generic [ref=e2113]:
+                    - img [ref=e2115]
+                    - generic [ref=e2118]: "17"
+                  - generic [ref=e2119]:
+                    - heading "Oracle / Pricing" [level=3] [ref=e2120]
+                    - generic [ref=e2121]: Data & Analytics
+                    - paragraph [ref=e2122]: Asset pricing, mark-to-market, NAV calculation, reference data. On-chain verifiable data feeds.
+              - generic [ref=e2123]:
+                - heading "Execution" [level=2] [ref=e2124]: Execution
+                - generic [ref=e2126]:
+                  - generic [ref=e2128] [cursor=pointer]:
+                    - generic [ref=e2129]:
+                      - img [ref=e2131]
+                      - generic [ref=e2133]: "20"
+                    - generic [ref=e2134]:
+                      - heading "Exchange Role" [level=3] [ref=e2135]
+                      - generic [ref=e2136]: Execution
+                      - paragraph [ref=e2137]: Order matching, price discovery, execution venues. Primary distribution and secondary market trading.
+                  - generic [ref=e2139] [cursor=pointer]:
+                    - generic [ref=e2140]:
+                      - img [ref=e2142]
+                      - generic [ref=e2144]: "23"
+                    - generic [ref=e2145]:
+                      - heading "Liquidity Provider" [level=3] [ref=e2146]
+                      - generic [ref=e2147]: Execution
+                      - paragraph [ref=e2148]: Provide trading liquidity and market depth. OTC and on-venue. Includes dedicated market makers with continuous two-sided quotes.
+              - generic [ref=e2149]:
+                - heading "Infrastructure" [level=2] [ref=e2150]: Infrastructure
+                - generic [ref=e2152]:
+                  - generic [ref=e2154] [cursor=pointer]:
+                    - generic [ref=e2155]:
+                      - img [ref=e2157]
+                      - generic [ref=e2161]: "26"
+                    - generic [ref=e2162]:
+                      - heading "Wallet Provider" [level=3] [ref=e2163]
+                      - generic [ref=e2164]: Infrastructure
+                      - paragraph [ref=e2165]: Key management, transaction signing, user-facing asset interface. Self-custody and managed custody options.
+                  - generic [ref=e2167] [cursor=pointer]:
+                    - generic [ref=e2168]:
+                      - img [ref=e2170]
+                      - generic [ref=e2175]: "9"
+                    - generic [ref=e2176]:
+                      - heading "Bridge Role" [level=3] [ref=e2177]
+                      - generic [ref=e2178]: Infrastructure
+                      - paragraph [ref=e2179]: Cross-chain and cross-network asset transfers. Interoperability layer enabling assets to move between Canton and other networks or between Canton applications.
+              - generic [ref=e2180]:
+                - heading "Risk & Compliance" [level=2] [ref=e2181]: Risk & Compliance
+                - generic [ref=e2183]:
+                  - generic [ref=e2185] [cursor=pointer]:
+                    - generic [ref=e2186]:
+                      - img [ref=e2188]
+                      - generic [ref=e2191]: "14"
+                    - generic [ref=e2192]:
+                      - heading "Compliance Check" [level=3] [ref=e2193]
+                      - generic [ref=e2194]: Risk & Compliance
+                      - paragraph [ref=e2195]: AML/KYC screening, transaction monitoring, regulatory checks. Sanctions screening. On-chain compliance verification.
+                  - generic [ref=e2197] [cursor=pointer]:
+                    - generic [ref=e2198]:
+                      - img [ref=e2200]
+                      - generic [ref=e2203]: "3"
+                    - generic [ref=e2204]:
+                      - heading "Identity Provider" [level=3] [ref=e2205]
+                      - generic [ref=e2206]: Risk & Compliance
+                      - paragraph [ref=e2207]: Issue on-chain identity credentials. KYC/identity verification. Verifiable credential issuance for investor onboarding.
+    - button [ref=e1961]:
+      - img [ref=e1962]
+  - button "Open Next.js Dev Tools" [ref=e9] [cursor=pointer]:
+    - img [ref=e10]
+  - alert [ref=e13]

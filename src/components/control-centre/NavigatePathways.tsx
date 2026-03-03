@@ -5,16 +5,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Layers, Sparkles } from 'lucide-react';
 
 import { NavigateHub } from './NavigateHub';
+import type { Participant } from '@/lib/canton-data';
 
 interface NavigatePathwaysProps {
   initialJumpCut?: { id: string; name: string; nodes: Array<{ role: string; participantId: string; position: { x: number; y: number } }> } | null;
   onJumpCutConsumed?: () => void;
+  initialParticipant?: Participant | null;
+  onParticipantConsumed?: () => void;
   onNavigateToTier?: (tier: string) => void;
   onBackToLibrary?: () => void;
 }
 
-export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpCut, onJumpCutConsumed, onNavigateToTier, onBackToLibrary }) => {
-  const [selectedPathway, setSelectedPathway] = useState<'join' | 'build' | 'custom' | null>(initialJumpCut ? 'build' : null);
+export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpCut, onJumpCutConsumed, initialParticipant, onParticipantConsumed, onNavigateToTier, onBackToLibrary }) => {
+  const [selectedPathway, setSelectedPathway] = useState<'join' | 'build' | 'custom' | null>(initialJumpCut || initialParticipant ? 'build' : null);
 
 
   const pathways = [
@@ -135,7 +138,7 @@ export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpC
         >
           <button 
             onClick={() => {
-              if (initialJumpCut && onNavigateToTier) {
+              if ((initialJumpCut || initialParticipant) && onNavigateToTier) {
                 onNavigateToTier('DISCOVER');
               } else {
                 setSelectedPathway(null);
@@ -143,12 +146,14 @@ export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpC
             }}
             className="text-white/40 hover:text-white text-sm mb-4 text-left transition-colors duration-200"
           >
-            ← {initialJumpCut ? 'Back to Discover' : 'Back to Pathways'}
+            ← {(initialJumpCut || initialParticipant) ? 'Back to Discover' : 'Back to Pathways'}
           </button>
           <div className="flex-1">
             <NavigateHub 
               initialJumpCut={initialJumpCut}
               onJumpCutConsumed={onJumpCutConsumed}
+              initialParticipant={initialParticipant}
+              onParticipantConsumed={onParticipantConsumed}
             />
           </div>
         </motion.div>

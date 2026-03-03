@@ -37,6 +37,7 @@ import { NotificationPanel } from './NotificationPanel';
 import { HelpModal } from './HelpModal';
 import { useCantonAuth } from '@/lib/auth-context';
 import type { CantonFlow, CantonFlowStep } from '@/lib/canton-templates-data';
+import type { Participant } from '@/lib/canton-data';
 
 type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'INTEL';
 type NavigateView = 'templates' | 'blueprints' | 'library' | 'create' | 'template-builder';
@@ -56,6 +57,7 @@ export const FlowsStudio: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [pendingJumpCut, setPendingJumpCut] = useState<SelectedJumpCut | null>(null);
+  const [pendingParticipant, setPendingParticipant] = useState<Participant | null>(null);
   const [navigateView, setNavigateView] = useState<NavigateView>('templates');
   const [previousNavigateView, setPreviousNavigateView] = useState<NavigateView>('blueprints');
   const [selectedBlueprint, setSelectedBlueprint] = useState<{ flow: CantonFlow; steps: CantonFlowStep[] } | null>(null);
@@ -171,7 +173,7 @@ export const FlowsStudio: React.FC = () => {
         <main className="flex-1 relative overflow-hidden min-h-0">
           <div className="h-full overflow-y-auto custom-scrollbar relative">
             <AnimatePresence mode="wait">
-              {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectJumpCut={(jumpCut) => { setPendingJumpCut({ id: jumpCut.id, name: jumpCut.name, nodes: jumpCut.nodes }); handleTierChange('NAVIGATE'); setNavigateView('create'); }} />}
+              {activeTier === 'DISCOVER' && <NetworkGrid key="discover" onSelectJumpCut={(jumpCut) => { setPendingJumpCut({ id: jumpCut.id, name: jumpCut.name, nodes: jumpCut.nodes }); handleTierChange('NAVIGATE'); setNavigateView('create'); }} onSelectParticipant={(participant) => { setPendingParticipant(participant); handleTierChange('NAVIGATE'); setNavigateView('create'); }} />}
 
               {activeTier === 'NAVIGATE' && (
                 <div key="navigate" className="h-full flex flex-col">
@@ -249,6 +251,8 @@ export const FlowsStudio: React.FC = () => {
                           key="create"
                           initialJumpCut={pendingJumpCut}
                           onJumpCutConsumed={() => setPendingJumpCut(null)}
+                          initialParticipant={pendingParticipant}
+                          onParticipantConsumed={() => setPendingParticipant(null)}
                           onNavigateToTier={(tier) => handleTierChange(tier as Tier)}
                           onBackToLibrary={() => setNavigateView('library')}
                         />
