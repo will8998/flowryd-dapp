@@ -139,10 +139,16 @@ export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpC
           className="h-full flex flex-col"
         >
           <button 
-            onClick={() => setSelectedPathway(null)}
+            onClick={() => {
+              if (initialJumpCut && onNavigateToTier) {
+                onNavigateToTier('DISCOVER');
+              } else {
+                setSelectedPathway(null);
+              }
+            }}
             className="text-white/40 hover:text-white text-sm mb-4 text-left transition-colors duration-200"
           >
-            ← Back to Pathways
+            ← {initialJumpCut ? 'Back to Discover' : 'Back to Pathways'}
           </button>
           <div className="flex-1">
             <NavigateHub 

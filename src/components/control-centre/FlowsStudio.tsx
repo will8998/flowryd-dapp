@@ -255,11 +255,25 @@ export const FlowsStudio: React.FC = () => {
                           flow={selectedBlueprint.flow}
                           steps={selectedBlueprint.steps}
                           onBack={() => setNavigateView('blueprints')}
-                          onCreateWorkflow={(flow, steps, participants) => {
-                            // Handle creating live workflow
-                            console.log('Create live workflow:', { flow, steps, participants });
-                            // For now, just navigate to activate tier
-                            handleTierChange('ACTIVATE');
+                          onCreateWorkflow={async (flow, steps, participants) => {
+                            try {
+                              const res = await fetch('/api/deals', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  title: flow.name,
+                                  description: flow.description,
+                                  metadata: { steps, participants, templateFlowId: flow.id },
+                                }),
+                              });
+                              if (!res.ok) throw new Error('Failed to create deal');
+                              const { data } = await res.json();
+                              window.location.href = `/deals/${data.deal.id}`;
+                            } catch (err) {
+                              console.error('Failed to create deal:', err);
+                              // Fallback: navigate to Activate tier
+                              handleTierChange('ACTIVATE');
+                            }
                           }}
                         />
                       )}

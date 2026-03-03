@@ -75,6 +75,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [isCreatingDeal, setIsCreatingDeal] = useState(false);
+  const [jumpCutBannerDismissed, setJumpCutBannerDismissed] = useState(false);
   const [showWizard, setShowWizard] = useState(() => {
     if (typeof window === 'undefined') return false;
     return !localStorage.getItem('flowryd-workbench-wizard-seen');
@@ -758,7 +759,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                   });
                   if (res.ok) {
                     const { data } = await res.json();
-                    window.location.href = `/deals/${data.id}`;
+                    window.location.href = `/deals/${data.deal.id}`;
                   }
                 } catch (error) {
                   console.error('Failed to create deal:', error);
@@ -775,7 +776,28 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
         </div>
       </div>
 
-      {/* Main Content: Sidebar + Canvas */}
+      {/* JumpCut Context Banner */}
+      <AnimatePresence>
+        {initialJumpCut && !jumpCutBannerDismissed && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/20 flex items-center justify-between shrink-0"
+          >
+            <span className="text-xs font-mono text-white/60">
+              Building from: <span className="text-blue-400 font-bold">{initialJumpCut.name}</span>
+            </span>
+            <button
+              onClick={() => setJumpCutBannerDismissed(true)}
+              className="text-white/30 hover:text-white/60 transition-colors text-sm ml-4"
+            >
+              ×
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex-1 flex min-h-0">
         <ParticipantTray
           isCollapsed={sidebarCollapsed}
