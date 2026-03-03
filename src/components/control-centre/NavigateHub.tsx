@@ -76,6 +76,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [isCreatingDeal, setIsCreatingDeal] = useState(false);
+  const [dealError, setDealError] = useState<string | null>(null);
   const [jumpCutBannerDismissed, setJumpCutBannerDismissed] = useState(false);
   const [showWizard, setShowWizard] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -100,7 +101,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
   const fetchTemplates = useCallback(async () => {
     try {
       setTemplatesLoading(true);
-      const res = await fetch('/api/flows/templates');
+      const res = await authFetch('/api/flows/templates');
       if (res.ok) {
         const json = await res.json();
         setTemplates(json.data ?? []);
@@ -269,7 +270,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
   }>) => {
     if (!activeFlowId) return;
     try {
-      const response = await fetch(`/api/flows/${activeFlowId}`, {
+      const response = await authFetch(`/api/flows/${activeFlowId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -290,7 +291,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
     if (!activeFlowId || isPublishing) return;
     setIsPublishing(true);
     try {
-      const response = await fetch(`/api/flows/${activeFlowId}/publish`, {
+      const response = await authFetch(`/api/flows/${activeFlowId}/publish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ public: options.isPublic })
@@ -773,7 +774,8 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                     window.location.href = `/deals/${data.deal.id}`;
                   }
                 } catch (error) {
-                  console.error('Failed to create deal:', error);
+                  setDealError('Failed to create deal. Please try again.');
+                  setTimeout(() => setDealError(null), 5000);
                 } finally {
                   setIsCreatingDeal(false);
                 }
@@ -827,6 +829,16 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                 className="absolute top-2 left-1/2 -translate-x-1/2 z-30 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs font-mono"
               >
                 {error}
+              </motion.div>
+            )}
+            {dealError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="absolute top-2 left-1/2 -translate-x-1/2 z-30 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs font-mono"
+              >
+                {dealError}
               </motion.div>
             )}
           </AnimatePresence>

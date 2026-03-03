@@ -57,6 +57,7 @@ export const FlowsStudio: React.FC = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [pendingJumpCut, setPendingJumpCut] = useState<SelectedJumpCut | null>(null);
   const [navigateView, setNavigateView] = useState<NavigateView>('templates');
+  const [previousNavigateView, setPreviousNavigateView] = useState<NavigateView>('blueprints');
   const [selectedBlueprint, setSelectedBlueprint] = useState<{ flow: CantonFlow; steps: CantonFlowStep[] } | null>(null);
 
   useEffect(() => {
@@ -223,8 +224,9 @@ export const FlowsStudio: React.FC = () => {
                       {navigateView === 'templates' && (
                         <TemplateGallery
                           key="templates"
-                          onNavigateToFlow={(flow, steps) => {
+          onNavigateToFlow={(flow, steps) => {
                             setSelectedBlueprint({ flow, steps });
+                            setPreviousNavigateView(navigateView);
                             setNavigateView('template-builder');
                           }}
                         />
@@ -232,8 +234,9 @@ export const FlowsStudio: React.FC = () => {
                       {navigateView === 'blueprints' && (
                         <FlowBlueprintLibrary 
                           key="blueprints" 
-                          onUseBlueprint={(flow, steps) => {
+          onUseBlueprint={(flow, steps) => {
                             setSelectedBlueprint({ flow, steps });
+                            setPreviousNavigateView(navigateView);
                             setNavigateView('template-builder');
                           }}
                         />
@@ -255,7 +258,7 @@ export const FlowsStudio: React.FC = () => {
                           key="template-builder"
                           flow={selectedBlueprint.flow}
                           steps={selectedBlueprint.steps}
-                          onBack={() => setNavigateView('blueprints')}
+                          onBack={() => setNavigateView(previousNavigateView)}
                           onCreateWorkflow={async (flow, steps, participants) => {
                             try {
                               const res = await authFetch('/api/deals', {
@@ -283,7 +286,16 @@ export const FlowsStudio: React.FC = () => {
               )}
               {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}
-              {activeTier === 'ADMIN' && user?.role === 'admin' && <AdminPanel key="admin" />}
+              {activeTier === 'ADMIN' && (
+                user?.role === 'admin' ? <AdminPanel key="admin" /> : (
+                  <div key="admin-restricted" className="flex h-full items-center justify-center text-white/40">
+                    <div className="text-center">
+                      <p className="text-lg font-medium">Access Restricted</p>
+                      <p className="mt-1 text-sm text-white/30">Admin access required</p>
+                    </div>
+                  </div>
+                )
+              )}
               {activeTier === 'INTEL' && <IntelligenceDashboard key="intel" />}
             </AnimatePresence>
           </div>

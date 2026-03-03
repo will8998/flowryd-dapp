@@ -62,8 +62,8 @@ export default function IntelligenceDashboard() {
   const [selectedEvent, setSelectedEvent] = useState<IntelEvent | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<IntelPerson | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<IntelMedia | null>(null);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<IntelAnnouncement | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
-  const [selectedCIP, setSelectedCIP] = useState<CIPRecord | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<IntelAnnouncement | null>(null);
+  const [selectedCIP, setSelectedCIP] = useState<CIPRecord | null>(null);
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
 
   // Derive the full participant object from selectedParticipantId
@@ -523,6 +523,8 @@ export default function IntelligenceDashboard() {
               selectedEvent={selectedEvent}
               selectedPerson={selectedPerson}
               selectedMedia={selectedMedia}
+              selectedAnnouncement={selectedAnnouncement}
+              selectedCIP={selectedCIP}
               selectedParticipant={selectedParticipant}
               onClose={handleCloseDetail}
               onSelectPerson={handleSelectPerson}

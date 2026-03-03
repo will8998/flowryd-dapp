@@ -11,7 +11,7 @@ interface IntelCalendarViewProps {
 
 type CalendarView = 'month' | 'week' | 'agenda';
 
-// Additional sample events for a richer calendar experience
+// Supplementary demo events for CfC St. Moritz 2026 - augments data from canton-intel-data.ts
 const supplementaryEvents: IntelEvent[] = [
   {
     id: 'evt-2026-002',

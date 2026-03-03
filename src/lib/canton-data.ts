@@ -1801,7 +1801,7 @@ export const participants: Participant[] = [
     lng: 8.5417,
   },
   {
-    id: 'p_21shares',
+    id: 'p_21shares_etp',
     name: '21shares',
     cantonRole: 'ETP Issuer',
     capabilities: { Issuer: 1, Exchange: 1 },

@@ -258,7 +258,7 @@ export default function IntelGlobe({
     const announcementPts: GlobePoint[] = intelAnnouncements
       .map(ann => {
         // Find first participant org with coordinates
-        const orgName = ann.participants[0];
+        const orgName = ann.participants?.[0];
         if (!orgName) return null;
         const org = participants.find(p => p.name.toLowerCase().includes(orgName.toLowerCase().split(' ')[0]));
         if (!org?.lat || !org?.lng) return null;

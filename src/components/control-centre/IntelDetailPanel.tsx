@@ -15,6 +15,7 @@ import {
   type IntelPerson,
   type IntelMedia,
   type IntelAnnouncement,
+  type CIPRecord,
   getPersonById,
   getOrgById,
   getPeopleForEvent,
@@ -31,6 +32,8 @@ interface IntelDetailPanelProps {
   selectedPerson?: IntelPerson | null;
   selectedMedia?: IntelMedia | null;
   selectedParticipant?: Participant | null;
+  selectedCIP?: CIPRecord | null;
+  selectedAnnouncement?: IntelAnnouncement | null;
   onClose: () => void;
   onSelectPerson?: (person: IntelPerson) => void;
   onSelectEvent?: (event: IntelEvent) => void;
@@ -495,18 +498,163 @@ function ParticipantDetail({ participant, onSelectPerson }: { participant: Parti
   );
 }
 
+/* ── CIP Detail ──────────────────────────────────── */
+function CIPDetail({ cip }: { cip: CIPRecord }) {
+  return (
+    <div className="space-y-1">
+      <div className="mb-4">
+        <div className="flex items-center gap-1.5 mb-1">
+          <FileText className="w-3.5 h-3.5 text-blue-400/60" />
+          <Badge variant="default">{cip.cipNumber}</Badge>
+          <Badge variant={
+            cip.status === 'Approved' ? 'success' :
+            cip.status === 'Final' ? 'success' :
+            cip.status === 'Draft' ? 'warning' :
+            cip.status === 'Rejected' ? 'danger' : 'default'
+          }>{cip.status}</Badge>
+        </div>
+        <h3 className="text-sm font-bold text-white/90 mb-1">{cip.title}</h3>
+        <div className="flex items-center gap-2 text-[10px] text-white/40 font-mono">
+          <span>{cip.type}</span>
+          {cip.svWeightRequested && (
+            <>
+              <span className="text-white/10">·</span>
+              <span>Weight {cip.svWeightRequested}</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      <Section icon={User} label="PROPOSER">
+        <p className="text-xs text-white/60">{cip.proposer}</p>
+      </Section>
+
+      {cip.voteResult && (
+        <Section icon={Tag} label="VOTE RESULT">
+          <p className="text-xs text-white/60 font-mono">{cip.voteResult}</p>
+          {cip.svNodeopsVote && (
+            <p className="text-[10px] text-white/30 font-mono mt-0.5">SV Nodeops: {cip.svNodeopsVote}</p>
+          )}
+        </Section>
+      )}
+
+      {cip.ccDistributed && (
+        <Section icon={Tag} label="CC DISTRIBUTED">
+          <p className="text-xs text-white/60 font-mono">{cip.ccDistributed.toLocaleString()}</p>
+        </Section>
+      )}
+
+      {cip.description && (
+        <Section icon={Lightbulb} label="DESCRIPTION">
+          <p className="text-[10px] text-white/40 leading-relaxed">{cip.description}</p>
+        </Section>
+      )}
+
+      {cip.notes && (
+        <Section icon={Lightbulb} label="NOTES">
+          <p className="text-[10px] text-white/40 leading-relaxed">{cip.notes}</p>
+        </Section>
+      )}
+
+      {cip.status && (
+        <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+          <Badge variant={
+            cip.status === 'Approved' ? 'success' :
+            cip.status === 'Final' ? 'success' :
+            cip.status === 'Draft' ? 'warning' :
+            cip.status === 'Rejected' ? 'danger' : 'default'
+          }>
+            {cip.status}
+          </Badge>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Announcement Detail ───────────────────────── */
+function AnnouncementDetail({ announcement }: { announcement: IntelAnnouncement }) {
+  return (
+    <div className="space-y-1">
+      <div className="mb-4">
+        <div className="flex items-center gap-1.5 mb-1">
+          <Newspaper className="w-3.5 h-3.5 text-cyan-400/60" />
+          <Badge variant="default">{announcement.type}</Badge>
+          <Badge variant={
+            announcement.impact === 'Critical' ? 'danger' :
+            announcement.impact === 'High' ? 'warning' :
+            announcement.impact === 'Medium' ? 'info' : 'default'
+          }>{announcement.impact} Impact</Badge>
+        </div>
+        <h3 className="text-sm font-bold text-white/90 mb-1">
+          {announcement.description.length > 60 ? 
+            `${announcement.description.substring(0, 60)}...` : 
+            announcement.description
+          }
+        </h3>
+        <div className="flex items-center gap-2 text-[10px] text-white/40 font-mono">
+          <span>{formatDate(announcement.date)}</span>
+        </div>
+      </div>
+
+      <Section icon={Clock} label="DATE">
+        <p className="text-xs text-white/60 font-mono">{formatDate(announcement.date)}</p>
+      </Section>
+
+      <Section icon={Users} label="PARTICIPANTS">
+        <div className="flex flex-wrap gap-1">
+          {announcement.participants.map((participant, index) => (
+            <span key={index} className="text-[8px] px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-full font-mono text-white/50">
+              {participant}
+            </span>
+          ))}
+        </div>
+      </Section>
+
+      <Section icon={MessageSquareQuote} label="DESCRIPTION">
+        <p className="text-[10px] text-white/40 leading-relaxed">{announcement.description}</p>
+      </Section>
+
+      {announcement.notes && (
+        <Section icon={Lightbulb} label="NOTES">
+          <p className="text-[10px] text-white/40 leading-relaxed">{announcement.notes}</p>
+        </Section>
+      )}
+
+      <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+        <Badge variant={
+          announcement.impact === 'Critical' ? 'danger' :
+          announcement.impact === 'High' ? 'warning' :
+          announcement.impact === 'Medium' ? 'info' : 'default'
+        }>
+          {announcement.impact} Impact
+        </Badge>
+      </div>
+
+      {announcement.sourceUrl && (
+        <a href={announcement.sourceUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] text-white/30 hover:text-white/60 transition-colors mt-2">
+          <ExternalLink className="w-3 h-3" />
+          <span className="font-mono">Source</span>
+        </a>
+      )}
+    </div>
+  );
+}
+
 /* ── Main Panel ───────────────────────────────────── */
 export default function IntelDetailPanel({
   selectedEvent,
   selectedPerson,
   selectedMedia,
   selectedParticipant,
+  selectedCIP,
+  selectedAnnouncement,
   onClose,
   onSelectPerson,
   onSelectEvent,
   onSelectMedia,
 }: IntelDetailPanelProps) {
-  const hasSelection = selectedEvent || selectedPerson || selectedMedia || selectedParticipant;
+  const hasSelection = selectedEvent || selectedPerson || selectedMedia || selectedParticipant || selectedCIP || selectedAnnouncement;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -522,7 +670,7 @@ export default function IntelDetailPanel({
           >
             <div className="flex items-center justify-between p-3 border-b border-white/5">
               <h2 className="text-[9px] font-bold font-mono tracking-[0.2em] text-white/40">
-                {selectedEvent ? 'EVENT DETAIL' : selectedPerson ? 'PERSON DETAIL' : selectedMedia ? 'MEDIA DETAIL' : selectedParticipant ? 'PARTICIPANT DETAIL' : ''}
+                {selectedEvent ? 'EVENT DETAIL' : selectedPerson ? 'PERSON DETAIL' : selectedMedia ? 'MEDIA DETAIL' : selectedParticipant ? 'PARTICIPANT DETAIL' : selectedCIP ? 'CIP DETAIL' : selectedAnnouncement ? 'ANNOUNCEMENT DETAIL' : ''}
               </h2>
               <button
                 onClick={onClose}
@@ -537,6 +685,8 @@ export default function IntelDetailPanel({
               {selectedPerson && <PersonDetail person={selectedPerson} onSelectEvent={onSelectEvent} onSelectMedia={onSelectMedia} />}
               {selectedMedia && <MediaDetail media={selectedMedia} onSelectPerson={onSelectPerson} />}
               {selectedParticipant && <ParticipantDetail participant={selectedParticipant} onSelectPerson={onSelectPerson} />}
+              {selectedCIP && <CIPDetail cip={selectedCIP} />}
+              {selectedAnnouncement && <AnnouncementDetail announcement={selectedAnnouncement} />}
             </div>
           </motion.div>
         ) : (

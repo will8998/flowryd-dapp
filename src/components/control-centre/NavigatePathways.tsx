@@ -14,13 +14,8 @@ interface NavigatePathwaysProps {
 }
 
 export const NavigatePathways: React.FC<NavigatePathwaysProps> = ({ initialJumpCut, onJumpCutConsumed, onNavigateToTier, onBackToLibrary }) => {
-  const [selectedPathway, setSelectedPathway] = useState<'join' | 'build' | 'custom' | null>(null);
+  const [selectedPathway, setSelectedPathway] = useState<'join' | 'build' | 'custom' | null>(initialJumpCut ? 'build' : null);
 
-  useEffect(() => {
-    if (initialJumpCut) {
-      setSelectedPathway('build');
-    }
-  }, [initialJumpCut]);
 
   const pathways = [
     {

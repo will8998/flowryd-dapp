@@ -38,6 +38,7 @@ const timeAgo = (dateStr: string) => {
 export const ActivateEngine: React.FC = () => {
   const { deals, isLoading, refetch } = useDeals();
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -64,13 +65,24 @@ export const ActivateEngine: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: `Deal ${new Date().toLocaleDateString()}` }),
       });
-      if (res.ok) refetch();
-    } catch {}
+      if (!res.ok) throw new Error('API error');
+      refetch();
+    } catch (err) {
+      console.error('Failed to create deal:', err);
+      setError('Failed to create deal. Please try again.');
+      setTimeout(() => setError(null), 5000);
+    }
   }, [refetch]);
 
   return (
     <div className="h-full flex flex-col bg-background">
       <div className="px-6 pt-5 pb-4 space-y-4">
+        {error && (
+          <div className="mx-4 mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
+            {error}
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-bold tracking-wide text-white/60">Deals</h2>

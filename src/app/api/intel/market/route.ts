@@ -63,27 +63,23 @@ const fallbackData: MarketPrice[] = [
 ];
 
 // Generate realistic sparkline data
-function generateSparkline(price: number, change24h: number): number[] {
-  const points = 8;
-  const variance = Math.abs(price * 0.02); // 2% variance
-  const trend = change24h > 0 ? 1 : -1;
-  
-  const sparkline: number[] = [];
-  let currentPrice = price * (1 - (change24h / 100));
-  
+function generateSparkline(basePrice: number, points: number = 24, symbol: string = ''): number[] {
+  // Seeded PRNG for deterministic sparklines per symbol per day
+  const dateStr = new Date().toISOString().slice(0, 10);
+  let seed = 0;
+  for (const ch of symbol + dateStr) seed = ((seed << 5) - seed + ch.charCodeAt(0)) | 0;
+  const prng = () => {
+    seed = (seed * 16807 + 0x7fffffff) % 0x7fffffff;
+    return seed / 0x7fffffff;
+  };
+  const data: number[] = [];
+  let price = basePrice;
   for (let i = 0; i < points; i++) {
-    const progress = i / (points - 1);
-    const trendInfluence = trend * progress * Math.abs(change24h) * 0.01;
-    const randomVariance = (Math.random() - 0.5) * variance * 0.5;
-    
-    currentPrice = currentPrice + (price * trendInfluence * 0.01) + randomVariance;
-    sparkline.push(Math.max(0, currentPrice));
+    const change = (prng() - 0.5) * basePrice * 0.02;
+    price += change;
+    data.push(Math.round(price * 100) / 100);
   }
-  
-  // Ensure last point matches current price
-  sparkline[points - 1] = price;
-  
-  return sparkline.map(p => Number(p.toFixed(6)));
+  return data;
 }
 
 export async function GET() {
@@ -126,7 +122,7 @@ export async function GET() {
         change24h: data.bitcoin.usd_24h_change || 0,
         volume24h: data.bitcoin.usd_24h_vol || 0,
         marketCap: data.bitcoin.usd_market_cap || 0,
-        sparkline: generateSparkline(data.bitcoin.usd, data.bitcoin.usd_24h_change || 0),
+        sparkline: generateSparkline(data.bitcoin.usd, 8, 'BTC'),
       });
     }
 
@@ -138,7 +134,7 @@ export async function GET() {
         change24h: data.ethereum.usd_24h_change || 0,
         volume24h: data.ethereum.usd_24h_vol || 0,
         marketCap: data.ethereum.usd_market_cap || 0,
-        sparkline: generateSparkline(data.ethereum.usd, data.ethereum.usd_24h_change || 0),
+        sparkline: generateSparkline(data.ethereum.usd, 8, 'ETH'),
       });
     }
 
@@ -151,7 +147,7 @@ export async function GET() {
         change24h: data['canton-network'].usd_24h_change || 0,
         volume24h: data['canton-network'].usd_24h_vol || 0,
         marketCap: data['canton-network'].usd_market_cap || 0,
-        sparkline: generateSparkline(data['canton-network'].usd, data['canton-network'].usd_24h_change || 0),
+        sparkline: generateSparkline(data['canton-network'].usd, 8, 'CC'),
       });
     } else {
       // Add fallback Canton data

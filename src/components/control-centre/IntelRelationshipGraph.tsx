@@ -436,13 +436,13 @@ export default function IntelRelationshipGraph({
         // Node properties
         nodeVal={(node: any) => node.val}
         nodeColor={(node: any) => node.color}
-        nodeCanvasObject={nodeCanvasObject as any}
+        nodeCanvasObject={nodeCanvasObject as (node: object, ctx: CanvasRenderingContext2D, globalScale: number) => void}
         nodePointerAreaPaint={() => {}}
         
         // Link properties
         linkDirectionalParticles={2}
         linkDirectionalParticleSpeed={0.005}
-        linkCanvasObject={linkCanvasObject as any}
+        linkCanvasObject={linkCanvasObject as (link: object, ctx: CanvasRenderingContext2D) => void}
         linkColor={() => 'rgba(255,255,255,0.06)'}
         linkDirectionalParticleColor={(link: any) => link.color || '#61dafb'}
         linkPointerAreaPaint={() => {}}

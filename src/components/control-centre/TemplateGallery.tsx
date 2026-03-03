@@ -56,6 +56,19 @@ const colorMap: Record<string, string> = {
   'Bridge Role': 'indigo',
 };
 
+// Style mapping for static Tailwind classes
+const STYLE_MAP: Record<string, { bg: string; text: string; border: string; bgLight: string; textLight: string; bgHover: string; borderHover: string; textHover: string; bgHoverLight: string; borderLight: string }> = {
+  orange: { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30', bgLight: 'bg-orange-500/10', textLight: 'text-orange-300', bgHover: 'hover:bg-orange-500/30', borderHover: 'hover:border-orange-500/60', textHover: 'hover:text-orange-200', bgHoverLight: 'group-hover:bg-orange-500/15', borderLight: 'border-orange-500/20' },
+  blue: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', bgLight: 'bg-blue-500/10', textLight: 'text-blue-300', bgHover: 'hover:bg-blue-500/30', borderHover: 'hover:border-blue-500/60', textHover: 'hover:text-blue-200', bgHoverLight: 'group-hover:bg-blue-500/15', borderLight: 'border-blue-500/20' },
+  purple: { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30', bgLight: 'bg-purple-500/10', textLight: 'text-purple-300', bgHover: 'hover:bg-purple-500/30', borderHover: 'hover:border-purple-500/60', textHover: 'hover:text-purple-200', bgHoverLight: 'group-hover:bg-purple-500/15', borderLight: 'border-purple-500/20' },
+  amber: { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30', bgLight: 'bg-amber-500/10', textLight: 'text-amber-300', bgHover: 'hover:bg-amber-500/30', borderHover: 'hover:border-amber-500/60', textHover: 'hover:text-amber-200', bgHoverLight: 'group-hover:bg-amber-500/15', borderLight: 'border-amber-500/20' },
+  cyan: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30', bgLight: 'bg-cyan-500/10', textLight: 'text-cyan-300', bgHover: 'hover:bg-cyan-500/30', borderHover: 'hover:border-cyan-500/60', textHover: 'hover:text-cyan-200', bgHoverLight: 'group-hover:bg-cyan-500/15', borderLight: 'border-cyan-500/20' },
+  green: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30', bgLight: 'bg-green-500/10', textLight: 'text-green-300', bgHover: 'hover:bg-green-500/30', borderHover: 'hover:border-green-500/60', textHover: 'hover:text-green-200', bgHoverLight: 'group-hover:bg-green-500/15', borderLight: 'border-green-500/20' },
+  indigo: { bg: 'bg-indigo-500/20', text: 'text-indigo-400', border: 'border-indigo-500/30', bgLight: 'bg-indigo-500/10', textLight: 'text-indigo-300', bgHover: 'hover:bg-indigo-500/30', borderHover: 'hover:border-indigo-500/60', textHover: 'hover:text-indigo-200', bgHoverLight: 'group-hover:bg-indigo-500/15', borderLight: 'border-indigo-500/20' },
+};
+
+const DEFAULT_STYLE = { bg: 'bg-zinc-500/20', text: 'text-zinc-400', border: 'border-zinc-500/30', bgLight: 'bg-zinc-500/10', textLight: 'text-zinc-300', bgHover: 'hover:bg-zinc-500/30', borderHover: 'hover:border-zinc-500/60', textHover: 'hover:text-zinc-200', bgHoverLight: 'group-hover:bg-zinc-500/15', borderLight: 'border-zinc-500/20' };
+
 // Get border color class based on color
 const getBorderColor = (color: string): string => {
   const colorMap: Record<string, string> = {
@@ -104,8 +117,8 @@ const TemplateDetail: React.FC<TemplateDetailProps> = ({ template, participants,
         <div className="p-6 border-b border-white/10">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-lg bg-${color}-500/20 border border-${color}-500/30`}>
-                <Icon className={`w-6 h-6 text-${color}-400`} />
+              <div className={`p-3 rounded-lg ${(STYLE_MAP[color] || DEFAULT_STYLE).bg} border ${(STYLE_MAP[color] || DEFAULT_STYLE).border}`}>
+                <Icon className={`w-6 h-6 ${(STYLE_MAP[color] || DEFAULT_STYLE).text}`} />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">{template.name}</h2>
@@ -146,7 +159,7 @@ const TemplateDetail: React.FC<TemplateDetailProps> = ({ template, participants,
                     onNavigateToFlow(syntheticFlow, [syntheticStep]);
                     onClose();
                   }}
-                  className={`flex items-center gap-2 px-5 py-2.5 bg-${color}-500/20 hover:bg-${color}-500/30 border border-${color}-500/40 hover:border-${color}-500/60 rounded text-sm font-bold text-${color}-300 hover:text-${color}-200 transition-all`}
+                  className={`flex items-center gap-2 px-5 py-2.5 ${(STYLE_MAP[color] || DEFAULT_STYLE).bg} ${(STYLE_MAP[color] || DEFAULT_STYLE).bgHover} border ${(STYLE_MAP[color] || DEFAULT_STYLE).border} ${(STYLE_MAP[color] || DEFAULT_STYLE).borderHover} rounded text-sm font-bold ${(STYLE_MAP[color] || DEFAULT_STYLE).textLight} ${(STYLE_MAP[color] || DEFAULT_STYLE).textHover} transition-all`}
                 >
                   <ArrowRight className="w-4 h-4" />
                   <span>Use Template</span>
@@ -344,8 +357,8 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, participantCount,
     >
       <div className="space-y-3">
         <div className="flex items-start justify-between">
-          <div className={`p-2 rounded bg-${color}-500/10 border border-${color}-500/20 group-hover:bg-${color}-500/15 transition-colors`}>
-            <Icon className={`w-5 h-5 text-${color}-400`} />
+          <div className={`p-2 rounded ${(STYLE_MAP[color] || DEFAULT_STYLE).bgLight} border ${(STYLE_MAP[color] || DEFAULT_STYLE).borderLight} ${(STYLE_MAP[color] || DEFAULT_STYLE).bgHoverLight} transition-colors`}>
+            <Icon className={`w-5 h-5 ${(STYLE_MAP[color] || DEFAULT_STYLE).text}`} />
           </div>
           <span className="text-xs text-white/40 bg-white/5 px-2 py-1 rounded">
             {participantCount}

@@ -41,6 +41,7 @@ export const CollectiveHub: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'flows' | 'service' | 'appStack'>('flows');
   const [providerCategory, setProviderCategory] = useState<string | null>(null);
   const { providers: serviceProviders, isLoading: providersLoading } = useProviders();
+  const [appliedProviders, setAppliedProviders] = useState<Set<string>>(new Set());
 
   const fetchFlows = useCallback(async () => {
     try {
@@ -253,7 +254,10 @@ export const CollectiveHub: React.FC = () => {
                 </motion.div>
               ))}
 
-              <div className="border border-dashed border-white/20 bg-black/30 rounded p-10 flex flex-col justify-center items-center text-center space-y-6 relative overflow-hidden group cursor-pointer">
+              <div 
+                onClick={() => window.location.href = '/studio?tier=NAVIGATE'}
+                className="border border-dashed border-white/20 bg-black/30 rounded p-10 flex flex-col justify-center items-center text-center space-y-6 relative overflow-hidden group cursor-pointer hover:border-white/40 hover:bg-black/50 transition-all"
+              >
 
                 <Plus className="w-12 h-12 text-white group-hover:rotate-90 transition-transform duration-500" />
                 <div className="space-y-2">
@@ -336,10 +340,24 @@ export const CollectiveHub: React.FC = () => {
                           {provider.website || 'No website'}
                         </a>
                         <button
-                          onClick={() => console.log('Apply to provider:', provider.id)}
-                          className="w-full border border-white/30 text-white rounded font-bold text-xs py-3 px-6 hover:border-white/50 hover:bg-white/5 transition-all"
+                          onClick={() => {
+                            setAppliedProviders(prev => new Set(prev).add(provider.id));
+                            setTimeout(() => {
+                              setAppliedProviders(prev => {
+                                const newSet = new Set(prev);
+                                newSet.delete(provider.id);
+                                return newSet;
+                              });
+                            }, 3000);
+                          }}
+                          disabled={appliedProviders.has(provider.id)}
+                          className={`w-full border rounded font-bold text-xs py-3 px-6 transition-all ${
+                            appliedProviders.has(provider.id)
+                              ? 'border-green-500/50 bg-green-500/10 text-green-400'
+                              : 'border-white/30 text-white hover:border-white/50 hover:bg-white/5'
+                          }`}
                         >
-                          Apply
+                          {appliedProviders.has(provider.id) ? 'Applied ✓' : 'Apply'}
                         </button>
                       </div>
                   </div>

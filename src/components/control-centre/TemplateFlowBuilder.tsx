@@ -531,6 +531,7 @@ export const TemplateFlowBuilder: React.FC<TemplateFlowBuilderProps> = ({
             whileTap={{ scale: 0.98 }}
             onClick={handleCreateWorkflow}
             disabled={!allStepsHaveParticipants}
+            title={allStepsHaveParticipants ? 'Create a live workflow from this template' : 'Assign participants to all steps first'}
             className={`
               px-6 py-3 rounded font-medium transition-all
               ${allStepsHaveParticipants

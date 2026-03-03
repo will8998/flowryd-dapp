@@ -35,6 +35,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
   const { partyId, user, disconnect } = useCantonAuth();
   const { subscription } = useSubscription();
   const [sidebarDeals, setSidebarDeals] = useState<SidebarDeal[]>([]);
+  const [showSettingsToast, setShowSettingsToast] = useState(false);
   
   const fetchDeals = useCallback(async () => {
     try {
@@ -172,8 +173,16 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
         </div>
         
         <div className="grid grid-cols-2 gap-2">
-           <button className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded hover:bg-white/10 transition-all text-white/40 hover:text-white">
+           <button 
+             onClick={() => { setShowSettingsToast(true); setTimeout(() => setShowSettingsToast(false), 2000); }}
+             className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded hover:bg-white/10 transition-all text-white/40 hover:text-white relative group"
+           >
              <Settings className="w-4 h-4" />
+             {showSettingsToast && (
+               <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-zinc-800 border border-white/10 text-white/60 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap z-50">
+                 Settings coming soon
+               </div>
+             )}
            </button>
            <button 
              onClick={disconnect}

@@ -75,7 +75,7 @@ export function useDeal(dealId: string | null) {
     if (!dealId) return;
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/deals/${dealId}`);
+      const res = await authFetch(`/api/deals/${dealId}`);
       if (res.ok) {
         const json = await res.json();
         setDeal(json.data?.deal ?? null);
@@ -103,7 +103,7 @@ export function useMessages(dealId: string | null) {
     if (!dealId) return;
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/deals/${dealId}/messages`);
+      const res = await authFetch(`/api/deals/${dealId}/messages`);
       if (res.ok) {
         const json = await res.json();
         setMessages(json.data ?? []);
@@ -122,7 +122,7 @@ export function useMessages(dealId: string | null) {
   const sendMessage = useCallback(
     async (content: string, threadId?: string) => {
       if (!dealId) return null;
-      const res = await fetch(`/api/deals/${dealId}/messages`, {
+      const res = await authFetch(`/api/deals/${dealId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, threadId, contentType: 'text' }),

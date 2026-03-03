@@ -62,8 +62,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const REFRESH_INTERVAL = 12 * 60 * 1000;
     const interval = setInterval(async () => {
       try {
-        await fetch('/api/auth/refresh', { method: 'POST' });
-      } catch {}
+        const refreshRes = await fetch('/api/auth/refresh', { method: 'POST' });
+        if (!refreshRes.ok) {
+          disconnect();
+        }
+      } catch {
+        disconnect();
+      }
     }, REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, [isConnected]);
