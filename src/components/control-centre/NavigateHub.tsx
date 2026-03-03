@@ -81,6 +81,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
     return !localStorage.getItem('flowryd-workbench-wizard-seen');
   });
   const initialOrgPlaced = useRef(false);
+  const jumpCutNameRef = useRef<string | null>(null);
   
   const { undo, redo, canUndo, canRedo, pushState } = useUndoRedo();
   const { isSaving: autoSaving, lastSavedAt, isDirty } = useAutoSave({
@@ -150,6 +151,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
 
   useEffect(() => {
     if (!initialJumpCut || !orgName) return;
+    jumpCutNameRef.current = initialJumpCut.name;
     const userNode = makeUserOrgNode(orgName);
     const jumpCutNodes: Node[] = initialJumpCut.nodes.map((n, i) => ({
       id: `jc-${Date.now()}-${i}`,
@@ -157,8 +159,16 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
       position: { x: 300 + n.position.x, y: 250 + n.position.y },
       data: { participantId: n.participantId },
     }));
+    // Connect user org to each JumpCut participant with animated edges
+    const jumpCutEdges: Edge[] = jumpCutNodes.map((node, i) => ({
+      id: `jce-${Date.now()}-${i}`,
+      source: 'user-org',
+      target: node.id,
+      type: 'liquid',
+      animated: true,
+    }));
     setNodes([userNode, ...jumpCutNodes]);
-    setEdges([]);
+    setEdges(jumpCutEdges);
     onJumpCutConsumed?.();
   }, [initialJumpCut, orgName, makeUserOrgNode, onJumpCutConsumed]);
 
@@ -751,11 +761,11 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                 if (isCreatingDeal) return;
                 setIsCreatingDeal(true);
                 try {
-                  const title = activeFlow?.title || `Deal ${new Date().toLocaleDateString()}`;
+                  const title = activeFlow?.title || jumpCutNameRef.current || `Deal ${new Date().toLocaleDateString()}`;
                   const res = await fetch('/api/deals', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, flowId: activeFlowId }),
+                    body: JSON.stringify({ title, flowId: activeFlowId || undefined }),
                   });
                   if (res.ok) {
                     const { data } = await res.json();
