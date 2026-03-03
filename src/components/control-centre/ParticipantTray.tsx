@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFlowParticipants } from '@/hooks/use-flow-participants';
+import type { Participant } from '@/lib/canton-data';
 import { 
   Search, 
   ChevronDown, 
@@ -18,7 +19,13 @@ import {
   Globe, 
   Landmark,
   Sparkles,
-  X 
+  X,
+  Eye,
+  Layers,
+  Users,
+  ExternalLink,
+  ArrowLeft,
+  GripVertical
 } from 'lucide-react';
 
 interface ParticipantTrayProps {
@@ -60,6 +67,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(Array.from(new Set(participants.map(p => p.cantonRole))))
   );
+  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
   const activeWorkflow = useMemo(() => 
     workflows.find(w => w.id === selectedWorkflow) || null
@@ -116,6 +124,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
   const onDragStart = (event: React.DragEvent, participantId: string) => {
     event.dataTransfer.setData('application/reactflow', participantId);
     event.dataTransfer.effectAllowed = 'move';
+    setSelectedParticipant(null);
   };
 
   return (
@@ -139,7 +148,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
       {/* Header - Expanded */}
       {!isCollapsed && (
         <>
-          <div className="p-4 border-b border-white/5">
+          <div className="p-4 border-b border-white/5 shrink-0">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-bold tracking-wide text-white/60">
@@ -171,7 +180,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
           </div>
 
           {onSelectWorkflow && !activeWorkflow && (
-            <div className="px-4 py-3 border-b border-white/5">
+            <div className="px-4 py-3 border-b border-white/5 shrink-0">
               <div className="flex items-center gap-1.5 mb-2.5">
                 <Sparkles className="w-3 h-3 text-white/60" />
                 <p className="text-[9px] tracking-wide text-white/60 font-semibold">Jump Cuts</p>
@@ -192,7 +201,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
           )}
 
           {activeWorkflow && onSelectWorkflow && (
-            <div className="px-4 py-3 border-b border-white/10 bg-white/10">
+            <div className="px-4 py-3 border-b border-white/10 bg-white/10 shrink-0">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3 text-white/60" />
@@ -219,7 +228,7 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
             {isLoading ? (
               <div className="p-4 text-center">
                 <p className="text-xs text-white/60">Loading...</p>
@@ -267,11 +276,12 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
                                 key={participant.id}
                                 draggable
                                 onDragStart={(event) => onDragStart(event, participant.id)}
+                                onClick={() => setSelectedParticipant(participant)}
                                 className={`flex items-center gap-2 p-2 rounded-md cursor-grab active:cursor-grabbing group/item hover:scale-[1.02] transition-all ${
                                   isRec 
                                     ? 'bg-white/10 hover:bg-white/10 border border-white/10' 
                                     : 'hover:bg-white/5'
-                                }`}
+                                } ${selectedParticipant?.id === participant.id ? 'ring-1 ring-white/30 bg-white/10' : ''}`}
                                 style={{ height: '40px' }}
                               >
                                 <div className="w-4 h-4 flex items-center justify-center shrink-0">
@@ -311,6 +321,172 @@ export const ParticipantTray: React.FC<ParticipantTrayProps> = ({
           </div>
         </>
       )}
+
+      {/* Participant Detail Card - fixed position to the right of tray */}
+      <AnimatePresence>
+        {selectedParticipant && !isCollapsed && (
+          <>
+            {/* Click-away overlay */}
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setSelectedParticipant(null)}
+            />
+
+            {/* Detail card */}
+            <motion.div
+              initial={{ opacity: 0, x: -8, scale: 0.98 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -8, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+              className="fixed left-[252px] top-[100px] w-[320px] max-h-[calc(100vh-140px)] overflow-y-auto bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl z-50 custom-scrollbar"
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-[#0a0a0a] border-b border-white/10 p-4 z-10 rounded-t-xl">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <button
+                        onClick={() => setSelectedParticipant(null)}
+                        className="p-1 -ml-1 text-white/30 hover:text-white hover:bg-white/10 rounded transition-all"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <h3 className="text-sm font-bold text-white truncate">{selectedParticipant.name}</h3>
+                    </div>
+                    <p className="text-[8px] font-mono text-white/30 tracking-wide font-bold ml-6">{selectedParticipant.cantonRole}</p>
+                  </div>
+                  {selectedParticipant.criticality === 'CRITICAL' && (
+                    <div className="px-1.5 py-0.5 bg-white/10 border border-white/20 rounded text-[7px] font-mono font-bold text-white/60 shrink-0">
+                      CRITICAL
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-4 space-y-4">
+                {/* Description */}
+                {selectedParticipant.description && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Eye className="w-3 h-3 text-white/30" />
+                      <span className="text-[8px] font-bold font-mono tracking-[0.15em] text-white/30">OVERVIEW</span>
+                    </div>
+                    <p className="text-[11px] text-white/60 leading-relaxed">{selectedParticipant.description}</p>
+                  </div>
+                )}
+
+                {/* Network Status */}
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Network className="w-3 h-3 text-white/30" />
+                    <span className="text-[8px] font-bold font-mono tracking-[0.15em] text-white/30">NETWORK STATUS</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {selectedParticipant.validatorNodes !== undefined && selectedParticipant.validatorNodes > 0 && (
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="text-white/40 font-mono">Validator Nodes</span>
+                        <span className="text-white/70 font-mono">{selectedParticipant.validatorNodes}</span>
+                      </div>
+                    )}
+                    {selectedParticipant.superValidator && (
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="text-white/40 font-mono">Super Validator</span>
+                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-white/40 font-mono">Criticality</span>
+                      <span className={`font-mono ${
+                        selectedParticipant.criticality === 'CRITICAL' ? 'text-white' :
+                        selectedParticipant.criticality === 'REQUIRED' ? 'text-white/70' : 'text-white/50'
+                      }`}>{selectedParticipant.criticality}</span>
+                    </div>
+                    {selectedParticipant.location && (
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="text-white/40 font-mono">Location</span>
+                        <span className="text-white/60 font-mono">{selectedParticipant.location}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Capabilities */}
+                {selectedParticipant.capabilities && Object.keys(selectedParticipant.capabilities).length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Layers className="w-3 h-3 text-white/30" />
+                      <span className="text-[8px] font-bold font-mono tracking-[0.15em] text-white/30">CAPABILITIES</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {Object.entries(selectedParticipant.capabilities).map(([cap, value]) => (
+                        value === 1 && (
+                          <span key={cap} className="text-[8px] px-1.5 py-0.5 bg-white/5 border border-white/10 rounded font-mono text-white/50">
+                            {cap.replace(/([A-Z])/g, ' $1').trim()}
+                          </span>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Partners */}
+                {selectedParticipant.partners && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Users className="w-3 h-3 text-white/30" />
+                      <span className="text-[8px] font-bold font-mono tracking-[0.15em] text-white/30">PARTNERS</span>
+                    </div>
+                    <p className="text-[11px] text-white/60 leading-relaxed">{selectedParticipant.partners}</p>
+                  </div>
+                )}
+
+                {/* Links */}
+                {(selectedParticipant.website || selectedParticipant.xHandle) && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <ExternalLink className="w-3 h-3 text-white/30" />
+                      <span className="text-[8px] font-bold font-mono tracking-[0.15em] text-white/30">LINKS</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {selectedParticipant.website && (
+                        <a
+                          href={selectedParticipant.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-[11px] text-white/60 hover:text-white transition-colors"
+                        >
+                          <Globe className="w-3 h-3" />
+                          <span className="truncate">{selectedParticipant.website.replace(/^https?:\/\//, '')}</span>
+                        </a>
+                      )}
+                      {selectedParticipant.xHandle && (
+                        <a
+                          href={`https://x.com/${selectedParticipant.xHandle.replace('@', '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-[11px] text-white/60 hover:text-white transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>{selectedParticipant.xHandle}</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Drag hint */}
+              <div className="sticky bottom-0 p-3 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent pt-6">
+                <div className="flex items-center justify-center gap-2 py-2 border border-dashed border-white/10 rounded-lg">
+                  <GripVertical className="w-3 h-3 text-white/30" />
+                  <span className="text-[9px] font-mono text-white/30">Drag from sidebar to add to canvas</span>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
