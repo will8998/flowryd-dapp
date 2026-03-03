@@ -17,6 +17,11 @@ interface JumpCut {
     participantId: string;
     position: { x: number; y: number };
   }>;
+  edges?: Array<{
+    from: number;
+    to: number;
+    label?: string;
+  }>;
 }
 
 interface CommunityFlow {
@@ -93,38 +98,52 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut }) => 
       id: 'jc_tokenization',
       name: 'Tokenized Asset Flow',
       desc: 'Complete issuer-to-custody workflow for digital asset creation and management.',
-      partners: ['7RIDGE', 'Texture', 'Fairmint', 'C7 Identity'],
+      partners: ['Fairmint', 'Texture Capital', '7RIDGE C7', 'BitGo'],
       fee: '3%',
       nodes: [
-        { role: 'Issuer', participantId: 'p7', position: { x: 0, y: -100 } },
-        { role: 'Broker', participantId: 'p3', position: { x: -200, y: 100 } },
-        { role: 'Registry', participantId: 'p2', position: { x: 200, y: 100 } }
-      ]
+        { role: 'Issuer', participantId: 'p_fairmint', position: { x: 350, y: 150 } },
+        { role: 'Broker-Dealer', participantId: 'p_texturecapital', position: { x: 350, y: 350 } },
+        { role: 'Registry', participantId: 'p_7ridgec7', position: { x: 650, y: 250 } },
+        { role: 'Custody', participantId: 'p_bitgo', position: { x: 950, y: 250 } },
+      ],
+      edges: [
+        { from: 0, to: 2 },
+        { from: 1, to: 2 },
+        { from: 2, to: 3 },
+      ],
     },
     {
       id: 'jc_repo',
       name: 'Verified Repo Flow',
       desc: 'Institutional collateral mobility and lending infrastructure.',
-      partners: ['C7 Identity', 'Kaiko', 'Canton Wallet'],
+      partners: ['Broadridge', 'Bank of America', 'Kaiko'],
       fee: '2%',
       nodes: [
-        { role: 'Lender', participantId: 'p4', position: { x: -200, y: -50 } },
-        { role: 'Borrower', participantId: 'p1', position: { x: 200, y: -50 } },
-        { role: 'Oracle', participantId: 'p6', position: { x: 0, y: 150 } }
-      ]
+        { role: 'Lender', participantId: 'p_broadridge', position: { x: 350, y: 150 } },
+        { role: 'Borrower', participantId: 'p_bofa', position: { x: 350, y: 350 } },
+        { role: 'Oracle', participantId: 'p_kaiko', position: { x: 650, y: 250 } },
+      ],
+      edges: [
+        { from: 0, to: 2 },
+        { from: 1, to: 2 },
+      ],
     },
     {
       id: 'jc_onboard',
       name: 'Onboarding Flow',
       desc: 'KYC/AML compliance suite for seamless customer onboarding.',
-      partners: ['C7 Identity', 'Memora', 'IntellectEU'],
+      partners: ['7RIDGE C7', 'Cygnet', 'IntellectEU'],
       fee: '3%',
       nodes: [
-        { role: 'Identity', participantId: 'p5', position: { x: 0, y: -100 } },
-        { role: 'Storage', participantId: 'p8', position: { x: -150, y: 100 } },
-        { role: 'Infra', participantId: 'p9', position: { x: 150, y: 100 } }
-      ]
-    }
+        { role: 'Identity', participantId: 'p_7ridgec7', position: { x: 350, y: 250 } },
+        { role: 'Attestation', participantId: 'p_cygnet', position: { x: 650, y: 150 } },
+        { role: 'Infrastructure', participantId: 'p_intellecteu', position: { x: 650, y: 350 } },
+      ],
+      edges: [
+        { from: 0, to: 1 },
+        { from: 0, to: 2 },
+      ],
+    },
   ];
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

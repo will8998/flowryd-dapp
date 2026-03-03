@@ -46,6 +46,11 @@ interface JumpCutData {
   id: string;
   name: string;
   nodes: Array<{ role: string; participantId: string; position: { x: number; y: number } }>;
+  edges?: Array<{
+    from: number;
+    to: number;
+    label?: string;
+  }>;
 }
 
 interface NavigateHubProps {
@@ -154,25 +159,45 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
   useEffect(() => {
     if (!initialJumpCut || !orgName) return;
     jumpCutNameRef.current = initialJumpCut.name;
+    
+    // User-org node positioned on the left
     const userNode = makeUserOrgNode(orgName);
+    userNode.position = { x: 100, y: 250 };
+    
+    // Create participant nodes using absolute positions from JumpCut data
     const jumpCutNodes: Node[] = initialJumpCut.nodes.map((n, i) => ({
       id: `jc-${Date.now()}-${i}`,
       type: 'institutional',
-      position: { x: 300 + n.position.x, y: 250 + n.position.y },
+      position: n.position,  // Use absolute positions directly (no offset)
       data: { participantId: n.participantId },
     }));
-    // Connect user org to each JumpCut participant with animated edges
-    const jumpCutEdges: Edge[] = jumpCutNodes.map((node, i) => ({
-      id: `jce-${Date.now()}-${i}`,
+    
+    // Orchestrator edge: user-org → first participant
+    const orchEdge: Edge = {
+      id: `jce-orch-${Date.now()}`,
       source: 'user-org',
-      target: node.id,
+      target: jumpCutNodes[0].id,
+      type: 'liquid',
+      animated: true,
+    };
+    
+    // Inter-participant flow edges from JumpCut edge definitions
+    const flowEdges: Edge[] = (initialJumpCut.edges || []).map((e, i) => ({
+      id: `jce-flow-${Date.now()}-${i}`,
+      source: jumpCutNodes[e.from].id,
+      target: jumpCutNodes[e.to].id,
       type: 'liquid',
       animated: true,
     }));
+    
     setNodes([userNode, ...jumpCutNodes]);
-    setEdges(jumpCutEdges);
+    setEdges([orchEdge, ...flowEdges]);
+    
+    // Auto-fit the canvas to show all nodes
+    setTimeout(() => fitView({ padding: 0.3, duration: 400 }), 100);
+    
     onJumpCutConsumed?.();
-  }, [initialJumpCut, orgName, makeUserOrgNode, onJumpCutConsumed]);
+  }, [initialJumpCut, orgName, makeUserOrgNode, onJumpCutConsumed, fitView]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
