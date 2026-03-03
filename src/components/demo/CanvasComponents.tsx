@@ -3,7 +3,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Building2, ShieldCheck, Database, Search, User } from 'lucide-react';
-import { FlowRole } from '@/lib/demo-data';
+
+interface FlowRole {
+  id: string;
+  name: string;
+  requirements: string;
+  status: 'KNOWN' | 'FILLED' | 'GAP';
+  filledBy?: string;
+  rewardShare?: number;
+}
 
 export const CanvasNode: React.FC<{
   role: FlowRole;
