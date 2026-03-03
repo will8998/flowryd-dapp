@@ -78,8 +78,8 @@ const getSenderRole = (message: Message) => {
 };
 
 const getSeenByCount = (_messageId: string) => {
-  // Placeholder for seen count - in real app this would query active_sessions/message_reads
-  return Math.floor(Math.random() * 3) + 1;
+  // TODO: Wire to real read receipts when implemented
+  return 0;
 };
 
 const _shouldGroupMessages = (current: Message, previous: Message) => {
@@ -295,7 +295,7 @@ const MessageBubble: React.FC<{
 };
 
 export default function MessageThread({ messages, isLoading, dealId, isConnected }: MessageThreadProps) {
-  const [cursor, setCursor] = useState<string | null>(null);
+  const [olderMessages, setOlderMessages] = useState<Message[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -303,14 +303,27 @@ export default function MessageThread({ messages, isLoading, dealId, isConnected
   const [showNewMsgButton, setShowNewMsgButton] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(true);
 
+  // Combine messages from initial fetch + older loaded messages (deduped)
+  const allMessages = React.useMemo(() => {
+    const seen = new Set(messages.map(m => m.id));
+    const extras = olderMessages.filter(m => !seen.has(m.id));
+    return [...messages, ...extras];
+  }, [messages, olderMessages]);
+
   const loadMoreMessages = async () => {
-    if (!cursor || loadingMore) return;
+    if (loadingMore || !hasMore) return;
+    // Use the oldest message's ID as cursor
+    const oldestMsg = allMessages[allMessages.length - 1];
+    if (!oldestMsg) return;
     setLoadingMore(true);
     try {
-      const res = await fetch(`/api/deals/${dealId}/messages?cursor=${cursor}&limit=50`);
+      const res = await fetch(`/api/deals/${dealId}/messages?cursor=${oldestMsg.id}&limit=50`);
       if (res.ok) {
         const json = await res.json();
-        setCursor(json.cursor);
+        const older: Message[] = json.data ?? [];
+        if (older.length > 0) {
+          setOlderMessages(prev => [...prev, ...older]);
+        }
         setHasMore(json.hasMore || false);
       }
     } catch (error) {
@@ -329,15 +342,15 @@ export default function MessageThread({ messages, isLoading, dealId, isConnected
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [allMessages]);
 
   useEffect(() => {
     if (isNearBottom && scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    } else if (!isNearBottom && messages.length > 0) {
+    } else if (!isNearBottom && allMessages.length > 0) {
       setShowNewMsgButton(true);
     }
-  }, [messages.length, isNearBottom]);
+  }, [allMessages.length, isNearBottom]);
 
   const handleScroll = () => {
     if (scrollAreaRef.current) {
@@ -375,7 +388,7 @@ export default function MessageThread({ messages, isLoading, dealId, isConnected
     );
   }
 
-  const groupedMessages = groupMessages(messages);
+  const groupedMessages = groupMessages(allMessages);
 
   return (
     <div className="h-full flex flex-col">

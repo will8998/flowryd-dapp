@@ -6,6 +6,7 @@ import { Send, Paperclip, X, FileText, AlertCircle, Upload, AtSign } from 'lucid
 import { useCantonAuth } from '@/lib/auth-context';
 import { hasPermission } from '@/lib/auth/rbac';
 import { useMessages } from '@/hooks/use-deals';
+import { authFetch } from '@/lib/auth-fetch';
 import { templateParticipants as _templateParticipants } from '@/lib/canton-templates-data';
 
 interface Participant {
@@ -244,11 +245,11 @@ export default function MessageInput({ dealId, participants = [] }: MessageInput
       if (filePreview && !filePreview.error) {
         const fileData = await uploadFile(filePreview.file);
         if (fileData) {
-          const res = await fetch(`/api/deals/${dealId}/messages`, {
+          const res = await authFetch(`/api/deals/${dealId}/messages`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              content: message.trim() || '',
+              content: message.trim() || 'File shared',
               contentType: 'file',
               fileUrl: fileData.fileUrl,
               fileName: fileData.fileName,

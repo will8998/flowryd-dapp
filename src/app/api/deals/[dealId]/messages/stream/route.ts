@@ -56,17 +56,13 @@ export async function GET(
 
       sendEvent('connected', { sessionId: session.id });
 
-      let lastMessageId: string | null = null;
+      // Track last seen timestamp instead of UUID for reliable ordering
+      let lastPollTime = new Date();
 
       const poll = async () => {
         if (closed) return;
 
         try {
-          const conditions = [eq(messages.dealId, dealId)];
-          if (lastMessageId) {
-            conditions.push(gt(messages.id, lastMessageId));
-          }
-
           const newMessages = await db
             .select({
               id: messages.id,
@@ -84,12 +80,22 @@ export async function GET(
             })
             .from(messages)
             .leftJoin(users, eq(messages.senderId, users.id))
-            .where(and(...conditions))
+            .where(and(
+              eq(messages.dealId, dealId),
+              gt(messages.createdAt, lastPollTime)
+            ))
             .limit(50);
 
-          for (const msg of newMessages) {
-            sendEvent('message', msg);
-            lastMessageId = msg.id;
+          if (newMessages.length > 0) {
+            for (const msg of newMessages) {
+              sendEvent('message', msg);
+            }
+            // Update lastPollTime to the latest message's createdAt
+            const latestTime = newMessages.reduce((max, msg) => {
+              const t = new Date(msg.createdAt);
+              return t > max ? t : max;
+            }, lastPollTime);
+            lastPollTime = latestTime;
           }
 
           await db
@@ -103,7 +109,7 @@ export async function GET(
 
       await poll();
 
-      const interval = setInterval(poll, 3000);
+      const interval = setInterval(poll, 2000);
 
       const heartbeat = setInterval(() => {
         if (closed) return;

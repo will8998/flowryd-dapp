@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { authFetch } from '@/lib/auth-fetch';
 
 interface Deal {
@@ -98,6 +98,7 @@ export function useDeal(dealId: string | null) {
 export function useMessages(dealId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const messageIdsRef = useRef<Set<string>>(new Set());
 
   const fetchMessages = useCallback(async () => {
     if (!dealId) return;
@@ -106,7 +107,10 @@ export function useMessages(dealId: string | null) {
       const res = await authFetch(`/api/deals/${dealId}/messages`);
       if (res.ok) {
         const json = await res.json();
-        setMessages(json.data ?? []);
+        const fetched: Message[] = json.data ?? [];
+        // Rebuild the dedup set from fetched messages
+        messageIdsRef.current = new Set(fetched.map(m => m.id));
+        setMessages(fetched);
       }
     } catch {
       console.error('Failed to fetch messages');
@@ -118,6 +122,13 @@ export function useMessages(dealId: string | null) {
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
+
+  // Add a single message with dedup — used by both sendMessage and SSE
+  const addMessage = useCallback((msg: Message) => {
+    if (messageIdsRef.current.has(msg.id)) return; // deduplicate
+    messageIdsRef.current.add(msg.id);
+    setMessages(prev => [msg, ...prev]);
+  }, []);
 
   const sendMessage = useCallback(
     async (content: string, threadId?: string) => {
@@ -131,16 +142,16 @@ export function useMessages(dealId: string | null) {
         const json = await res.json();
         const newMsg = json.data?.message;
         if (newMsg) {
-          setMessages(prev => [newMsg, ...prev]);
+          addMessage(newMsg);
         }
         return newMsg;
       }
       return null;
     },
-    [dealId],
+    [dealId, addMessage],
   );
 
-  return { messages, isLoading, sendMessage, refetch: fetchMessages };
+  return { messages, isLoading, sendMessage, addMessage, refetch: fetchMessages };
 }
 
 export function useSSE(dealId: string | null) {
@@ -153,28 +164,31 @@ export function useSSE(dealId: string | null) {
     let eventSource: EventSource | null = null;
     let retryCount = 0;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let isMounted = true;
 
     const connect = () => {
+      if (!isMounted) return;
       eventSource = new EventSource(`/api/deals/${dealId}/messages/stream`);
 
       eventSource.addEventListener('connected', () => {
         retryCount = 0;
-        setIsConnected(true);
+        if (isMounted) setIsConnected(true);
       });
 
       eventSource.addEventListener('message', (event) => {
         try {
           const data = JSON.parse(event.data);
-          setLastMessage(data);
+          if (isMounted) setLastMessage(data);
         } catch {}
       });
 
       eventSource.onerror = () => {
         eventSource?.close();
+        if (!isMounted) return;
         retryCount++;
-        // Only show disconnected after 2 failed attempts (6s grace period)
-        if (retryCount >= 2) setIsConnected(false);
-        const delay = Math.min(3000 * retryCount, 15000);
+        // Grace period: only show disconnected after 3 failed attempts
+        if (retryCount >= 3) setIsConnected(false);
+        const delay = Math.min(2000 * Math.pow(1.5, retryCount - 1), 30000);
         reconnectTimer = setTimeout(connect, delay);
       };
     };
@@ -182,6 +196,7 @@ export function useSSE(dealId: string | null) {
     connect();
 
     return () => {
+      isMounted = false;
       eventSource?.close();
       if (reconnectTimer) clearTimeout(reconnectTimer);
       setIsConnected(false);

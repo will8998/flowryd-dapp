@@ -37,24 +37,20 @@ const STATUS_TRANSITIONS: Record<string, string[]> = {
 export default function DealRoom({ dealId }: DealRoomProps) {
   const { user } = useCantonAuth();
   const { deal, participants, isLoading: dealLoading, refetch: refetchDeal } = useDeal(dealId);
-  const { messages, isLoading: messagesLoading } = useMessages(dealId);
+  const { messages, isLoading: messagesLoading, addMessage } = useMessages(dealId);
   const { isConnected, lastMessage } = useSSE(dealId);
   
-  const [allMessages, setAllMessages] = useState(messages);
+  // SSE messages are added via addMessage (dedup-aware) — no separate allMessages state needed
+  useEffect(() => {
+    if (lastMessage) {
+      addMessage(lastMessage);
+    }
+  }, [lastMessage, addMessage]);
+
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<'details' | 'files' | 'activity'>('details');
   const [settingsOpen, setSettingsOpen] = useState(false);
-
-  useEffect(() => {
-    if (lastMessage) {
-      setAllMessages(prev => [lastMessage, ...prev]);
-    }
-  }, [lastMessage]);
-
-  useEffect(() => {
-    setAllMessages(messages);
-  }, [messages]);
 
   const handleStatusChange = async (newStatus: string) => {
     if (!user || !hasPermission(user.role, 'deal.status_change')) return;
@@ -360,7 +356,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
 
                 {activeTab === 'files' && (
                   <FilesSidebar 
-                    messages={allMessages}
+                    messages={messages}
                     dealId={dealId}
                     onFileUploaded={() => window.location.reload()}
                   />
@@ -368,7 +364,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
 
                 {activeTab === 'activity' && (
                   <ActivityTimeline 
-                    messages={allMessages}
+                    messages={messages}
                     deal={{
                       createdAt: deal.createdAt,
                       status: deal.status || 'draft',
@@ -384,7 +380,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 min-h-0">
             <MessageThread 
-              messages={allMessages}
+              messages={messages}
               isLoading={messagesLoading}
               dealId={dealId}
               isConnected={isConnected}

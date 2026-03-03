@@ -75,7 +75,7 @@ export const POST = withMiddleware(
     requirePermission(ctx.user!.role, 'deal.send_message');
 
     const { dealId } = ctx.params!;
-    const body = ctx.body as { content: string; threadId?: string; contentType: string };
+    const body = ctx.body as { content: string; threadId?: string; contentType: string; fileUrl?: string; fileName?: string; fileSize?: number };
 
     const [deal] = await db
       .select({ id: deals.id })
@@ -102,16 +102,41 @@ export const POST = withMiddleware(
       throw new ForbiddenError('You must be a participant to send messages');
     }
 
-    const [message] = await db
+    const [insertedMessage] = await db
       .insert(messages)
       .values({
         dealId,
         threadId: body.threadId,
         senderId: ctx.user!.sub,
-        content: body.content,
+        content: body.content || (body.contentType === 'file' ? 'File shared' : ''),
         contentType: body.contentType,
+        fileUrl: body.fileUrl,
+        fileName: body.fileName,
+        fileSize: body.fileSize,
       })
       .returning();
+
+    // Fetch with sender info for consistent response shape
+    const [message] = await db
+      .select({
+        id: messages.id,
+        dealId: messages.dealId,
+        threadId: messages.threadId,
+        senderId: messages.senderId,
+        content: messages.content,
+        contentType: messages.contentType,
+        fileUrl: messages.fileUrl,
+        fileName: messages.fileName,
+        fileSize: messages.fileSize,
+        isEdited: messages.isEdited,
+        createdAt: messages.createdAt,
+        senderDisplayName: users.displayName,
+        senderPartyId: users.partyId,
+      })
+      .from(messages)
+      .leftJoin(users, eq(messages.senderId, users.id))
+      .where(eq(messages.id, insertedMessage.id))
+      .limit(1);
 
     const reqMeta = extractRequestMeta(req);
     logAudit({
