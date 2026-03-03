@@ -24,7 +24,7 @@ const PERMISSION_MATRIX: Record<Permission, UserRole[]> = {
   'flow.delete': ['admin', 'editor'],
   'flow.publish': ['admin', 'editor'],
   'flow.manage_templates': ['admin'],
-  'deal.create': ['admin'],
+  'deal.create': ['admin', 'editor', 'viewer'],
   'deal.status_change': ['admin', 'editor'],
   'deal.send_message': ['admin', 'editor'],
   'deal.upload_file': ['admin', 'editor'],
