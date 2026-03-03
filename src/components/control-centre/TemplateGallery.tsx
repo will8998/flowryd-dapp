@@ -120,15 +120,47 @@ const TemplateDetail: React.FC<TemplateDetailProps> = ({ template, participants,
                 </div>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 text-white/40 hover:text-white transition-colors rounded hover:bg-white/5"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-3">
+              {onNavigateToFlow && (
+                <button
+                  onClick={() => {
+                    const syntheticFlow: CantonFlow = {
+                      id: `new-${template.id}-${Date.now()}`,
+                      name: `New ${template.name} Flow`,
+                      category: template.category,
+                      description: `Flow built from ${template.name} template`,
+                      stepCount: 1,
+                      source: 'user',
+                      status: 'DESIGN',
+                    };
+                    const syntheticStep: CantonFlowStep = {
+                      flowId: syntheticFlow.id,
+                      step: 1,
+                      templateName: template.name,
+                      action: template.description,
+                      inputs: '',
+                      outputs: '',
+                      triggersNext: '',
+                      cantonPrivacy: 'Private',
+                    };
+                    onNavigateToFlow(syntheticFlow, [syntheticStep]);
+                    onClose();
+                  }}
+                  className={`flex items-center gap-2 px-5 py-2.5 bg-${color}-500/20 hover:bg-${color}-500/30 border border-${color}-500/40 hover:border-${color}-500/60 rounded text-sm font-bold text-${color}-300 hover:text-${color}-200 transition-all`}
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  <span>Use Template</span>
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 text-white/40 hover:text-white transition-colors rounded hover:bg-white/5"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
-
         <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(90vh-140px)]">
           <div className="space-y-6">
             <div>
