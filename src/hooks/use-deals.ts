@@ -154,9 +154,24 @@ export function useMessages(dealId: string | null) {
   return { messages, isLoading, sendMessage, addMessage, refetch: fetchMessages };
 }
 
+export interface TypingUser {
+  userId: string;
+  displayName: string;
+  isTyping: boolean;
+}
+
+export interface PresenceUser {
+  userId: string;
+  displayName: string;
+  status: 'online' | 'offline';
+}
+
 export function useSSE(dealId: string | null) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<Message | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Map<string, TypingUser>>(new Map());
+  const [onlineUsers, setOnlineUsers] = useState<Map<string, string>>(new Map());
+  const typingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   useEffect(() => {
     if (!dealId) return;
@@ -182,11 +197,66 @@ export function useSSE(dealId: string | null) {
         } catch {}
       });
 
+      eventSource.addEventListener('typing', (event) => {
+        try {
+          const data: TypingUser = JSON.parse(event.data);
+          if (!isMounted) return;
+
+          if (data.isTyping) {
+            setTypingUsers(prev => {
+              const next = new Map(prev);
+              next.set(data.userId, data);
+              return next;
+            });
+
+            // Auto-clear typing after 4s (in case stop event is missed)
+            const existing = typingTimersRef.current.get(data.userId);
+            if (existing) clearTimeout(existing);
+            typingTimersRef.current.set(data.userId, setTimeout(() => {
+              if (!isMounted) return;
+              setTypingUsers(prev => {
+                const next = new Map(prev);
+                next.delete(data.userId);
+                return next;
+              });
+              typingTimersRef.current.delete(data.userId);
+            }, 4000));
+          } else {
+            setTypingUsers(prev => {
+              const next = new Map(prev);
+              next.delete(data.userId);
+              return next;
+            });
+            const existing = typingTimersRef.current.get(data.userId);
+            if (existing) {
+              clearTimeout(existing);
+              typingTimersRef.current.delete(data.userId);
+            }
+          }
+        } catch {}
+      });
+
+      eventSource.addEventListener('presence', (event) => {
+        try {
+          const data: PresenceUser = JSON.parse(event.data);
+          if (!isMounted) return;
+
+          setOnlineUsers(prev => {
+            const next = new Map(prev);
+            if (data.status === 'online') {
+              next.set(data.userId, data.displayName);
+            } else {
+              next.delete(data.userId);
+            }
+            return next;
+          });
+        } catch {}
+      });
+
       eventSource.onerror = () => {
         eventSource?.close();
         if (!isMounted) return;
         retryCount++;
-        // Grace period: only show disconnected after 3 failed attempts
         if (retryCount >= 3) setIsConnected(false);
         const delay = Math.min(2000 * Math.pow(1.5, retryCount - 1), 30000);
         reconnectTimer = setTimeout(connect, delay);
@@ -199,9 +269,58 @@ export function useSSE(dealId: string | null) {
       isMounted = false;
       eventSource?.close();
       if (reconnectTimer) clearTimeout(reconnectTimer);
+      // Clear all typing timers
+      typingTimersRef.current.forEach(t => clearTimeout(t));
+      typingTimersRef.current.clear();
       setIsConnected(false);
     };
   }, [dealId]);
 
-  return { isConnected, lastMessage };
+  return {
+    isConnected,
+    lastMessage,
+    typingUsers: Array.from(typingUsers.values()),
+    onlineUsers: Array.from(onlineUsers.entries()).map(([userId, displayName]) => ({ userId, displayName })),
+  };
+}
+
+/** Debounced typing indicator sender */
+export function useTypingIndicator(dealId: string | null) {
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
+
+  const sendTyping = useCallback(async (isTyping: boolean) => {
+    if (!dealId) return;
+    try {
+      await fetch(`/api/deals/${dealId}/typing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isTyping }),
+      });
+    } catch {}
+  }, [dealId]);
+
+  const onKeystroke = useCallback(() => {
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      sendTyping(true);
+    }
+
+    // Reset the stop timer
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(() => {
+      isTypingRef.current = false;
+      sendTyping(false);
+    }, 2500);
+  }, [sendTyping]);
+
+  const stopTyping = useCallback(() => {
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      sendTyping(false);
+    }
+  }, [sendTyping]);
+
+  return { onKeystroke, stopTyping };
 }

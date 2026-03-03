@@ -38,7 +38,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
   const { user } = useCantonAuth();
   const { deal, participants, isLoading: dealLoading, refetch: refetchDeal } = useDeal(dealId);
   const { messages, isLoading: messagesLoading, addMessage } = useMessages(dealId);
-  const { isConnected, lastMessage } = useSSE(dealId);
+  const { isConnected, lastMessage, typingUsers, onlineUsers } = useSSE(dealId);
   
   // SSE messages are added via addMessage (dedup-aware) — no separate allMessages state needed
   useEffect(() => {
@@ -117,8 +117,13 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-bold text-white truncate">{deal.title}</h1>
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isConnected ? 'bg-white/70' : 'bg-white/30 animate-pulse'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isConnected ? 'bg-green-400' : 'bg-white/30 animate-pulse'}`} />
             </div>
+            {onlineUsers.length > 0 && (
+              <p className="text-[9px] text-white/40 font-mono mt-0.5">
+                {onlineUsers.length} online{onlineUsers.length <= 3 ? ` — ${onlineUsers.map(u => u.displayName.split(' ')[0]).join(', ')}` : ''}
+              </p>
+            )}
           </div>
 
           <div className="h-4 w-px bg-white/5 shrink-0" />
@@ -388,7 +393,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
           </div>
           
           <div className="flex-shrink-0 border-t border-white/5">
-            <MessageInput dealId={dealId} participants={participants} />
+            <MessageInput dealId={dealId} participants={participants} typingUsers={typingUsers} />
           </div>
         </div>
         </div>

@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '@/db';
-import { deals, messages, users, activeSessions } from '@/db/schema';
+import { deals, activeSessions, users } from '@/db/schema';
 import { verifyAccessToken } from '@/lib/auth/jwt';
+import chatBus from '@/lib/chat-events';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,6 +36,15 @@ export async function GET(
     return new Response(JSON.stringify({ error: 'Deal not found' }), { status: 404 });
   }
 
+  // Get user display name for presence
+  const [userRow] = await db
+    .select({ displayName: users.displayName })
+    .from(users)
+    .where(eq(users.id, user.sub))
+    .limit(1);
+
+  const displayName = userRow?.displayName || 'Unknown';
+
   const [session] = await db
     .insert(activeSessions)
     .values({ userId: user.sub, dealId })
@@ -44,7 +54,7 @@ export async function GET(
   let closed = false;
 
   const stream = new ReadableStream({
-    async start(controller) {
+    start(controller) {
       const sendEvent = (event: string, data: unknown) => {
         if (closed) return;
         try {
@@ -54,63 +64,35 @@ export async function GET(
         }
       };
 
-      sendEvent('connected', { sessionId: session.id });
+      // --- Event bus listeners (instant delivery, no polling) ---
 
-      // Track last seen timestamp instead of UUID for reliable ordering
-      let lastPollTime = new Date();
-
-      const poll = async () => {
-        if (closed) return;
-
-        try {
-          const newMessages = await db
-            .select({
-              id: messages.id,
-              dealId: messages.dealId,
-              threadId: messages.threadId,
-              senderId: messages.senderId,
-              content: messages.content,
-              contentType: messages.contentType,
-              fileUrl: messages.fileUrl,
-              fileName: messages.fileName,
-              fileSize: messages.fileSize,
-              createdAt: messages.createdAt,
-              senderDisplayName: users.displayName,
-              senderPartyId: users.partyId,
-            })
-            .from(messages)
-            .leftJoin(users, eq(messages.senderId, users.id))
-            .where(and(
-              eq(messages.dealId, dealId),
-              gt(messages.createdAt, lastPollTime)
-            ))
-            .limit(50);
-
-          if (newMessages.length > 0) {
-            for (const msg of newMessages) {
-              sendEvent('message', msg);
-            }
-            // Update lastPollTime to the latest message's createdAt
-            const latestTime = newMessages.reduce((max, msg) => {
-              const t = new Date(msg.createdAt);
-              return t > max ? t : max;
-            }, lastPollTime);
-            lastPollTime = latestTime;
-          }
-
-          await db
-            .update(activeSessions)
-            .set({ lastSeenAt: new Date() })
-            .where(eq(activeSessions.id, session.id));
-        } catch {
-          // DB error during poll — continue
-        }
+      const onMessage = (msg: unknown) => {
+        sendEvent('message', msg);
       };
 
-      await poll();
+      const onTyping = (data: unknown) => {
+        sendEvent('typing', data);
+      };
 
-      const interval = setInterval(poll, 2000);
+      const onPresence = (data: unknown) => {
+        sendEvent('presence', data);
+      };
 
+      chatBus.on(`deal:${dealId}:message`, onMessage);
+      chatBus.on(`deal:${dealId}:typing`, onTyping);
+      chatBus.on(`deal:${dealId}:presence`, onPresence);
+
+      // Tell client we're connected
+      sendEvent('connected', { sessionId: session.id, userId: user.sub });
+
+      // Broadcast that this user came online
+      chatBus.emit(`deal:${dealId}:presence`, {
+        userId: user.sub,
+        displayName,
+        status: 'online',
+      });
+
+      // Heartbeat keeps the connection alive through proxies/load balancers
       const heartbeat = setInterval(() => {
         if (closed) return;
         try {
@@ -120,27 +102,47 @@ export async function GET(
         }
       }, 15000);
 
-      // 5 min max — self-hosted, no serverless limit. Clients auto-reconnect.
-      const timeout = setTimeout(() => {
-        closed = true;
-        clearInterval(interval);
-        clearInterval(heartbeat);
-        db.delete(activeSessions)
+      // Periodically update session last_seen
+      const presenceInterval = setInterval(() => {
+        if (closed) return;
+        db.update(activeSessions)
+          .set({ lastSeenAt: new Date() })
           .where(eq(activeSessions.id, session.id))
           .catch(() => {});
-        try { controller.close(); } catch {}
-      }, 300000);
+      }, 30000);
 
-      req.signal.addEventListener('abort', () => {
+      // 10 min max — self-hosted, no serverless limit. Clients auto-reconnect.
+      const timeout = setTimeout(() => cleanup(), 600000);
+
+      const cleanup = () => {
+        if (closed) return;
         closed = true;
-        clearInterval(interval);
+
+        // Remove event listeners
+        chatBus.off(`deal:${dealId}:message`, onMessage);
+        chatBus.off(`deal:${dealId}:typing`, onTyping);
+        chatBus.off(`deal:${dealId}:presence`, onPresence);
+
+        // Broadcast offline
+        chatBus.emit(`deal:${dealId}:presence`, {
+          userId: user.sub,
+          displayName,
+          status: 'offline',
+        });
+
         clearInterval(heartbeat);
+        clearInterval(presenceInterval);
         clearTimeout(timeout);
+
+        // Clean up session
         db.delete(activeSessions)
           .where(eq(activeSessions.id, session.id))
           .catch(() => {});
+
         try { controller.close(); } catch {}
-      });
+      };
+
+      req.signal.addEventListener('abort', cleanup);
     },
   });
 

@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Paperclip, X, FileText, AlertCircle, Upload, AtSign } from 'lucide-react';
 import { useCantonAuth } from '@/lib/auth-context';
 import { hasPermission } from '@/lib/auth/rbac';
-import { useMessages } from '@/hooks/use-deals';
+import { useMessages, useTypingIndicator } from '@/hooks/use-deals';
+import type { TypingUser } from '@/hooks/use-deals';
 import { authFetch } from '@/lib/auth-fetch';
-import { templateParticipants as _templateParticipants } from '@/lib/canton-templates-data';
+
 
 interface Participant {
   id: string;
@@ -20,6 +21,7 @@ interface Participant {
 interface MessageInputProps {
   dealId: string;
   participants?: Participant[];
+  typingUsers?: TypingUser[];
 }
 
 interface FilePreview {
@@ -44,15 +46,11 @@ const ALLOWED_FILE_TYPES = [
 ];
 
 
-interface TypingUser {
-  userId: string;
-  displayName: string;
-  timestamp: number;
-}
+// TypingUser interface is imported from use-deals
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-export default function MessageInput({ dealId, participants = [] }: MessageInputProps) {
+export default function MessageInput({ dealId, participants = [], typingUsers = [] }: MessageInputProps) {
   const { user } = useCantonAuth();
   const { sendMessage } = useMessages(dealId);
   
@@ -64,17 +62,12 @@ export default function MessageInput({ dealId, participants = [] }: MessageInput
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionPosition, setMentionPosition] = useState(0);
-  const [_typingUsers, _setTypingUsers] = useState<TypingUser[]>([]);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mentionsRef = useRef<HTMLDivElement>(null);
 
-  // Enhanced functionality
-  const getTypingUsers = (): TypingUser[] => {
-    // TODO: Wire to SSE typing events when implemented
-    return [];
-  };
+  const { onKeystroke, stopTyping } = useTypingIndicator(dealId);
 
   const handleMentionSearch = (query: string) => {
     if (!query) return [];
@@ -240,6 +233,7 @@ export default function MessageInput({ dealId, participants = [] }: MessageInput
 
     setIsSending(true);
     setSendError(null);
+    stopTyping();
     
     try {
       if (filePreview && !filePreview.error) {
@@ -310,6 +304,11 @@ export default function MessageInput({ dealId, participants = [] }: MessageInput
     
     setMessage(value);
     
+    // Notify typing indicator
+    if (value.trim()) {
+      onKeystroke();
+    }
+    
     // Check for @ mentions
     const beforeCursor = value.substring(0, cursorPosition);
     const lastAtIndex = beforeCursor.lastIndexOf('@');
@@ -331,7 +330,7 @@ export default function MessageInput({ dealId, participants = [] }: MessageInput
     adjustTextareaHeight();
   };
 
-  const currentTypingUsers = getTypingUsers();
+  const currentTypingUsers = typingUsers;
 
   const removeFilePreview = () => {
     if (filePreview?.url) {

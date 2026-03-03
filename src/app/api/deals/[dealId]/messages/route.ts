@@ -9,6 +9,7 @@ import { successResponse, paginatedResponse } from '@/lib/api/response';
 import { NotFoundError, ForbiddenError } from '@/lib/api/errors';
 import { requirePermission } from '@/lib/auth/rbac';
 import { logAudit, extractRequestMeta } from '@/lib/audit';
+import chatBus from '@/lib/chat-events';
 
 export const GET = withMiddleware(
   requireAuth(),
@@ -148,6 +149,9 @@ export const POST = withMiddleware(
       metadata: { dealId },
       ...reqMeta,
     });
+
+    // Emit to event bus — all connected SSE clients get this instantly
+    chatBus.emit(`deal:${dealId}:message`, message);
 
     return successResponse({ message }, 201);
   },
