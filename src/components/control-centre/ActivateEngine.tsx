@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Briefcase, Clock, ChevronRight } from 'lucide-react';
 import { useDeals } from '@/hooks/use-deals';
+import { authFetch } from '@/lib/auth-fetch';
 
 const STATUSES = ['draft', 'open', 'negotiating', 'locked', 'committed'] as const;
 
@@ -57,12 +58,14 @@ export const ActivateEngine: React.FC = () => {
   }, [deals, activeFilter]);
 
   const handleNewDeal = useCallback(async () => {
-    const res = await fetch('/api/deals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: `Deal ${new Date().toLocaleDateString()}` }),
-    });
-    if (res.ok) refetch();
+    try {
+      const res = await authFetch('/api/deals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: `Deal ${new Date().toLocaleDateString()}` }),
+      });
+      if (res.ok) refetch();
+    } catch {}
   }, [refetch]);
 
   return (

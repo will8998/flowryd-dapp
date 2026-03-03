@@ -40,6 +40,7 @@ import { useAutoSave } from '@/hooks/use-auto-save';
 import { useUndoRedo } from '@/hooks/use-undo-redo';
 import { useCantonAuth } from '@/lib/auth-context';
 import { participants as cantonParticipants, workflows as cantonWorkflows } from '@/lib/canton-data';
+import { authFetch } from '@/lib/auth-fetch';
 
 interface JumpCutData {
   id: string;
@@ -762,7 +763,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
                 setIsCreatingDeal(true);
                 try {
                   const title = activeFlow?.title || jumpCutNameRef.current || `Deal ${new Date().toLocaleDateString()}`;
-                  const res = await fetch('/api/deals', {
+                  const res = await authFetch('/api/deals', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, flowId: activeFlowId || undefined }),

@@ -23,6 +23,7 @@ import { TemplateGallery } from './TemplateGallery';
 import { FlowBlueprintLibrary } from './FlowBlueprintLibrary';
 import { TemplateFlowBuilder } from './TemplateFlowBuilder';
 import { AdminPanel } from './AdminPanel';
+import { authFetch } from '@/lib/auth-fetch';
 
 import dynamic from 'next/dynamic';
 const IntelligenceDashboard = dynamic(
@@ -257,7 +258,7 @@ export const FlowsStudio: React.FC = () => {
                           onBack={() => setNavigateView('blueprints')}
                           onCreateWorkflow={async (flow, steps, participants) => {
                             try {
-                              const res = await fetch('/api/deals', {
+                              const res = await authFetch('/api/deals', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -271,7 +272,6 @@ export const FlowsStudio: React.FC = () => {
                               window.location.href = `/deals/${data.deal.id}`;
                             } catch (err) {
                               console.error('Failed to create deal:', err);
-                              // Fallback: navigate to Activate tier
                               handleTierChange('ACTIVATE');
                             }
                           }}

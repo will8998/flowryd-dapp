@@ -57,6 +57,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchMe().finally(() => setIsLoading(false));
   }, [fetchMe]);
 
+  useEffect(() => {
+    if (!isConnected) return;
+    const REFRESH_INTERVAL = 12 * 60 * 1000;
+    const interval = setInterval(async () => {
+      try {
+        await fetch('/api/auth/refresh', { method: 'POST' });
+      } catch {}
+    }, REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, [isConnected]);
+
   const connect = (id: string) => {
     setPartyId(id);
     setIsConnected(true);

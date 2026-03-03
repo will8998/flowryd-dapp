@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { authFetch } from '@/lib/auth-fetch';
 
 interface Deal {
   id: string;
@@ -46,7 +47,7 @@ export function useDeals() {
   const fetchDeals = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/deals');
+      const res = await authFetch('/api/deals');
       if (res.ok) {
         const json = await res.json();
         setDeals(json.data ?? []);
