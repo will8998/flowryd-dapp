@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Calendar, Newspaper, Users, ChevronRight, ChevronLeft } from 'lucide-react';
-import IntelMap from './IntelMap';
+import IntelGlobe from './IntelGlobe';
 import IntelEventsView from './IntelEventsView';
 import IntelMediaView from './IntelMediaView';
 import IntelPeopleView from './IntelPeopleView';
@@ -146,7 +146,7 @@ export default function IntelligenceDashboard() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                <IntelMap
+                <IntelGlobe
                   onSelectParticipant={(p: Participant) => setSelectedParticipantId(p.id)}
                   selectedParticipantId={selectedParticipantId ?? undefined}
                   events={intelEvents}
