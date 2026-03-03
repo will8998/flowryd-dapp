@@ -17,7 +17,7 @@ import {
 interface IntelBottomPanelProps {
   isOpen: boolean;
   onToggle: () => void;
-  activeTab: 'map' | 'events' | 'media' | 'people';
+  activeTab: 'map' | 'events' | 'media' | 'people' | 'monitor';
   onSelectEvent?: (event: IntelEvent) => void;
   onSelectMedia?: (media: IntelMedia) => void;
 }

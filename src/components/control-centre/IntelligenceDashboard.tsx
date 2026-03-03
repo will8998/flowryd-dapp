@@ -2,11 +2,12 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Calendar, Newspaper, Users, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Globe, Calendar, Newspaper, Users, Monitor, ChevronRight, ChevronLeft } from 'lucide-react';
 import IntelGlobe from './IntelGlobe';
 import IntelEventsView from './IntelEventsView';
 import IntelMediaView from './IntelMediaView';
 import IntelPeopleView from './IntelPeopleView';
+import IntelMonitorView from './IntelMonitorView';
 import IntelBottomPanel from './IntelBottomPanel';
 import IntelDetailPanel from './IntelDetailPanel';
 import { participants, type Participant } from '@/lib/canton-data';
@@ -19,13 +20,14 @@ import {
   type IntelMedia,
 } from '@/lib/canton-intel-data';
 
-type IntelTab = 'map' | 'events' | 'media' | 'people';
+type IntelTab = 'map' | 'events' | 'media' | 'people' | 'monitor';
 
 const TABS: { id: IntelTab; label: string; icon: React.ElementType; count?: number }[] = [
   { id: 'map', label: 'Map', icon: Globe },
   { id: 'events', label: 'Events', icon: Calendar },
   { id: 'media', label: 'Media', icon: Newspaper },
   { id: 'people', label: 'People', icon: Users },
+  { id: 'monitor', label: 'Monitor', icon: Monitor },
 ];
 
 export default function IntelligenceDashboard() {
@@ -60,6 +62,7 @@ export default function IntelligenceDashboard() {
     events: stats.events,
     media: stats.media,
     people: stats.people,
+    monitor: undefined,
   };
 
   // Selection handlers
@@ -191,6 +194,19 @@ export default function IntelligenceDashboard() {
                 transition={{ duration: 0.15 }}
               >
                 <IntelPeopleView onSelectPerson={handleSelectPerson} />
+              </motion.div>
+            )}
+
+            {activeTab === 'monitor' && (
+              <motion.div
+                key="monitor"
+                className="absolute inset-0"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.15 }}
+              >
+                <IntelMonitorView />
               </motion.div>
             )}
           </AnimatePresence>
