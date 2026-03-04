@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import useSWR from 'swr';
 import { authFetch } from '@/lib/auth-fetch';
+import { useSocket } from '@/hooks/use-socket';
 
 interface Deal {
   id: string;
@@ -40,6 +41,8 @@ interface Message {
   createdAt: string;
   senderDisplayName: string | null;
   senderPartyId: string | null;
+  deletedAt?: string | null;
+  reactions?: { emoji: string; count: number; users: string[] }[];
 }
 
 export function useDeals(includeArchived = false) {
@@ -153,116 +156,140 @@ export function useSSE(dealId: string | null) {
   const [lastMessage, setLastMessage] = useState<Message | null>(null);
   const [typingUsers, setTypingUsers] = useState<Map<string, TypingUser>>(new Map());
   const [onlineUsers, setOnlineUsers] = useState<Map<string, string>>(new Map());
+  const [editedMessages, setEditedMessages] = useState<Map<string, { content: string; isEdited: boolean; editedAt: string }>>(new Map());
+  const [deletedMessageIds, setDeletedMessageIds] = useState<Set<string>>(new Set());
+  const [messageReactions, setMessageReactions] = useState<Map<string, { emoji: string; count: number; users: string[] }[]>>(new Map());
   const typingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const { socket, isConnected: socketConnected } = useSocket();
 
   useEffect(() => {
-    if (!dealId) return;
+    if (!dealId || !socket) {
+      setIsConnected(false);
+      return;
+    }
 
-    let eventSource: EventSource | null = null;
-    let retryCount = 0;
-    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-    let isMounted = true;
+    // Join the deal room
+    socket.emit('join-deal', dealId);
+    setIsConnected(socketConnected);
 
-    const connect = () => {
-      if (!isMounted) return;
-      eventSource = new EventSource(`/api/deals/${dealId}/messages/stream`);
-
-      eventSource.addEventListener('connected', () => {
-        retryCount = 0;
-        if (isMounted) setIsConnected(true);
-      });
-
-      eventSource.addEventListener('message', (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (isMounted) setLastMessage(data);
-        } catch {}
-      });
-
-      eventSource.addEventListener('typing', (event) => {
-        try {
-          const data: TypingUser = JSON.parse(event.data);
-          if (!isMounted) return;
-
-          if (data.isTyping) {
-            setTypingUsers(prev => {
-              const next = new Map(prev);
-              next.set(data.userId, data);
-              return next;
-            });
-
-            // Auto-clear typing after 4s (in case stop event is missed)
-            const existing = typingTimersRef.current.get(data.userId);
-            if (existing) clearTimeout(existing);
-            typingTimersRef.current.set(data.userId, setTimeout(() => {
-              if (!isMounted) return;
-              setTypingUsers(prev => {
-                const next = new Map(prev);
-                next.delete(data.userId);
-                return next;
-              });
-              typingTimersRef.current.delete(data.userId);
-            }, 4000));
-          } else {
-            setTypingUsers(prev => {
-              const next = new Map(prev);
-              next.delete(data.userId);
-              return next;
-            });
-            const existing = typingTimersRef.current.get(data.userId);
-            if (existing) {
-              clearTimeout(existing);
-              typingTimersRef.current.delete(data.userId);
-            }
-          }
-        } catch {}
-      });
-
-      eventSource.addEventListener('presence', (event) => {
-        try {
-          const data: PresenceUser = JSON.parse(event.data);
-          if (!isMounted) return;
-
-          setOnlineUsers(prev => {
-            const next = new Map(prev);
-            if (data.status === 'online') {
-              next.set(data.userId, data.displayName);
-            } else {
-              next.delete(data.userId);
-            }
-            return next;
-          });
-        } catch {}
-      });
-
-      eventSource.onerror = () => {
-        eventSource?.close();
-        if (!isMounted) return;
-        retryCount++;
-        if (retryCount >= 3) setIsConnected(false);
-        const delay = Math.min(2000 * Math.pow(1.5, retryCount - 1), 30000);
-        reconnectTimer = setTimeout(connect, delay);
-      };
+    // Listen for messages
+    const handleMessage = (data: Message) => {
+      setLastMessage(data);
     };
 
-    connect();
+    // Listen for typing events
+    const handleTyping = (data: TypingUser) => {
+      if (data.isTyping) {
+        setTypingUsers(prev => {
+          const next = new Map(prev);
+          next.set(data.userId, data);
+          return next;
+        });
+
+        // Auto-clear typing after 4s (in case stop event is missed)
+        const existing = typingTimersRef.current.get(data.userId);
+        if (existing) clearTimeout(existing);
+        typingTimersRef.current.set(data.userId, setTimeout(() => {
+          setTypingUsers(prev => {
+            const next = new Map(prev);
+            next.delete(data.userId);
+            return next;
+          });
+          typingTimersRef.current.delete(data.userId);
+        }, 4000));
+      } else {
+        setTypingUsers(prev => {
+          const next = new Map(prev);
+          next.delete(data.userId);
+          return next;
+        });
+        const existing = typingTimersRef.current.get(data.userId);
+        if (existing) {
+          clearTimeout(existing);
+          typingTimersRef.current.delete(data.userId);
+        }
+      }
+    };
+
+    // Listen for presence events
+    const handlePresence = (data: PresenceUser) => {
+      setOnlineUsers(prev => {
+        const next = new Map(prev);
+        if (data.status === 'online') {
+          next.set(data.userId, data.displayName);
+        } else {
+          next.delete(data.userId);
+        }
+        return next;
+      });
+    };
+
+    // Listen for message edit events
+    const handleMessageEdit = (data: { messageId: string; content: string; isEdited: boolean; editedAt: string }) => {
+      setEditedMessages(prev => {
+        const next = new Map(prev);
+        next.set(data.messageId, { content: data.content, isEdited: data.isEdited, editedAt: data.editedAt });
+        return next;
+      });
+    };
+
+    // Listen for message delete events
+    const handleMessageDelete = (data: { messageId: string }) => {
+      setDeletedMessageIds(prev => {
+        const next = new Set(prev);
+        next.add(data.messageId);
+        return next;
+      });
+    };
+
+    // Listen for message reaction events
+    const handleMessageReact = (data: { messageId: string; reactions: { emoji: string; count: number; users: string[] }[]; userId: string; emoji: string; action: 'add'|'remove' }) => {
+      setMessageReactions(prev => {
+        const next = new Map(prev);
+        next.set(data.messageId, data.reactions);
+        return next;
+      });
+    };
+
+    // Listen for message read events
+    const handleMessageRead = (data: { messageId: string; userId: string; readAt: string }) => {
+      // For now, we'll just log this - read receipts can be implemented later
+      console.log('Message read:', data);
+    };
+
+    socket.on('message', handleMessage);
+    socket.on('typing', handleTyping);
+    socket.on('presence', handlePresence);
+    socket.on('message:edit', handleMessageEdit);
+    socket.on('message:delete', handleMessageDelete);
+    socket.on('message:react', handleMessageReact);
+    socket.on('message:read', handleMessageRead);
 
     return () => {
-      isMounted = false;
-      eventSource?.close();
-      if (reconnectTimer) clearTimeout(reconnectTimer);
+      // Leave the deal room
+      socket.emit('leave-deal', dealId);
+      socket.off('message', handleMessage);
+      socket.off('typing', handleTyping);
+      socket.off('presence', handlePresence);
+      socket.off('message:edit', handleMessageEdit);
+      socket.off('message:delete', handleMessageDelete);
+      socket.off('message:react', handleMessageReact);
+      socket.off('message:read', handleMessageRead);
       // Clear all typing timers
       typingTimersRef.current.forEach(t => clearTimeout(t));
       typingTimersRef.current.clear();
       setIsConnected(false);
     };
-  }, [dealId]);
+  }, [dealId, socket, socketConnected]);
 
   return {
     isConnected,
     lastMessage,
     typingUsers: Array.from(typingUsers.values()),
     onlineUsers: Array.from(onlineUsers.entries()).map(([userId, displayName]) => ({ userId, displayName })),
+    editedMessages,
+    deletedMessageIds,
+    messageReactions,
   };
 }
 
@@ -270,17 +297,12 @@ export function useSSE(dealId: string | null) {
 export function useTypingIndicator(dealId: string | null) {
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
+  const { socket } = useSocket();
 
-  const sendTyping = useCallback(async (isTyping: boolean) => {
-    if (!dealId) return;
-    try {
-      await fetch(`/api/deals/${dealId}/typing`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isTyping }),
-      });
-    } catch {}
-  }, [dealId]);
+  const sendTyping = useCallback((isTyping: boolean) => {
+    if (!dealId || !socket) return;
+    socket.emit('typing', { dealId, isTyping, displayName: '' });
+  }, [dealId, socket]);
 
   const onKeystroke = useCallback(() => {
     if (!isTypingRef.current) {
@@ -305,4 +327,25 @@ export function useTypingIndicator(dealId: string | null) {
   }, [sendTyping]);
 
   return { onKeystroke, stopTyping };
+}
+
+export function useUnreadCount(dealId: string | null) {
+  const { data, mutate } = useSWR(
+    dealId ? `/api/deals/${dealId}/read-receipts` : null,
+    (url) => authFetch(url).then(r => r.json()).then(d => d.unreadCount ?? 0),
+    { refreshInterval: 30000 }
+  );
+  return { unreadCount: data ?? 0, refreshUnread: mutate };
+}
+
+export function useMarkRead(dealId: string | null) {
+  const markRead = useCallback(async (messageIds: string[]) => {
+    if (!dealId || messageIds.length === 0) return;
+    await authFetch(`/api/deals/${dealId}/read-receipts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageIds }),
+    });
+  }, [dealId]);
+  return { markRead };
 }

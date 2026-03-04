@@ -20,6 +20,8 @@ const PUBLIC_API_PATHS = [
   '/api/auth/refresh',
   '/api/auth/logout',
   '/api/auth/me',
+  '/api/socket',
+  '/api/auth/me',
 ];
 
 export async function middleware(request: NextRequest) {

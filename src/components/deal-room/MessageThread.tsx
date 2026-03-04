@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, FileText, MessageCircle, Eye, Clock } from 'lucide-react';
+import { Download, FileText, MessageCircle, Eye, Clock, Pencil, Trash2, Smile, Check, X } from 'lucide-react';
 import { templateParticipants } from '@/lib/canton-templates-data';
 
 interface Message {
@@ -19,6 +19,8 @@ interface Message {
   createdAt: string;
   senderDisplayName: string | null;
   senderPartyId: string | null;
+  deletedAt?: string | null;
+  reactions?: { emoji: string; count: number; users: string[] }[];
 }
 
 interface MessageThreadProps {
@@ -26,6 +28,13 @@ interface MessageThreadProps {
   isLoading: boolean;
   dealId: string;
   isConnected?: boolean;
+  currentUserId?: string;
+  editedMessages?: Map<string, { content: string; isEdited: boolean; editedAt: string }>;
+  deletedMessageIds?: Set<string>;
+  messageReactions?: Map<string, { emoji: string; count: number; users: string[] }[]>;
+  onEditMessage?: (messageId: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
+  onReactMessage?: (messageId: string, emoji: string) => void;
 }
 
 interface GroupedMessages {
@@ -152,8 +161,28 @@ const MessageBubble: React.FC<{
   message: Message; 
   isReply?: boolean; 
   isGrouped?: boolean; 
-  showTimestamp?: boolean; 
-}> = ({ message, isReply = false, isGrouped = false, showTimestamp: _showTimestamp = true }) => {
+  showTimestamp?: boolean;
+  currentUserId?: string;
+  editedMessages?: Map<string, { content: string; isEdited: boolean; editedAt: string }>;
+  deletedMessageIds?: Set<string>;
+  messageReactions?: Map<string, { emoji: string; count: number; users: string[] }[]>;
+  onEditMessage?: (messageId: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
+  onReactMessage?: (messageId: string, emoji: string) => void;
+}> = ({ 
+  message, 
+  isReply = false, 
+  isGrouped = false, 
+  showTimestamp: _showTimestamp = true,
+  currentUserId,
+  editedMessages,
+  deletedMessageIds,
+  messageReactions,
+  onEditMessage,
+  onDeleteMessage,
+  onReactMessage
+}) => {
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const avatar = (message.senderDisplayName || message.senderPartyId || 'U')[0].toUpperCase();
   const organization = getSenderOrganization(message);
   const senderRole = getSenderRole(message);
@@ -161,7 +190,14 @@ const MessageBubble: React.FC<{
   const isFile = message.contentType === 'file' || message.fileUrl;
   const isSystem = message.contentType === 'system' || message.content.startsWith('[System]');
   const isImageFileMessage = isFile && isImageFile(message.fileName);
+  const isDeleted = deletedMessageIds?.has(message.id);
+  const editedData = editedMessages?.get(message.id);
+  const isEdited = message.isEdited || editedData?.isEdited;
+  const reactions = messageReactions?.get(message.id) || message.reactions || [];
+  const canEdit = currentUserId === message.senderId;
+  const canDelete = currentUserId === message.senderId;
 
+  const emojis = ['👍', '❤️', '😂', '😮', '😢', '🎉', '🔥', '👏'];
   if (isSystem) {
     return (
       <motion.div
@@ -181,6 +217,26 @@ const MessageBubble: React.FC<{
     );
   }
 
+  if (isDeleted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 6, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className={`relative group ${isReply ? 'ml-6 mt-1' : 'mb-4'} ${isGrouped ? 'mt-1' : ''}`}
+      >
+        <div className="flex gap-3">
+          <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            <span className="text-[10px] font-bold text-white/30">{avatar}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[12px] text-white/25 italic py-2">This message was deleted</div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8, scale: 0.98 }}
@@ -188,6 +244,56 @@ const MessageBubble: React.FC<{
       transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={`relative group ${isReply ? 'ml-6 mt-1' : 'mb-4'} ${isGrouped ? 'mt-1' : ''}`}
     >
+      {/* Hover Action Bar */}
+      <div className="absolute -top-3 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#1a1a2e] border border-white/10 rounded-lg px-1.5 py-1 shadow-lg z-10">
+        {canEdit && (
+          <button
+            onClick={() => onEditMessage?.(message.id)}
+            className="p-1 text-white/40 hover:text-white/70 transition-colors"
+            title="Edit message"
+          >
+            <Pencil className="w-3 h-3" />
+          </button>
+        )}
+        {canDelete && (
+          <button
+            onClick={() => onDeleteMessage?.(message.id)}
+            className="p-1 text-white/40 hover:text-red-400 transition-colors"
+            title="Delete message"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        )}
+        <div className="relative">
+          <button
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="p-1 text-white/40 hover:text-white/70 transition-colors"
+            title="React to message"
+          >
+            <Smile className="w-3 h-3" />
+          </button>
+          {/* Emoji Picker Popup */}
+          {showEmojiPicker && (
+            <div className="absolute top-full right-0 mt-1 bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg shadow-xl z-20 p-2">
+              <div className="flex gap-1">
+                {emojis.map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => {
+                      onReactMessage?.(message.id, emoji);
+                      setShowEmojiPicker(false);
+                    }}
+                    className="p-1 hover:bg-white/10 rounded transition-colors"
+                  >
+                    <span className="text-sm">{emoji}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="flex gap-3">
         {/* Avatar */}
         <div className={`shrink-0 transition-all duration-200 ${isGrouped ? 'opacity-30 scale-90' : ''}`}>
@@ -226,6 +332,9 @@ const MessageBubble: React.FC<{
                 <span className="text-[9px] text-white/25 font-mono group-hover:text-white/40 transition-colors">
                   {formatTimestamp(message.createdAt)}
                 </span>
+                
+                {/* Edited indicator */}
+                {isEdited && <span className="text-[8px] text-white/20 italic">(edited)</span>}
                 
                 {/* Seen indicator */}
                 {seenCount > 0 && (
@@ -279,13 +388,29 @@ const MessageBubble: React.FC<{
               
               {message.content && message.content.trim() && (
                 <div className="text-[13px] text-white/80 mt-3 leading-relaxed border-t border-white/5 pt-2">
-                  {renderMessageContent(message.content)}
+                  {renderMessageContent(editedData?.content || message.content)}
                 </div>
               )}
             </motion.div>
           ) : (
             <div className="text-[13px] text-white/80 leading-relaxed whitespace-pre-wrap">
-              {renderMessageContent(message.content)}
+              {renderMessageContent(editedData?.content || message.content)}
+            </div>
+          )}
+
+          {/* Reaction display */}
+          {reactions.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {reactions.map(r => (
+                <button
+                  key={r.emoji}
+                  onClick={() => onReactMessage?.(message.id, r.emoji)}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-[11px] transition-colors"
+                >
+                  <span>{r.emoji}</span>
+                  <span className="text-white/50">{r.count}</span>
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -294,7 +419,7 @@ const MessageBubble: React.FC<{
   );
 };
 
-export default function MessageThread({ messages, isLoading, dealId, isConnected }: MessageThreadProps) {
+export default function MessageThread({ messages, isLoading, dealId, isConnected, currentUserId, editedMessages, deletedMessageIds, messageReactions, onEditMessage, onDeleteMessage, onReactMessage }: MessageThreadProps) {
   const [olderMessages, setOlderMessages] = useState<Message[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -432,13 +557,33 @@ export default function MessageThread({ messages, isLoading, dealId, isConnected
           <AnimatePresence>
             {groupedMessages.map(group => (
               <div key={group.parentMessage.id} className="mb-4">
-                <MessageBubble message={group.parentMessage} />
+                <MessageBubble 
+                  message={group.parentMessage} 
+                  currentUserId={currentUserId}
+                  editedMessages={editedMessages}
+                  deletedMessageIds={deletedMessageIds}
+                  messageReactions={messageReactions}
+                  onEditMessage={onEditMessage}
+                  onDeleteMessage={onDeleteMessage}
+                  onReactMessage={onReactMessage}
+                />
                 {group.replies.length > 0 && (
                   <div className="ml-3 border-l border-white/5 pl-3">
                     {group.replies
                       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                       .map(reply => (
-                        <MessageBubble key={reply.id} message={reply} isReply />
+                        <MessageBubble 
+                          key={reply.id} 
+                          message={reply} 
+                          isReply 
+                          currentUserId={currentUserId}
+                          editedMessages={editedMessages}
+                          deletedMessageIds={deletedMessageIds}
+                          messageReactions={messageReactions}
+                          onEditMessage={onEditMessage}
+                          onDeleteMessage={onDeleteMessage}
+                          onReactMessage={onReactMessage}
+                        />
                       ))}
                   </div>
                 )}

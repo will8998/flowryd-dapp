@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '@/db';
 import { deals, dealParticipants, users } from '@/db/schema';
 import { verifyAccessToken } from '@/lib/auth/jwt';
-import chatBus from '@/lib/chat-events';
+import { getIO } from '@/lib/socket-io';
 
 export const runtime = 'nodejs';
 
@@ -58,11 +58,14 @@ export async function POST(
 
   const body = await req.json().catch(() => ({}));
 
-  chatBus.emit(`deal:${dealId}:typing`, {
-    userId: user.sub,
-    displayName: userRow?.displayName || 'Unknown',
-    isTyping: body.isTyping !== false,
-  });
+  const io = getIO();
+  if (io) {
+    io.to(`deal:${dealId}`).emit('typing', {
+      userId: user.sub,
+      displayName: userRow?.displayName || 'Unknown',
+      isTyping: body.isTyping !== false,
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }

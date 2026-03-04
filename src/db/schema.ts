@@ -10,7 +10,7 @@ export const auditActionEnum = pgEnum('audit_action', [
   'flow.create', 'flow.update', 'flow.publish', 'flow.delete', 'flow.version',
   'deal.create', 'deal.status_change', 'deal.participant_add', 'deal.participant_remove',
   'room.create', 'room.join', 'room.leave',
-  'message.send', 'file.upload',
+  'message.send', 'message.edit', 'message.delete', 'message.react', 'message.unreact', 'file.upload',
   'subscription.create', 'subscription.cancel', 'subscription.renew',
   'provider.apply', 'provider.approve', 'provider.reject'
 ]);
@@ -157,9 +157,31 @@ export const messages = pgTable('messages', {
   fileSize: integer('file_size'),
   isEdited: boolean('is_edited').default(false),
   editedAt: timestamp('edited_at', { withTimezone: true }),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 }, (table) => ({
   idxMessagesDealThreadCreated: index('idx_messages_deal_thread_created').on(table.dealId, table.threadId, table.createdAt)
+}));
+
+export const messageReactions = pgTable('message_reactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  messageId: uuid('message_id').notNull().references(() => messages.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  emoji: varchar('emoji', { length: 32 }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  uniqueReaction: uniqueIndex('unique_message_reaction').on(table.messageId, table.userId, table.emoji),
+  idxReactionsMessageId: index('idx_reactions_message_id').on(table.messageId),
+}));
+
+export const readReceipts = pgTable('read_receipts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  messageId: uuid('message_id').notNull().references(() => messages.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  readAt: timestamp('read_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  uniqueReadReceipt: uniqueIndex('unique_read_receipt').on(table.messageId, table.userId),
+  idxReadReceiptsMessageId: index('idx_read_receipts_message_id').on(table.messageId),
 }));
 
 export const joinRequests = pgTable('join_requests', {
@@ -582,4 +604,10 @@ export const userPreferences = pgTable('user_preferences', {
 
 export type UserPreferences = InferSelectModel<typeof userPreferences>;
 export type NewUserPreferences = InferInsertModel<typeof userPreferences>;
+
+export type MessageReaction = InferSelectModel<typeof messageReactions>;
+export type NewMessageReaction = InferInsertModel<typeof messageReactions>;
+
+export type ReadReceipt = InferSelectModel<typeof readReceipts>;
+export type NewReadReceipt = InferInsertModel<typeof readReceipts>;
 

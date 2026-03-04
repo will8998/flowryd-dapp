@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef, KeyboardEvent, useCallback } from 'react';
+import React, { useState, useRef, KeyboardEvent, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Paperclip, X, FileText, AlertCircle, Upload, AtSign } from 'lucide-react';
+import { Send, Paperclip, X, FileText, AlertCircle, Upload, AtSign, Check } from 'lucide-react';
 import { useCantonAuth } from '@/lib/auth-context';
 import { hasPermission } from '@/lib/auth/rbac';
 import { useMessages, useTypingIndicator } from '@/hooks/use-deals';
@@ -22,6 +22,8 @@ interface MessageInputProps {
   dealId: string;
   participants?: Participant[];
   typingUsers?: TypingUser[];
+  editingMessage?: { id: string; content: string } | null;
+  onCancelEdit?: () => void;
 }
 
 interface FilePreview {
@@ -50,7 +52,7 @@ const ALLOWED_FILE_TYPES = [
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-export default function MessageInput({ dealId, participants = [], typingUsers = [] }: MessageInputProps) {
+export default function MessageInput({ dealId, participants = [], typingUsers = [], editingMessage, onCancelEdit }: MessageInputProps) {
   const { user } = useCantonAuth();
   const { sendMessage } = useMessages(dealId);
   
@@ -68,6 +70,18 @@ export default function MessageInput({ dealId, participants = [], typingUsers = 
   const mentionsRef = useRef<HTMLDivElement>(null);
 
   const { onKeystroke, stopTyping } = useTypingIndicator(dealId);
+
+  // Pre-fill message when editing
+  useEffect(() => {
+    if (editingMessage) {
+      setMessage(editingMessage.content);
+      // Focus the textarea
+      setTimeout(() => {
+        textareaRef.current?.focus();
+        adjustTextareaHeight();
+      }, 0);
+    }
+  }, [editingMessage]);
 
   const handleMentionSearch = (query: string) => {
     if (!query) return [];
@@ -236,7 +250,22 @@ export default function MessageInput({ dealId, participants = [], typingUsers = 
     stopTyping();
     
     try {
-      if (filePreview && !filePreview.error) {
+      if (editingMessage) {
+        // Edit existing message
+        const res = await authFetch(`/api/deals/${dealId}/messages/${editingMessage.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: message.trim() }),
+        });
+        
+        if (res.ok) {
+          setMessage('');
+          onCancelEdit?.();
+        } else {
+          setSendError('Failed to edit message');
+          setTimeout(() => setSendError(null), 3000);
+        }
+      } else if (filePreview && !filePreview.error) {
         const fileData = await uploadFile(filePreview.file);
         if (fileData) {
           const res = await authFetch(`/api/deals/${dealId}/messages`, {
@@ -391,6 +420,26 @@ export default function MessageInput({ dealId, participants = [], typingUsers = 
         )}
       </AnimatePresence>
 
+      {/* Editing Banner */}
+      <AnimatePresence>
+        {editingMessage && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-blue-500/10 border-b border-blue-500/20 px-3 py-1.5 flex items-center justify-between"
+          >
+            <span className="text-[11px] text-blue-400 font-medium">Editing message</span>
+            <button
+              onClick={onCancelEdit}
+              className="text-blue-400/60 hover:text-blue-400 transition-colors"
+              title="Cancel edit"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="px-4 py-3">
         <AnimatePresence>
           {filePreview && (
@@ -551,6 +600,8 @@ export default function MessageInput({ dealId, participants = [], typingUsers = 
           >
             {isSending ? (
               <div className="w-3 h-3 border border-white/40 border-t-transparent rounded-full animate-spin" />
+            ) : editingMessage ? (
+              <Check className="w-3.5 h-3.5" />
             ) : (
               <Send className="w-3.5 h-3.5" />
             )}

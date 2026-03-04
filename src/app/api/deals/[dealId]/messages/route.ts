@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { eq, and, desc, lt } from 'drizzle-orm';
+import { eq, and, desc, lt, isNull } from 'drizzle-orm';
 import { db } from '@/db';
 import { deals, dealParticipants, messages, users } from '@/db/schema';
 import { withMiddleware, requireAuth, validateBody } from '@/lib/api/middleware-chain';
@@ -9,7 +9,7 @@ import { successResponse, paginatedResponse } from '@/lib/api/response';
 import { NotFoundError, ForbiddenError } from '@/lib/api/errors';
 import { requirePermission } from '@/lib/auth/rbac';
 import { logAudit, extractRequestMeta } from '@/lib/audit';
-import chatBus from '@/lib/chat-events';
+import { getIO } from '@/lib/socket-io';
 
 export const GET = withMiddleware(
   requireAuth(),
@@ -30,7 +30,7 @@ export const GET = withMiddleware(
       throw new NotFoundError('Deal', dealId);
     }
 
-    const conditions = [eq(messages.dealId, dealId)];
+    const conditions = [eq(messages.dealId, dealId), isNull(messages.deletedAt)];
 
     if (threadId) {
       conditions.push(eq(messages.threadId, threadId));
@@ -150,8 +150,11 @@ export const POST = withMiddleware(
       ...reqMeta,
     });
 
-    // Emit to event bus — all connected SSE clients get this instantly
-    chatBus.emit(`deal:${dealId}:message`, message);
+    // Emit to Socket.io clients
+    const io = getIO();
+    if (io) {
+      io.to(`deal:${dealId}`).emit('message', message);
+    }
 
     return successResponse({ message }, 201);
   },

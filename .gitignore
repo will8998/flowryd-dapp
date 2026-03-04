@@ -56,3 +56,6 @@ server.log
 
 # pagefind search index
 public/_pagefind/
+
+# compiled server
+dist/

@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Briefcase, Clock, ChevronRight, CheckCircle2, ExternalLink, X, Search, Archive, Copy, ArchiveRestore } from 'lucide-react';
-import { useDeals } from '@/hooks/use-deals';
+import { useDeals, useUnreadCount } from '@/hooks/use-deals';
 import { authFetch } from '@/lib/auth-fetch';
 import { ListSkeleton } from './SkeletonLoaders';
 import { ExportDropdown } from '@/components/ui/ExportDropdown';
@@ -41,6 +41,16 @@ const timeAgo = (dateStr: string) => {
 interface ActivateEngineProps {
   highlightDealId?: string | null;
   onHighlightConsumed?: () => void;
+}
+
+function DealUnreadBadge({ dealId }: { dealId: string }) {
+  const { unreadCount } = useUnreadCount(dealId);
+  if (!unreadCount) return null;
+  return (
+    <span className="min-w-[18px] h-[18px] rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+      {unreadCount > 99 ? '99+' : unreadCount}
+    </span>
+  );
 }
 
 export const ActivateEngine: React.FC<ActivateEngineProps> = ({ highlightDealId, onHighlightConsumed }) => {
@@ -288,6 +298,12 @@ export const ActivateEngine: React.FC<ActivateEngineProps> = ({ highlightDealId,
             <span className="text-[9px] font-mono text-white/30">{deals.length}</span>
           </div>
           <div className="flex items-center gap-2">
+            <ExportDropdown
+              data={exportData}
+              columns={exportColumns}
+              filename="deals"
+              title="Deals Export"
+            />
             <button
               onClick={() => setShowArchived(!showArchived)}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[9px] font-bold tracking-wide transition-all ${
@@ -406,10 +422,11 @@ export const ActivateEngine: React.FC<ActivateEngineProps> = ({ highlightDealId,
                   >
                     <span className={`w-2 h-2 rounded-full shrink-0 ${DOT_COLORS[status]}`} />
 
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 flex items-center gap-2">
                       <p className="text-[13px] font-semibold text-white/80 truncate group-hover:text-white transition-colors">
                         {deal.title}
                       </p>
+                      <DealUnreadBadge dealId={deal.id} />
                     </div>
 
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md ${config.bg} border ${config.border}`}>
