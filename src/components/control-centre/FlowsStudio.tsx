@@ -18,7 +18,7 @@ import { NavigatePathways } from './NavigatePathways';
 import { FlowSections } from './FlowSections';
 import { ActivateEngine } from './ActivateEngine';
 import { RydAITerminal } from './RydAITerminal';
-import { OnboardingWizard } from './OnboardingWizard';
+import { OnboardingOverlay } from './OnboardingOverlay';
 import { CollectiveHub } from './CollectiveHub';
 import { TemplateGallery } from './TemplateGallery';
 import { FlowBlueprintLibrary } from './FlowBlueprintLibrary';
@@ -38,6 +38,8 @@ import { RetainerWidget } from './RetainerWidget';
 import { CommandPalette } from './CommandPalette';
 import { NotificationPanel } from './NotificationPanel';
 import { HelpModal } from './HelpModal';
+import { ShortcutMap } from './ShortcutMap';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useCantonAuth } from '@/lib/auth-context';
 import type { CantonFlow, CantonFlowStep } from '@/lib/canton-templates-data';
 import type { Participant } from '@/lib/canton-data';
@@ -61,6 +63,8 @@ export const FlowsStudio: React.FC = () => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
   const [pendingJumpCut, setPendingJumpCut] = useState<SelectedJumpCut | null>(null);
   const [pendingParticipant, setPendingParticipant] = useState<Participant | null>(null);
   const [navigateView, setNavigateView] = useState<NavigateView>('templates');
@@ -74,6 +78,73 @@ export const FlowsStudio: React.FC = () => {
     setHighlightDealId(dealId);
     handleTierChange('ACTIVATE');
   }, []);
+
+  // Initialize keyboard shortcuts
+  const { registerShortcut, shortcuts } = useKeyboardShortcuts();
+
+  useEffect(() => {
+    // Register all shortcuts
+    registerShortcut({
+      key: '?',
+      label: 'Show shortcuts',
+      description: 'Display keyboard shortcuts help',
+      category: 'General',
+      action: () => setShowShortcuts(true)
+    });
+
+    registerShortcut({
+      key: 'Escape',
+      label: 'Close panel',
+      description: 'Close any open panel or modal',
+      category: 'General',
+      action: () => {
+        setShowShortcuts(false);
+        setShowCommandPalette(false);
+        setShowNotifications(false);
+        setShowHelp(false);
+      }
+    });
+
+    registerShortcut({
+      key: 'g+i',
+      label: 'Go to Intelligence',
+      description: 'Navigate to Intelligence dashboard',
+      category: 'Navigation',
+      action: () => handleTierChange('INTEL')
+    });
+
+    registerShortcut({
+      key: 'g+d',
+      label: 'Go to Discover',
+      description: 'Navigate to Discover network',
+      category: 'Navigation',
+      action: () => handleTierChange('DISCOVER')
+    });
+
+    registerShortcut({
+      key: 'g+n',
+      label: 'Go to Navigate',
+      description: 'Navigate to Build Flow workbench',
+      category: 'Navigation',
+      action: () => handleTierChange('NAVIGATE')
+    });
+
+    registerShortcut({
+      key: 'g+j',
+      label: 'Go to JumpCuts',
+      description: 'Navigate to Marketplace',
+      category: 'Navigation',
+      action: () => handleTierChange('JOIN')
+    });
+
+    registerShortcut({
+      key: 'g+a',
+      label: 'Go to Activate',
+      description: 'Navigate to Deals activation',
+      category: 'Navigation',
+      action: () => handleTierChange('ACTIVATE')
+    });
+  }, [registerShortcut]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -86,20 +157,22 @@ export const FlowsStudio: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const hasSeen = localStorage.getItem('flowryd_onboarding_seen');
-    if (!hasSeen) {
+    const isComplete = localStorage.getItem('flowryd-onboarding-complete');
+    if (!isComplete) {
       setShowOnboarding(true);
     }
   }, []);
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
-    localStorage.setItem('flowryd_onboarding_seen', 'true');
+    localStorage.setItem('flowryd-onboarding-complete', 'true');
   };
 
   const handleTierChange = (tier: Tier) => {
     setActiveTier(tier);
     setShowCommandPalette(false);
+    setShowNotifications(false);
+    setShowShortcuts(false);
     setShowNotifications(false);
     if (tier === 'NAVIGATE') {
       setNavigateView('templates');
@@ -120,7 +193,7 @@ export const FlowsStudio: React.FC = () => {
     <div className="flex h-screen bg-background text-white overflow-hidden selection:bg-white/30">
       <AnimatePresence>
         {showOnboarding && (
-          <OnboardingWizard onComplete={handleOnboardingComplete} />
+          <OnboardingOverlay onComplete={handleOnboardingComplete} />
         )}
       </AnimatePresence>
 
@@ -338,7 +411,7 @@ export const FlowsStudio: React.FC = () => {
               {activeTier === 'ACTIVATE' && <ActivateEngine key="activate" highlightDealId={highlightDealId} onHighlightConsumed={() => setHighlightDealId(null)} />}
               {activeTier === 'JOIN' && <CollectiveHub key="collective" />}
               {activeTier === 'ADMIN' && (
-                user?.role === 'admin' ? <AdminPanel key="admin" /> : (
+                user?.role === 'admin' ? <AdminPanel key="admin" onSelectJumpCut={(jumpCut) => { setPendingJumpCut({ id: jumpCut.id, name: jumpCut.name, nodes: jumpCut.nodes }); handleTierChange('NAVIGATE'); setNavigateView('create'); }} /> : (
                   <div key="admin-restricted" className="flex h-full items-center justify-center text-white/40">
                     <div className="text-center">
                       <p className="text-lg font-medium">Access Restricted</p>
@@ -362,6 +435,15 @@ export const FlowsStudio: React.FC = () => {
         activeTier={activeTier}
         onTierChange={(tier) => handleTierChange(tier as Tier)}
         userRole={user?.role}
+      />
+      <HelpModal
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+      />
+      <ShortcutMap
+        isOpen={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+        shortcuts={shortcuts}
       />
       <HelpModal
         isOpen={showHelp}

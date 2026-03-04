@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { desc, eq, and, gte, lte, count } from 'drizzle-orm';
 import { db } from '@/db';
 import { auditLog, users } from '@/db/schema';
@@ -18,6 +18,7 @@ export const GET = withMiddleware(
     const to = url.searchParams.get('to');
     const cursor = url.searchParams.get('cursor');
     const limit = Math.min(Number(url.searchParams.get('limit') ?? 50), 100);
+    const format = url.searchParams.get('format');
 
     const conditions = [eq(auditLog.orgId, ctx.user!.orgId)];
 
@@ -65,6 +66,15 @@ export const GET = withMiddleware(
         .where(and(...conditions))
         .then(result => result[0].count)
     ]);
+
+    // Handle JSON export format
+    if (format === 'json') {
+      return NextResponse.json(rows, {
+        headers: {
+          'Content-Disposition': `attachment; filename="audit-log-${new Date().toISOString().split('T')[0]}.json"`,
+        },
+      });
+    }
 
     return successResponse({
       audit: rows,

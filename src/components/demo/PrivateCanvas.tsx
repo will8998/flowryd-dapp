@@ -4,6 +4,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Save, Play, Info, Check, Send, X } from 'lucide-react';
 import { CanvasNode, CanvasEdge } from './CanvasComponents';
+import { useToast } from '@/components/ui';
 
 interface FlowRole {
   id: string;
@@ -63,6 +64,7 @@ interface PrivateCanvasProps {
 }
 
 export const PrivateCanvas: React.FC<PrivateCanvasProps> = ({ flowId, onBack, onReady }) => {
+  const { toast } = useToast();
   const flow = useMemo(() => mockPrivateFlows.find(f => f.id === flowId), [flowId]);
   const [roles, setRoles] = useState<FlowRole[]>(flow?.roles || []);
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
@@ -121,7 +123,15 @@ export const PrivateCanvas: React.FC<PrivateCanvasProps> = ({ flowId, onBack, on
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-bold hover:bg-white/10 transition-colors flex items-center gap-2">
+          <button 
+            onClick={() => {
+              toast('Saving draft...', 'info');
+              setTimeout(() => {
+                toast('Draft saved!', 'success');
+              }, 1000);
+            }}
+            className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-bold hover:bg-white/10 transition-colors flex items-center gap-2"
+          >
             <Save className="w-4 h-4" /> Save Draft
           </button>
           <button 

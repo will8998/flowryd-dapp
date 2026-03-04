@@ -1,7 +1,16 @@
 "use client";
 
 import React from "react";
-import HeroGlyphs from "./HeroGlyphs";
+import dynamic from "next/dynamic";
+
+const HeroGlyphs = dynamic(() => import("./HeroGlyphs"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="text-white/30 text-sm">Loading scene...</div>
+    </div>
+  ),
+});
 
 export default function ClientHero() {
   return (

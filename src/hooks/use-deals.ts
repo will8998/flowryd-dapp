@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import useSWR from 'swr';
 import { authFetch } from '@/lib/auth-fetch';
 
 interface Deal {
@@ -10,6 +11,7 @@ interface Deal {
   status: string | null;
   volume: string | null;
   flowId: string | null;
+  archivedAt: string | null;
   createdBy: string;
   updatedAt: string;
   createdAt: string;
@@ -40,30 +42,10 @@ interface Message {
   senderPartyId: string | null;
 }
 
-export function useDeals() {
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function useDeals(includeArchived = false) {
+  const { data: deals = [], isLoading, mutate } = useSWR<Deal[]>(`/api/deals${includeArchived ? '?includeArchived=true' : ''}`);
 
-  const fetchDeals = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const res = await authFetch('/api/deals');
-      if (res.ok) {
-        const json = await res.json();
-        setDeals(json.data ?? []);
-      }
-    } catch {
-      console.error('Failed to fetch deals');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchDeals();
-  }, [fetchDeals]);
-
-  return { deals, isLoading, refetch: fetchDeals };
+  return { deals, isLoading, refetch: mutate };
 }
 
 export function useDeal(dealId: string | null) {

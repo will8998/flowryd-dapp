@@ -10,10 +10,12 @@ import {
   Clock,
   CreditCard,
   Crown,
+  Workflow,
 } from 'lucide-react';
 import { useCantonAuth } from '@/lib/auth-context';
 import { useSubscription } from '@/hooks/use-subscription';
 import { BillingPanel } from './BillingPanel';
+import { JumpCutsManager } from './JumpCutsManager';
 
 interface User {
   id: string;
@@ -51,7 +53,7 @@ interface AuditResponse {
   hasMore: boolean;
 }
 
-type Tab = 'users' | 'audit' | 'billing';
+type Tab = 'users' | 'audit' | 'billing' | 'jumpcuts';
 
 const AUDIT_ACTIONS = [
   'user.register', 'user.login', 'user.logout', 'user.role_change',
@@ -78,7 +80,11 @@ const TIER_COLORS: Record<string, string> = {
   activate: 'emerald',
 };
 
-export const AdminPanel: React.FC = () => {
+export interface AdminPanelProps {
+  onSelectJumpCut?: (jumpCut: { id: string; name: string; nodes: Array<{ role: string; participantId: string; position: { x: number; y: number } }> }) => void;
+}
+
+export const AdminPanel: React.FC<AdminPanelProps> = ({ onSelectJumpCut }) => {
   const { user: currentUser } = useCantonAuth();
   const { subscription, refetch: refetchSubscription } = useSubscription();
   const [activeTab, setActiveTab] = useState<Tab>('users');
@@ -250,6 +256,7 @@ export const AdminPanel: React.FC = () => {
         <div className="flex gap-2 mt-6">
           {[
             { id: 'users' as Tab, label: 'User Management', icon: Users },
+            { id: 'jumpcuts' as Tab, label: 'Jump Cuts', icon: Workflow },
             { id: 'audit' as Tab, label: 'Audit Log', icon: Clock },
             { id: 'billing' as Tab, label: 'Billing', icon: CreditCard }
           ].map(tab => (
@@ -418,6 +425,18 @@ export const AdminPanel: React.FC = () => {
                   )}
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'jumpcuts' && (
+            <motion.div
+              key="jumpcuts"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-full overflow-y-auto custom-scrollbar"
+            >
+              <JumpCutsManager onSelectJumpCut={onSelectJumpCut} />
             </motion.div>
           )}
 

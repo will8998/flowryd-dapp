@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Lock, Plus, ArrowRight, Users } from 'lucide-react';
+import { useToast } from '@/components/ui';
 
 interface FlowRole {
   id: string;
@@ -60,6 +61,7 @@ interface FlowsDashboardProps {
 }
 
 export const FlowsDashboard: React.FC<FlowsDashboardProps> = ({ onOpenFlow }) => {
+  const { toast } = useToast();
   return (
     <div className="min-h-screen bg-[#020202] p-8 md:p-16 flex flex-col items-center">
       <div className="max-w-6xl w-full space-y-12">
@@ -74,7 +76,10 @@ export const FlowsDashboard: React.FC<FlowsDashboardProps> = ({ onOpenFlow }) =>
               Secure Sandbox • Design Partner Mode
             </p>
           </div>
-          <button className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl font-bold text-sm hover:bg-white/10 transition-all group">
+          <button 
+            onClick={() => toast('Create flows in Mission Control →', 'info')}
+            className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl font-bold text-sm hover:bg-white/10 transition-all group"
+          >
             <Plus className="w-4 h-4 text-blue-400 group-hover:scale-125 transition-transform" />
             New Flow
           </button>

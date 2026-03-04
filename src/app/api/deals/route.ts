@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { desc, eq, and } from 'drizzle-orm';
+import { desc, eq, and, isNull } from 'drizzle-orm';
 import { db } from '@/db';
 import { deals, dealParticipants } from '@/db/schema';
 import { withMiddleware, requireAuth, validateBody } from '@/lib/api/middleware-chain';
@@ -14,9 +14,16 @@ export const GET = withMiddleware(
   async (req: NextRequest, ctx: ApiContext) => {
     const url = new URL(req.url);
     const status = url.searchParams.get('status');
+    const includeArchived = url.searchParams.get('includeArchived') === 'true';
     const limit = Math.min(Number(url.searchParams.get('limit') ?? 20), 50);
 
     const conditions = [eq(deals.orgId, ctx.user!.orgId)];
+    
+    // Exclude archived deals by default
+    if (!includeArchived) {
+      conditions.push(isNull(deals.archivedAt));
+    }
+    
     if (status) {
       conditions.push(eq(deals.status, status as 'draft' | 'open' | 'negotiating' | 'locked' | 'committed'));
     }

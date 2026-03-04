@@ -24,7 +24,11 @@ import {
   cantonFlows,
   cantonFlowSteps,
   templateParticipants,
-  liveWorkflowAssignments
+  liveWorkflowAssignments,
+  dealMilestones,
+  dealVotes,
+  userPreferences,
+  notifications
 } from './schema';
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({
@@ -59,7 +63,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   activeSessions: many(activeSessions),
   providerApplications: many(providerApplications),
   claimedParticipants: many(participants, { relationName: 'participantClaimedBy' }),
-  reviewedParticipants: many(participants, { relationName: 'participantReviewedBy' })
+  reviewedParticipants: many(participants, { relationName: 'participantReviewedBy' }),
+  preferences: one(userPreferences)
 }));
 
 export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
@@ -128,7 +133,9 @@ export const dealsRelations = relations(deals, ({ one, many }) => ({
   }),
   participants: many(dealParticipants),
   messages: many(messages),
-  activeSessions: many(activeSessions)
+  activeSessions: many(activeSessions),
+  milestones: many(dealMilestones),
+  votes: many(dealVotes)
 }));
 
 export const dealParticipantsRelations = relations(dealParticipants, ({ one }) => ({
@@ -318,4 +325,49 @@ export const liveWorkflowAssignmentsRelations = relations(liveWorkflowAssignment
     fields: [liveWorkflowAssignments.assignedBy],
     references: [users.id]
   }),
+}));
+
+// Deal Milestones Relations
+export const dealMilestonesRelations = relations(dealMilestones, ({ one, many }) => ({
+  deal: one(deals, {
+    fields: [dealMilestones.dealId],
+    references: [deals.id]
+  }),
+  completedByUser: one(users, {
+    fields: [dealMilestones.completedBy],
+    references: [users.id]
+  }),
+  votes: many(dealVotes)
+}));
+
+// Deal Votes Relations
+export const dealVotesRelations = relations(dealVotes, ({ one }) => ({
+  deal: one(deals, {
+    fields: [dealVotes.dealId],
+    references: [deals.id]
+  }),
+  milestone: one(dealMilestones, {
+    fields: [dealVotes.milestoneId],
+    references: [dealMilestones.id]
+  }),
+  user: one(users, {
+    fields: [dealVotes.userId],
+    references: [users.id]
+  })
+}));
+
+// User Preferences Relations
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userPreferences.userId],
+    references: [users.id]
+  })
+}));
+
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id]
+  })
 }));

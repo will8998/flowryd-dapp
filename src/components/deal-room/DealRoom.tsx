@@ -13,6 +13,7 @@ import ParticipantManagement from './ParticipantManagement';
 import FilesSidebar from './FilesSidebar';
 import ActivityTimeline from './ActivityTimeline';
 import WorkflowContextPanel from './WorkflowContextPanel';
+import MilestonesPanel from './MilestonesPanel';
 
 interface DealRoomProps {
   dealId: string;
@@ -49,7 +50,7 @@ export default function DealRoom({ dealId }: DealRoomProps) {
 
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<'details' | 'files' | 'activity'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'files' | 'activity' | 'milestones'>('details');
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleStatusChange = async (newStatus: string) => {
@@ -317,6 +318,16 @@ export default function DealRoom({ dealId }: DealRoomProps) {
                   >
                     ACTIVITY
                   </button>
+                  <button
+                    onClick={() => setActiveTab('milestones')}
+                    className={`text-[9px] font-bold tracking-wide px-2 py-1 rounded transition-colors ${
+                      activeTab === 'milestones' 
+                        ? 'text-white/70 bg-white/5' 
+                        : 'text-white/30 hover:text-white/50'
+                    }`}
+                  >
+                    MILESTONES
+                  </button>
                 </div>
                 <button
                   onClick={() => setSidebarOpen(false)}
@@ -375,6 +386,13 @@ export default function DealRoom({ dealId }: DealRoomProps) {
                       status: deal.status || 'draft',
                       title: deal.title
                     }}
+                  />
+                )}
+
+                {activeTab === 'milestones' && (
+                  <MilestonesPanel 
+                    dealId={dealId}
+                    participants={participants}
                   />
                 )}
               </div>

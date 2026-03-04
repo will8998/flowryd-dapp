@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { participants, type Participant } from '@/lib/canton-data';
-import { 
+import {
   type IntelEvent, type IntelPerson, type IntelAnnouncement, type CIPRecord,
   intelPeople, intelAnnouncements, cipRegistry,
   getOrgById
@@ -130,12 +131,17 @@ export default function IntelGlobe({
   type GlobeFC = React.FunctionComponent<
     GlobeProps & { ref?: React.MutableRefObject<GlobeMethods | undefined> }
   >;
-  const [GlobeComponent, setGlobeComponent] = useState<GlobeFC | null>(null);
-  useEffect(() => {
-    import('react-globe.gl').then(mod => {
-      setGlobeComponent(() => mod.default as unknown as GlobeFC);
-    });
-  }, []);
+  const Globe = dynamic(
+    () => import('react-globe.gl').then(mod => mod.default),
+    {
+      ssr: false,
+      loading: () => (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="text-white/30 text-sm">Loading globe...</div>
+        </div>
+      ),
+    }
+  ) as unknown as GlobeFC;
 
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -365,18 +371,10 @@ export default function IntelGlobe({
   const handleGlobeReady = useCallback(() => setReady(true), []);
 
   /* ---- Render ---- */
-  if (!GlobeComponent) {
-    return (
-      <div ref={containerRef} className="w-full h-full flex items-center justify-center" style={{ background: '#09090b' }}>
-        <div className="text-white/20 text-xs font-mono animate-pulse">INITIALIZING GLOBE…</div>
-      </div>
-    );
-  }
-
   return (
     <div ref={containerRef} className="w-full h-full relative" style={{ background: '#09090b' }}>
       {dims.w > 0 && dims.h > 0 && (
-        <GlobeComponent
+        <Globe
           ref={globeRef}
           width={dims.w}
           height={dims.h}

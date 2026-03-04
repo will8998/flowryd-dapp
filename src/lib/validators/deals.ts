@@ -27,7 +27,12 @@ export const removeParticipantSchema = z.object({
   userId: z.string().uuid('Invalid user ID'),
 });
 
+export const archiveDealSchema = z.object({
+  archive: z.boolean(),
+});
+
 export type CreateDealInput = z.infer<typeof createDealSchema>;
 export type UpdateDealStatusInput = z.infer<typeof updateDealStatusSchema>;
 export type AddParticipantInput = z.infer<typeof addParticipantSchema>;
 export type RemoveParticipantInput = z.infer<typeof removeParticipantSchema>;
+export type ArchiveDealInput = z.infer<typeof archiveDealSchema>;

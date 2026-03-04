@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/logger';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCantonAuth } from '@/lib/auth-context';
@@ -172,7 +174,7 @@ export default function OnboardPage() {
         alert(error.message || 'Failed to submit application');
       }
     } catch (error) {
-      console.error('Submission error:', error);
+      logger.error('Submission error', { error });
       alert('Failed to submit application');
     } finally {
       setSubmitting(false);

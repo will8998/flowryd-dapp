@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/swr-config';
 
 export interface Flow {
   id: string;
@@ -27,29 +29,9 @@ interface FlowVersion {
 }
 
 export function useFlows() {
-  const [flows, setFlows] = useState<Flow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: flows = [], isLoading, mutate } = useSWR<Flow[]>('/api/flows', fetcher);
 
-  const fetchFlows = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const res = await fetch('/api/flows');
-      if (res.ok) {
-        const json = await res.json();
-        setFlows(json.data ?? []);
-      }
-    } catch {
-      console.error('Failed to fetch flows');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchFlows();
-  }, [fetchFlows]);
-
-  return { flows, isLoading, refetch: fetchFlows };
+  return { flows, isLoading, refetch: mutate };
 }
 
 export function useFlow(flowId: string | null) {

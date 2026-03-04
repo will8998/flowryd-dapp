@@ -126,11 +126,13 @@ export const deals = pgTable('deals', {
   status: dealStatusEnum('status').default('draft'),
   volume: varchar('volume', { length: 64 }),
   metadata: jsonb('metadata'),
+  archivedAt: timestamp('archived_at', { withTimezone: true }),
   createdBy: uuid('created_by').notNull().references(() => users.id),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 }, (table) => ({
-  idxDealsOrgStatusFlow: index('idx_deals_org_status_flow').on(table.orgId, table.status, table.flowId)
+  idxDealsOrgStatusFlow: index('idx_deals_org_status_flow').on(table.orgId, table.status, table.flowId),
+  idxDealsArchivedAt: index('idx_deals_archived_at').on(table.archivedAt)
 }));
 
 export const dealParticipants = pgTable('deal_participants', {
@@ -500,3 +502,84 @@ export type NewTemplateParticipant = InferInsertModel<typeof templateParticipant
 
 export type LiveWorkflowAssignment = InferSelectModel<typeof liveWorkflowAssignments>;
 export type NewLiveWorkflowAssignment = InferInsertModel<typeof liveWorkflowAssignments>;
+
+// Deal Milestones
+export const dealMilestones = pgTable('deal_milestones', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  dealId: uuid('deal_id').notNull().references(() => deals.id, { onDelete: 'cascade' }),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  dueDate: timestamp('due_date'),
+  status: varchar('status', { length: 50 }).notNull().default('pending'), // pending | in_progress | completed | overdue
+  order: integer('order').notNull().default(0),
+  completedAt: timestamp('completed_at'),
+  completedBy: uuid('completed_by').references(() => users.id),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Deal Votes (for approval workflows)
+export const dealVotes = pgTable('deal_votes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  dealId: uuid('deal_id').notNull().references(() => deals.id, { onDelete: 'cascade' }),
+  milestoneId: uuid('milestone_id').references(() => dealMilestones.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  vote: varchar('vote', { length: 20 }).notNull(), // approve | reject | abstain
+  comment: text('comment'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  uniqueVote: uniqueIndex('unique_vote_per_user_milestone').on(table.milestoneId, table.userId),
+}));
+
+// Type exports for new tables
+export type DealMilestone = InferSelectModel<typeof dealMilestones>;
+export type NewDealMilestone = InferInsertModel<typeof dealMilestones>;
+
+export type DealVote = InferSelectModel<typeof dealVotes>;
+export type NewDealVote = InferInsertModel<typeof dealVotes>;
+
+// Deal Templates
+export const dealTemplates = pgTable('deal_templates', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  defaultTitle: varchar('default_title', { length: 255 }),
+  defaultFlowId: varchar('default_flow_id'),
+  milestonePresets: jsonb('milestone_presets'), // [{title, description, order}]
+  createdBy: uuid('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type DealTemplate = InferSelectModel<typeof dealTemplates>;
+export type NewDealTemplate = InferInsertModel<typeof dealTemplates>;
+
+// Notifications
+export const notifications = pgTable('notifications', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 50 }).notNull(), // deal_update, message, participant_joined, flow_published, system
+  title: varchar('title', { length: 255 }).notNull(),
+  body: text('body'),
+  link: varchar('link', { length: 500 }), // URL to navigate to
+  read: boolean('read').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Notification = InferSelectModel<typeof notifications>;
+export type NewNotification = InferInsertModel<typeof notifications>;
+
+// User Preferences
+export const userPreferences = pgTable('user_preferences', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  theme: varchar('theme', { length: 20 }).notNull().default('dark'), // dark | light | system
+  displayDensity: varchar('display_density', { length: 20 }).notNull().default('comfortable'), // compact | comfortable | spacious
+  defaultView: varchar('default_view', { length: 50 }).notNull().default('intelligence'), // which tab opens on login
+  notificationsEnabled: boolean('notifications_enabled').notNull().default(true),
+  emailDigest: varchar('email_digest', { length: 20 }).notNull().default('daily'), // off | daily | weekly
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type UserPreferences = InferSelectModel<typeof userPreferences>;
+export type NewUserPreferences = InferInsertModel<typeof userPreferences>;
+

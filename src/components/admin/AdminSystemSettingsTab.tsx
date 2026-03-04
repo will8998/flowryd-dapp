@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Database, Shield, Network, CreditCard, CheckCircle, XCircle } from 'lucide-react';
+import { Settings, Database, Shield, Network, CreditCard, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
 interface PlansResponse {
   data: {
@@ -13,6 +13,9 @@ interface PlansResponse {
 export const AdminSystemSettingsTab: React.FC = () => {
   const [planCount, setPlanCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<string | null>(null);
+
 
   const loadPlanCount = async () => {
     try {
@@ -27,6 +30,101 @@ export const AdminSystemSettingsTab: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleClearCache = async () => {
+    setActionLoading('cache');
+    try {
+      const response = await fetch('/api/admin/cache/clear', {
+        method: 'POST',
+      });
+      if (response.ok) {
+        alert('Cache cleared successfully');
+      } else {
+        alert('Failed to clear cache');
+      }
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      alert('Failed to clear cache');
+    } finally {
+      setActionLoading(null);
+      setShowConfirmDialog(null);
+    }
+  };
+
+  const handleRestartServices = async () => {
+    setActionLoading('restart');
+    try {
+      const response = await fetch('/api/admin/system/restart', {
+        method: 'POST',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.data.message);
+      } else {
+        alert('Failed to restart services');
+      }
+    } catch (error) {
+      console.error('Error restarting services:', error);
+      alert('Failed to restart services');
+    } finally {
+      setActionLoading(null);
+      setShowConfirmDialog(null);
+    }
+  };
+
+  const handleExportLogs = async () => {
+    setActionLoading('export');
+    try {
+      const response = await fetch('/api/admin/audit?limit=100&format=json');
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `audit-log-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Failed to export logs');
+      }
+    } catch (error) {
+      console.error('Error exporting logs:', error);
+      alert('Failed to export logs');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const ConfirmDialog = ({ action, onConfirm, onCancel }: { action: string; onConfirm: () => void; onCancel: () => void }) => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-zinc-900 border border-white/10 rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="flex items-center gap-3 mb-4">
+          <AlertTriangle className="w-5 h-5 text-yellow-400" />
+          <h3 className="text-lg font-semibold text-white">Confirm Action</h3>
+        </div>
+        <p className="text-white/60 mb-6">
+          Are you sure you want to {action}? This action cannot be undone.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 border border-white/10 text-white/60 rounded hover:bg-white/5 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     loadPlanCount();
@@ -85,6 +183,7 @@ export const AdminSystemSettingsTab: React.FC = () => {
   );
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -137,26 +236,28 @@ export const AdminSystemSettingsTab: React.FC = () => {
           <div className="flex items-center gap-3 mb-4">
             <Settings className="w-5 h-5 text-white/60" />
             <h4 className="text-sm font-bold text-white/80">System Actions</h4>
-            <ComingSoonBadge />
           </div>
           <div className="space-y-3">
             <button
-              disabled
-              className="w-full px-4 py-2 border border-white/10 text-white/40 rounded transition-colors cursor-not-allowed"
+              onClick={() => setShowConfirmDialog('cache')}
+              disabled={actionLoading !== null}
+              className="w-full px-4 py-2 border border-white/10 text-white hover:bg-white/5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Clear Cache
+              {actionLoading === 'cache' ? 'Clearing...' : 'Clear Cache'}
             </button>
             <button
-              disabled
-              className="w-full px-4 py-2 border border-white/10 text-white/40 rounded transition-colors cursor-not-allowed"
+              onClick={() => setShowConfirmDialog('restart')}
+              disabled={actionLoading !== null}
+              className="w-full px-4 py-2 border border-white/10 text-white hover:bg-white/5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Restart Services
+              {actionLoading === 'restart' ? 'Restarting...' : 'Restart Services'}
             </button>
             <button
-              disabled
-              className="w-full px-4 py-2 border border-white/10 text-white/40 rounded transition-colors cursor-not-allowed"
+              onClick={handleExportLogs}
+              disabled={actionLoading !== null}
+              className="w-full px-4 py-2 border border-white/10 text-white hover:bg-white/5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Export System Logs
+              {actionLoading === 'export' ? 'Exporting...' : 'Export System Logs'}
             </button>
           </div>
         </div>
@@ -193,5 +294,22 @@ export const AdminSystemSettingsTab: React.FC = () => {
         </p>
       </div>
     </div>
+    
+    {/* Confirmation Dialogs */}
+    {showConfirmDialog === 'cache' && (
+      <ConfirmDialog
+        action="clear the cache"
+        onConfirm={handleClearCache}
+        onCancel={() => setShowConfirmDialog(null)}
+      />
+    )}
+    {showConfirmDialog === 'restart' && (
+      <ConfirmDialog
+        action="restart services"
+        onConfirm={handleRestartServices}
+        onCancel={() => setShowConfirmDialog(null)}
+      />
+    )}
+    </>
   );
 };

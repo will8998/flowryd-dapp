@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useCantonAuth } from '@/lib/auth-context';
 import { useSubscription } from '@/hooks/use-subscription';
+import { UserPreferencesPanel } from './UserPreferencesPanel';
 import Image from 'next/image';
 
 type Tier = 'DISCOVER' | 'NAVIGATE' | 'ACTIVATE' | 'JOIN' | 'ADMIN' | 'INTEL';
@@ -35,6 +36,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
   const { partyId, user, disconnect } = useCantonAuth();
   const { subscription } = useSubscription();
   const [sidebarDeals, setSidebarDeals] = useState<SidebarDeal[]>([]);
+  const [showPreferencesPanel, setShowPreferencesPanel] = useState(false);
   const [showSettingsToast, setShowSettingsToast] = useState(false);
   
   const fetchDeals = useCallback(async () => {
@@ -63,6 +65,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
   ];
 
   return (
+    <>
     <div className="w-64 h-screen bg-[#0a0a0a] border-r border-white/5 flex flex-col z-50">
       <div className="p-8 border-b border-white/5">
         <div className="flex items-center gap-3">
@@ -175,14 +178,10 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
         <div className="grid grid-cols-2 gap-2">
            <button 
              aria-label="Settings"
-             className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded hover:bg-white/10 transition-all text-white/40 hover:text-white relative group"
+             onClick={() => setShowPreferencesPanel(true)}
+             className="flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded hover:bg-white/10 transition-all text-white/40 hover:text-white"
            >
              <Settings className="w-4 h-4" />
-             {showSettingsToast && (
-               <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-zinc-800 border border-white/10 text-white/60 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap z-50">
-                 Settings coming soon
-               </div>
-             )}
            </button>
            <button 
              aria-label="Logout"
@@ -193,5 +192,10 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({ activeTier, onTier
         </div>
       </div>
     </div>
+    <UserPreferencesPanel
+      isOpen={showPreferencesPanel}
+      onClose={() => setShowPreferencesPanel(false)}
+    />
+    </>
   );
 };

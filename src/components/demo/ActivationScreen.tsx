@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, CheckCircle2, Zap, BarChart3, Shield } from 'lucide-react';
+import { useToast } from '@/components/ui';
 
 interface ActivationScreenProps {
   onBack: () => void;
 }
 
 export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onBack }) => {
+  const { toast } = useToast();
   const [isActivated, setIsActivated] = useState(false);
 
   const participants = [
@@ -136,7 +138,10 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onBack }) =>
             </div>
 
             <div className="flex gap-4 pt-8">
-              <button className="px-8 py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors">
+              <button 
+                onClick={() => toast('Opening Explorer...', 'info')}
+                className="px-8 py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors"
+              >
                 View Explorer
               </button>
               <button onClick={onBack} className="px-8 py-3 bg-white/5 border border-white/10 rounded-xl font-bold text-sm hover:bg-white/10 transition-colors">

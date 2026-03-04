@@ -4,6 +4,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ArrowRight, Building2, Database, Network, Layers, Plus, Users, Eye, X, Star, Globe, ExternalLink } from 'lucide-react';
 import { participants, type Participant } from '@/lib/canton-data';
+import { ExportDropdown } from '@/components/ui/ExportDropdown';
+import { formatDateForExport } from '@/lib/export-utils';
 
 
 interface JumpCut {
@@ -48,25 +50,93 @@ type ViewState = 'welcome' | 'browsing' | 'filtered';
 export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut, onSelectParticipant }) => {
   const [filter, setFilter] = useState('');
   const [selectedRole, setSelectedRole] = useState('ALL');
+  const [selectedOrganization, setSelectedOrganization] = useState('ALL');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [viewState, setViewState] = useState<ViewState>('welcome');
   const [communityFlows, setCommunityFlows] = useState<CommunityFlow[]>([]);
   const [joiningFlows, setJoiningFlows] = useState<Set<string>>(new Set());
   const [joinedFlows, setJoinedFlows] = useState<Set<string>>(new Set());
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
+  // Load favorites from localStorage
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('flowryd-favorite-participants');
+    if (savedFavorites) {
+      try {
+        const favoriteIds = JSON.parse(savedFavorites);
+        setFavorites(new Set(favoriteIds));
+      } catch {
+        // Ignore invalid JSON
+      }
+    }
+  }, []);
+
+  // Save favorites to localStorage
+  const toggleFavorite = (participantId: string) => {
+    const newFavorites = new Set(favorites);
+    if (newFavorites.has(participantId)) {
+      newFavorites.delete(participantId);
+    } else {
+      newFavorites.add(participantId);
+    }
+    setFavorites(newFavorites);
+    localStorage.setItem('flowryd-favorite-participants', JSON.stringify(Array.from(newFavorites)));
+  };
+
+  // Extract unique organizations from participants
+  const organizations = useMemo(() => {
+    const orgs = new Set<string>();
+    participants.forEach(p => {
+      // Use the participant name as organization for now
+      // In a real app, you'd have a separate organization field
+      orgs.add(p.name);
+    });
+    return ['ALL', ...Array.from(orgs).sort()];
+  }, []);
+
   // Determine view state based on user interactions
   const currentViewState = useMemo<ViewState>(() => {
-    if (filter.trim() || selectedRole !== 'ALL') return 'filtered';
+    if (filter.trim() || selectedRole !== 'ALL' || selectedOrganization !== 'ALL' || showFavoritesOnly) return 'filtered';
     if (viewState === 'browsing') return 'browsing';
     return 'welcome';
-  }, [filter, selectedRole, viewState]);
+  }, [filter, selectedRole, selectedOrganization, showFavoritesOnly, viewState]);
 
   const filteredParticipants = participants.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(filter.toLowerCase()) || 
                          p.cantonRole.toLowerCase().includes(filter.toLowerCase());
     const matchesRole = selectedRole === 'ALL' || p.cantonRole.toUpperCase().includes(selectedRole);
-    return matchesSearch && matchesRole;
+    const matchesOrganization = selectedOrganization === 'ALL' || p.name === selectedOrganization;
+    const matchesFavorites = !showFavoritesOnly || favorites.has(p.id);
+    return matchesSearch && matchesRole && matchesOrganization && matchesFavorites;
   });
+
+  // Prepare export data
+  const exportData = useMemo(() => {
+    return filteredParticipants.map(participant => ({
+      name: participant.name,
+      organization: participant.name,
+      cantonRole: participant.cantonRole,
+      type: participant.superValidator ? 'Super Validator' : participant.isValidator ? 'Validator' : 'Participant',
+      description: participant.description || '',
+      location: participant.location || '',
+      website: participant.website || '',
+      criticality: participant.criticality,
+      validatorNodes: participant.validatorNodes || 0
+    }));
+  }, [filteredParticipants]);
+
+  const exportColumns = [
+    { key: 'name', label: 'Name' },
+    { key: 'organization', label: 'Organization' },
+    { key: 'cantonRole', label: 'Canton Role' },
+    { key: 'type', label: 'Type' },
+    { key: 'description', label: 'Description' },
+    { key: 'location', label: 'Location' },
+    { key: 'website', label: 'Website' },
+    { key: 'criticality', label: 'Criticality' },
+    { key: 'validatorNodes', label: 'Validator Nodes' }
+  ];
 
   // Group participants by role for browsing mode
   const groupedParticipants = useMemo(() => {
@@ -162,6 +232,13 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut, onSel
     }
   };
 
+  const handleOrganizationSelect = (org: string) => {
+    setSelectedOrganization(org);
+    if (viewState === 'welcome') {
+      setViewState('browsing');
+    }
+  };
+
   const handleExploreClick = () => {
     setViewState('browsing');
   };
@@ -169,6 +246,8 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut, onSel
   const clearFilters = () => {
     setFilter('');
     setSelectedRole('ALL');
+    setSelectedOrganization('ALL');
+    setShowFavoritesOnly(false);
     setViewState('welcome');
   };
 
@@ -230,10 +309,22 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut, onSel
       onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedParticipant(p); } }}
     >
       {p.criticality === 'CRITICAL' && (
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-white/60 animate-pulse" title="Critical Participant" />
         </div>
       )}
+      
+      {/* Favorite toggle */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleFavorite(p.id);
+        }}
+        className={`absolute top-3 ${p.criticality === 'CRITICAL' ? 'right-8' : 'right-3'} p-1 rounded hover:bg-white/10 transition-colors`}
+        title={favorites.has(p.id) ? 'Remove from favorites' : 'Add to favorites'}
+      >
+        <Star className={`w-3 h-3 ${favorites.has(p.id) ? 'fill-yellow-400 text-yellow-400' : 'text-white/40 hover:text-white/60'} transition-colors`} />
+      </button>
       
       <div className="flex justify-between items-start mb-3">
         <div className="w-10 h-10 bg-white/5 border border-white/10 rounded flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -415,7 +506,7 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut, onSel
                     />
                   </div>
 
-                  {(filter || selectedRole !== 'ALL') && (
+                  {(filter || selectedRole !== 'ALL' || selectedOrganization !== 'ALL' || showFavoritesOnly) && (
                     <button
                       onClick={clearFilters}
                       className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 rounded transition-all text-xs font-mono text-white/60 hover:text-white"
@@ -424,6 +515,12 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut, onSel
                       Clear
                     </button>
                   )}
+                  <ExportDropdown
+                    data={exportData}
+                    filename={`participants-${new Date().toISOString().split('T')[0]}`}
+                    columns={exportColumns}
+                    title="Flowryd Network Participants Export"
+                  />
                 </div>
               </div>
 
@@ -452,6 +549,41 @@ export const NetworkGrid: React.FC<NetworkGridProps> = ({ onSelectJumpCut, onSel
                     </span>
                   </button>
                 ))}
+              </motion.div>
+
+              {/* Organization Filter and Favorites Toggle */}
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center gap-4"
+              >
+                {/* Organization Filter */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/40 font-mono">Organization:</span>
+                  <select
+                    value={selectedOrganization}
+                    onChange={(e) => handleOrganizationSelect(e.target.value)}
+                    className="bg-zinc-950 border border-white/10 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-white/30 transition-colors"
+                  >
+                    {organizations.slice(0, 20).map(org => (
+                      <option key={org} value={org}>{org === 'ALL' ? 'All Organizations' : org}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Favorites Toggle */}
+                <button
+                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                    showFavoritesOnly
+                      ? 'border border-white/30 bg-black/40 text-white'
+                      : 'bg-white/5 text-white/40 hover:text-white hover:bg-white/10 border border-white/10'
+                  }`}
+                >
+                  <Star className={`w-3 h-3 ${showFavoritesOnly ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                  Show Favorites Only
+                </button>
               </motion.div>
             </div>
 

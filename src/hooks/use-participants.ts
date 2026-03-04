@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/swr-config';
 import { participants as staticParticipants, workflows as staticWorkflows } from '@/lib/canton-data';
 import type { Participant, Workflow } from '@/lib/canton-data';
 
@@ -50,47 +52,35 @@ interface UseParticipantsReturn {
 }
 
 export function useParticipants(): UseParticipantsReturn {
+  const { data: dbParticipants = [], isLoading, error: swrError } = useSWR(
+    '/api/participants?limit=200&status=unclaimed&status=approved&status=verified',
+    fetcher
+  );
+
   const [participants, setParticipants] = useState<Participant[]>(staticParticipants);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchParticipants = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const res = await fetch('/api/participants?limit=200&status=unclaimed&status=approved&status=verified');
-
-      if (res.ok) {
-        const json = await res.json();
-        const dbParticipants: DbParticipant[] = json.data?.participants ?? [];
-
-        if (dbParticipants.length > 0) {
-          setParticipants(dbParticipants.map(mapDbToCantonParticipant));
-        } else {
-          setParticipants(staticParticipants);
-        }
-      } else {
-        setParticipants(staticParticipants);
-        setError('Failed to fetch participants, using static data');
-      }
-    } catch {
-      setParticipants(staticParticipants);
-      setError('Network error, using static data');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchParticipants();
-  }, [fetchParticipants]);
+    if (dbParticipants && dbParticipants.length > 0) {
+      setParticipants(dbParticipants.map(mapDbToCantonParticipant));
+      setError(null);
+    } else if (swrError) {
+      setParticipants(staticParticipants);
+      setError('Failed to fetch participants, using static data');
+    } else if (!isLoading) {
+      setParticipants(staticParticipants);
+    }
+  }, [dbParticipants, swrError, isLoading]);
+
+  const refetch = useCallback(() => {
+    // SWR will handle revalidation
+  }, []);
 
   return {
     participants,
     workflows: staticWorkflows,
     isLoading,
     error,
-    refetch: fetchParticipants,
+    refetch,
   };
 }

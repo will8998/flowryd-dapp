@@ -26,6 +26,8 @@ import {
   Undo,
   Redo,
   LayoutGrid,
+  Download,
+  AlertTriangle,
 } from 'lucide-react';
 import { ParticipantTray } from './ParticipantTray';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -43,6 +45,8 @@ import { useCantonAuth } from '@/lib/auth-context';
 import { participants as cantonParticipants, workflows as cantonWorkflows } from '@/lib/canton-data';
 import type { Participant } from '@/lib/canton-data';
 import { authFetch } from '@/lib/auth-fetch';
+import { ExportDropdown } from '@/components/ui/ExportDropdown';
+import { formatDateForExport } from '@/lib/export-utils';
 
 interface JumpCutData {
   id: string;
@@ -61,6 +65,35 @@ interface NavigateHubProps {
   initialParticipant?: Participant | null;
   onParticipantConsumed?: () => void;
   onDealCreated?: (dealId: string) => void;
+}
+
+interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+function validateFlow(nodes: Node[], edges: Edge[]): ValidationResult {
+  const errors: string[] = [];
+  
+  // Check minimum nodes
+  if (nodes.length < 2) {
+    errors.push('Flow must have at least 2 nodes');
+  }
+  
+  // Check for disconnected nodes
+  const connectedNodeIds = new Set(edges.flatMap(e => [e.source, e.target]));
+  const disconnected = nodes.filter(n => !connectedNodeIds.has(n.id));
+  if (disconnected.length > 0) {
+    errors.push(`${disconnected.length} node(s) are not connected`);
+  }
+  
+  // Check for nodes without labels
+  const unnamed = nodes.filter(n => !n.data?.label && !n.data?.participantId);
+  if (unnamed.length > 0) {
+    errors.push(`${unnamed.length} node(s) have no label or participant`);
+  }
+  
+  return { valid: errors.length === 0, errors };
 }
 
 const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJumpCutConsumed, initialParticipant, onParticipantConsumed, onDealCreated }) => {
@@ -104,6 +137,31 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
   });
   
   const { screenToFlowPosition, fitView } = useReactFlow();
+
+  // Prepare export data for flows
+  const exportData = useMemo(() => {
+    return flows.map(flow => ({
+      title: flow.title,
+      status: flow.status || 'Draft',
+      isPublic: flow.isPublic ? 'Yes' : 'No',
+      isTemplate: flow.isTemplate ? 'Yes' : 'No',
+      workflowType: flow.workflowType || '',
+      createdAt: formatDateForExport(flow.createdAt),
+      updatedAt: formatDateForExport(flow.updatedAt),
+      createdBy: flow.createdBy
+    }));
+  }, [flows]);
+
+  const exportColumns = [
+    { key: 'title', label: 'Title' },
+    { key: 'status', label: 'Status' },
+    { key: 'isPublic', label: 'Public' },
+    { key: 'isTemplate', label: 'Template' },
+    { key: 'workflowType', label: 'Workflow Type' },
+    { key: 'createdAt', label: 'Created At' },
+    { key: 'updatedAt', label: 'Updated At' },
+    { key: 'createdBy', label: 'Created By' }
+  ];
   const { user } = useCantonAuth();
 
   const activeFlow = flows.find(f => f.id === activeFlowId);
@@ -272,6 +330,15 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
 
   const handleSave = useCallback(async () => {
     if (!activeFlowId || isSaving) return;
+    
+    // Validate flow before saving
+    const validation = validateFlow(nodes, edges);
+    if (!validation.valid) {
+      setError(`Cannot save: ${validation.errors.join('; ')}`);
+      setTimeout(() => setError(null), 5000);
+      return;
+    }
+    
     setIsSaving(true);
     try {
       await saveVersion(nodes, edges);
@@ -283,6 +350,30 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
       setIsSaving(false);
     }
   }, [activeFlowId, nodes, edges, saveVersion, isSaving]);
+
+  const handleExport = useCallback(() => {
+    const flowData = {
+      nodes,
+      edges,
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        flowId: activeFlow?.id,
+        flowTitle: activeFlow?.title,
+        nodeCount: nodes.length,
+        edgeCount: edges.length,
+      },
+    };
+    
+    const blob = new Blob([JSON.stringify(flowData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `flow-${activeFlow?.title || 'untitled'}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [nodes, edges, activeFlow]);
 
   const handleCreateFlow = useCallback(async (data: { title: string; description?: string; workflowType?: string }) => {
     try {
@@ -354,6 +445,15 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
 
   const handlePublishFlow = useCallback(async (options: { isPublic: boolean }) => {
     if (!activeFlowId || isPublishing) return;
+    
+    // Validate flow before publishing
+    const validation = validateFlow(nodes, edges);
+    if (!validation.valid) {
+      setError(`Cannot publish: ${validation.errors.join('; ')}`);
+      setTimeout(() => setError(null), 5000);
+      return;
+    }
+    
     setIsPublishing(true);
     try {
       const response = await authFetch(`/api/flows/${activeFlowId}/publish`, {
@@ -374,7 +474,7 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
     } finally {
       setIsPublishing(false);
     }
-  }, [activeFlowId, isPublishing]);
+  }, [activeFlowId, isPublishing, nodes, edges]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -725,6 +825,15 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
 
         <div className="h-4 w-px bg-white/5" />
 
+        {/* Export Flows */}
+        <ExportDropdown
+          data={exportData}
+          filename={`flows-${new Date().toISOString().split('T')[0]}`}
+          columns={exportColumns}
+          title="Flowryd Flows Export"
+        />
+
+        <div className="h-4 w-px bg-white/5" />
         {/* Undo/Redo */}
         <div className="flex items-center gap-1">
           <button
@@ -808,6 +917,17 @@ const NavigateHubContent: React.FC<NavigateHubProps> = ({ initialJumpCut, onJump
               <Save className="w-3 h-3" />
               {isSaving ? 'Saving...' : 'Save'}
               <span className="text-white/30 font-normal">⌘S</span>
+            </button>
+          )}
+
+          {activeFlowId && nodes.length >= 2 && (
+            <button
+              onClick={handleExport}
+              className="px-3 py-1.5 bg-white/5 text-white/70 rounded-lg text-[10px] font-bold hover:bg-white/10 hover:text-white transition-colors flex items-center gap-1.5 tracking-wide"
+              title="Export flow as JSON"
+            >
+              <Download className="w-3 h-3" />
+              Export
             </button>
           )}
 

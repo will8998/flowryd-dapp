@@ -1,7 +1,10 @@
+"use client";
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ArrowRight, ArrowLeft, Building2, ShieldCheck, Database, Scale, Clock } from 'lucide-react';
 import { Participant } from '@/lib/canton-data';
+import { useToast } from '@/components/ui';
 import Image from 'next/image';
 
 interface NavigateTeaserProps {
@@ -10,6 +13,7 @@ interface NavigateTeaserProps {
 }
 
 export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network }) => {
+  const { toast } = useToast();
   const participantCount = network.length;
   return (
     <motion.div 
@@ -143,7 +147,10 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
                   <p className="text-sm text-white/60 mb-4 flex-1">
                     Foundation member, well connected across 45+ nodes, existing validator infrastructure.
                   </p>
-                  <button className="w-full py-2 bg-white/10 hover:bg-white/20 rounded text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => toast('Sign in to select participants for offers', 'info')}
+                    className="w-full py-2 bg-white/10 hover:bg-white/20 rounded text-sm font-medium transition-colors"
+                  >
                     Select for Offer
                   </button>
                 </div>
@@ -165,7 +172,10 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
                   <p className="text-sm text-white/60 mb-4 flex-1">
                     Multi-region coverage, specialized in cross-border repo workflows.
                   </p>
-                  <button className="w-full py-2 bg-white/10 hover:bg-white/20 rounded text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => toast('Sign in to select participants for offers', 'info')}
+                    className="w-full py-2 bg-white/10 hover:bg-white/20 rounded text-sm font-medium transition-colors"
+                  >
                     Select for Offer
                   </button>
                 </div>
@@ -187,7 +197,10 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
                   <p className="text-sm text-white/60 mb-4 flex-1">
                     Market leader for collateral mobility, pre-integrated with major custodians.
                   </p>
-                  <button className="w-full py-2 bg-white/10 hover:bg-white/20 rounded text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => toast('Sign in to select participants for offers', 'info')}
+                    className="w-full py-2 bg-white/10 hover:bg-white/20 rounded text-sm font-medium transition-colors"
+                  >
                     Select for Offer
                   </button>
                 </div>
@@ -209,7 +222,10 @@ export const NavigateTeaser: React.FC<NavigateTeaserProps> = ({ onBack, network 
                   <p className="text-sm text-white/60 mb-4 flex-1">
                     Pre-approved legal frameworks for digital asset repo contracts.
                   </p>
-                  <button className="w-full py-2 bg-white/10 hover:bg-white/20 rounded text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => toast('Sign in to select participants for offers', 'info')}
+                    className="w-full py-2 bg-white/10 hover:bg-white/20 rounded text-sm font-medium transition-colors"
+                  >
                     Select for Offer
                   </button>
                 </div>

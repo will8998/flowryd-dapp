@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/logger';
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Bot } from 'lucide-react';
@@ -83,7 +85,7 @@ export const RydAITerminal: React.FC<RydAITerminalProps> = ({ tier }) => {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Chat error:', error);
+      logger.error('Chat error', { error });
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',

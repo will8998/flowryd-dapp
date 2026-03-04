@@ -14,7 +14,8 @@ import {
   Users, 
   Layers,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Hammer
 } from 'lucide-react';
 import { authFetch } from '@/lib/auth-fetch';
 import { useCantonAuth } from '@/lib/auth-context';
@@ -77,7 +78,11 @@ interface EditableFlow {
   isNew?: boolean;
 }
 
-export const JumpCutsManager: React.FC = () => {
+export interface JumpCutsManagerProps {
+  onSelectJumpCut?: (jumpCut: { id: string; name: string; nodes: Array<{ role: string; participantId: string; position: { x: number; y: number } }> }) => void;
+}
+
+export const JumpCutsManager: React.FC<JumpCutsManagerProps> = ({ onSelectJumpCut }) => {
   const [flows, setFlows] = useState<EditableFlow[]>([]);
   const [templates, setTemplates] = useState<CantonTemplate[]>([]);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -364,6 +369,7 @@ export const JumpCutsManager: React.FC = () => {
                 }}
                 onSave={handleSave}
                 onDelete={handleDelete}
+                onSelectJumpCut={onSelectJumpCut}
               />
             ))
           )}
@@ -388,6 +394,7 @@ interface FlowCardProps {
   onUpdate: (flow: EditableFlow) => void;
   onSave: (flow: EditableFlow) => void;
   onDelete: (flowId: string) => void;
+  onSelectJumpCut?: (jumpCut: { id: string; name: string; nodes: Array<{ role: string; participantId: string; position: { x: number; y: number } }> }) => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -412,6 +419,7 @@ const FlowCard: React.FC<FlowCardProps> = ({
   onUpdate,
   onSave,
   onDelete,
+  onSelectJumpCut,
 }) => {
   const [local, setLocal] = useState<EditableFlow>(flow);
 
@@ -512,6 +520,31 @@ const FlowCard: React.FC<FlowCardProps> = ({
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+            {/* Build Flow Button - visible to all users */}
+            <motion.button
+              onClick={() => {
+                if (onSelectJumpCut) {
+                  // Convert flow to jumpCut format for navigation
+                  const jumpCut = {
+                    id: flow.id,
+                    name: flow.name,
+                    nodes: flow.stages.map((stage, index) => ({
+                      role: stage.templateName,
+                      participantId: `participant_${index}`,
+                      position: { x: 350 + (index * 300), y: 250 }
+                    }))
+                  };
+                  onSelectJumpCut(jumpCut);
+                }
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 text-blue-400 hover:text-blue-300 transition-colors"
+              title="Build Flow"
+            >
+              <Hammer className="w-4 h-4" />
+            </motion.button>
+            
             {isAdmin && (
               <>
                 {isEditing ? (
@@ -560,7 +593,7 @@ const FlowCard: React.FC<FlowCardProps> = ({
                 )}
               </>
             )}
-          </div>
+        </div>
         </div>
 
         {isEditing ? (

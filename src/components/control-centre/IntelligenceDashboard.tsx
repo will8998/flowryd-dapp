@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { 
@@ -53,6 +53,11 @@ const TABS: { id: IntelTab; label: string; icon: React.ElementType; count?: numb
   { id: 'cip', label: 'CIP', icon: FileText },
   { id: 'monitor', label: 'Monitor', icon: Monitor },
 ];
+
+/* ---- Loading Skeleton ---- */
+const LoadingSkeleton = () => (
+  <div className="animate-pulse bg-white/5 rounded-lg w-full h-full" />
+);
 
 export default function IntelligenceDashboard() {
   const [activeTab, setActiveTab] = useState<IntelTab>('map');
@@ -256,7 +261,9 @@ export default function IntelligenceDashboard() {
     >
       {/* ── Market Ticker (Sticky Top) ── */}
       <div className="sticky top-0 z-40">
-        <IntelMarketTicker />
+        <Suspense fallback={<LoadingSkeleton />}>
+          <IntelMarketTicker />
+        </Suspense>
       </div>
 
       {/* ── Enhanced Tab Bar (Sticky Below Ticker) ── */}
@@ -340,7 +347,9 @@ export default function IntelligenceDashboard() {
         />
         {!collapsedSections.has('calendar') && (
           <div className="mt-2">
-            <IntelCalendarView onEventSelect={handleSelectEvent} />
+            <Suspense fallback={<LoadingSkeleton />}>
+              <IntelCalendarView onEventSelect={handleSelectEvent} />
+            </Suspense>
           </div>
         )}
       </section>
@@ -360,29 +369,31 @@ export default function IntelligenceDashboard() {
         />
         {!collapsedSections.has('graph') && (
           <div className="mt-2">
-            <ErrorBoundary label="Relationship Graph">
-            <IntelRelationshipGraph 
-              onNodeSelect={(node) => {
-                if (node.type === 'Person' && node.data) {
-                  handleSelectPerson(node.data as IntelPerson);
-                } else if (node.type === 'Event' && node.data) {
-                  handleSelectEvent(node.data as IntelEvent);
-                } else if (node.type === 'Media' && node.data) {
-                  handleSelectMedia(node.data as IntelMedia);
-                } else if (node.type === 'Organization' && node.data) {
-                  const org = node.data as Participant;
-                  setSelectedParticipantId(org.id);
-                  setSelectedEvent(null);
-                  setSelectedPerson(null);
-                  setSelectedMedia(null);
-                  setSelectedAnnouncement(null);
-                  setSelectedCIP(null);
-                  setShowPanel(true);
-                }
-              }}
-              height={500}
-            />
-            </ErrorBoundary>
+            <Suspense fallback={<LoadingSkeleton />}>
+              <ErrorBoundary label="Relationship Graph">
+              <IntelRelationshipGraph
+                onNodeSelect={(node) => {
+                  if (node.type === 'Person' && node.data) {
+                    handleSelectPerson(node.data as IntelPerson);
+                  } else if (node.type === 'Event' && node.data) {
+                    handleSelectEvent(node.data as IntelEvent);
+                  } else if (node.type === 'Media' && node.data) {
+                    handleSelectMedia(node.data as IntelMedia);
+                  } else if (node.type === 'Organization' && node.data) {
+                    const org = node.data as Participant;
+                    setSelectedParticipantId(org.id);
+                    setSelectedEvent(null);
+                    setSelectedPerson(null);
+                    setSelectedMedia(null);
+                    setSelectedAnnouncement(null);
+                    setSelectedCIP(null);
+                    setShowPanel(true);
+                  }
+                }}
+                height={500}
+              />
+              </ErrorBoundary>
+            </Suspense>
           </div>
         )}
       </section>
