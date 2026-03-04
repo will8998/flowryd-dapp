@@ -28,6 +28,7 @@ export function useMarketData(): MarketDataReturn {
   const wsRef = useRef<WebSocket | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const wsFailedRef = useRef(false);
 
   // Fetch data from our API endpoint
   const fetchMarketData = useCallback(async (silent = false) => {
@@ -78,22 +79,38 @@ export function useMarketData(): MarketDataReturn {
     setLastUpdate(new Date());
   }, []);
 
+  // Switch to fast polling (15s) when WebSocket is unavailable
+  const switchToFastPolling = useCallback(() => {
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    pollIntervalRef.current = setInterval(() => {
+      fetchMarketData(true);
+    }, 15000);
+    // Mark as live since we're actively polling
+    setIsLive(true);
+  }, [fetchMarketData]);
+
   // Connect to Binance WebSocket
   const connectWebSocket = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      return; // Already connected
-    }
+    // Skip WebSocket entirely if it already failed once this session
+    if (wsFailedRef.current) return;
+    if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     try {
-      // Binance WebSocket for BTC/USDT and ETH/USDT 24hr tickers
       const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker/ethusdt@ticker');
-      
+
+      // If connection doesn't open within 5s, give up and use polling
+      const connectionTimeout = setTimeout(() => {
+        if (ws.readyState !== WebSocket.OPEN) {
+          ws.close();
+          wsFailedRef.current = true;
+          switchToFastPolling();
+        }
+      }, 5000);
+
       ws.onopen = () => {
-        console.log('Binance WebSocket connected');
+        clearTimeout(connectionTimeout);
         setIsLive(true);
         setError(null);
-        
-        // Clear any existing reconnection timeout
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
           reconnectTimeoutRef.current = null;
@@ -103,57 +120,50 @@ export function useMarketData(): MarketDataReturn {
       ws.onmessage = (event) => {
         try {
           const data: BinanceTickerData = JSON.parse(event.data);
-          
           let symbol: string;
-          if (data.s === 'BTCUSDT') {
-            symbol = 'BTC';
-          } else if (data.s === 'ETHUSDT') {
-            symbol = 'ETH';
-          } else {
-            return; // Ignore other symbols
-          }
+          if (data.s === 'BTCUSDT') symbol = 'BTC';
+          else if (data.s === 'ETHUSDT') symbol = 'ETH';
+          else return;
 
           const price = parseFloat(data.c);
           const change24h = parseFloat(data.P);
-
-          if (!isNaN(price)) {
-            updateCoinPrice(symbol, price, change24h);
-          }
-        } catch (err) {
-          console.error('Error parsing WebSocket message:', err);
+          if (!isNaN(price)) updateCoinPrice(symbol, price, change24h);
+        } catch {
+          // Silently ignore parse errors
         }
       };
 
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      ws.onerror = () => {
+        // Silently handle — fall back to polling
+        clearTimeout(connectionTimeout);
+        wsFailedRef.current = true;
         setIsLive(false);
+        switchToFastPolling();
       };
 
       ws.onclose = (event) => {
-        console.log('WebSocket closed:', event.code, event.reason);
         setIsLive(false);
         wsRef.current = null;
+        clearTimeout(connectionTimeout);
 
-        // Attempt to reconnect after 5 seconds if not manually closed
-        if (event.code !== 1000) {
+        // Only attempt one reconnect, then fall back to polling
+        if (event.code !== 1000 && !wsFailedRef.current) {
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log('Attempting to reconnect WebSocket...');
             connectWebSocket();
           }, 5000);
+        } else if (wsFailedRef.current) {
+          switchToFastPolling();
         }
       };
 
       wsRef.current = ws;
-    } catch (error) {
-      console.error('Failed to connect to WebSocket:', error);
+    } catch {
+      // WebSocket constructor failed — fall back to polling silently
+      wsFailedRef.current = true;
       setIsLive(false);
-      
-      // Retry connection after 10 seconds
-      reconnectTimeoutRef.current = setTimeout(() => {
-        connectWebSocket();
-      }, 10000);
+      switchToFastPolling();
     }
-  }, [updateCoinPrice]);
+  }, [updateCoinPrice, switchToFastPolling]);
 
   // Initialize data fetching and WebSocket
   useEffect(() => {
